@@ -1,0 +1,12 @@
+nameseer==0.1.4
+numpy==1.24.1
+pandas==1.5.3
+Pillow==9.0.1
+Pillow==10.1.0
+rapidfuzz==3.3.1
+scikit_learn==1.2.1
+stqdm==0.0.5
+streamlit==1.28.0
+streamlit_extras==0.3.5
+streamlit_tags==1.2.8
+tqdm==4.63.0
