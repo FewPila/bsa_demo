@@ -410,6 +410,49 @@ if st.session_state.app2_preprocessNM:
     st.info("กรณีชื่อที่ไม่ Matched จะมี Next Step สำหรับกการ Assign SNA")
     #st.caption(':green[กรณีชื่อที่ไม่ Matched จะมี Next Step สำหรับกการ Assign SNA]')
 
+
+################## Download Results ##################
+if 'app2_download_file' not in st.session_state:
+    st.session_state.app2_download_file  = False
+
+def click_download():
+    st.session_state.app2_download_file = True
+
+def click_fin_download():
+    st.session_state.app2_download_file = False
+
+@st.cache_data
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
+
+if st.session_state.app2_preprocessNM:
+    #st.divider()
+    if len(nm_matched) > 0:
+        download_but = st.button('Download',on_click = click_download)
+
+if st.session_state.app2_download_file:
+    prompt = False
+    submitted = False
+    csv = convert_df(nm_matched)
+    with st.form('chat_input_form'):
+        # Create two columns; adjust the ratio to your liking
+        col1, col2 = st.columns([3,1]) 
+        # Use the first column for text input
+        with col1:
+            prompt = st.text_input(label = '',value='',placeholder='please write your file_name',label_visibility='collapsed')
+        # Use the second column for the submit button
+        with col2:
+            submitted = st.form_submit_button('Submit')
+        
+        if prompt and submitted:
+            # Do something with the inputted text here
+            st.write(f"Your file_name is: {prompt}.csv")
+
+if st.session_state.app2_download_file:
+    if prompt and submitted:
+        st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
+
 def click_get_back():
     st.session_state.app2_regex_list = None
     st.session_state.app2_start_nm = True
