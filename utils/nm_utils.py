@@ -105,8 +105,8 @@ def simplify_name(x,regex_list):
 
 @st.cache_data(ttl=3600)
 def text_preprocess_byRegex(df_query,query_colname,df_corpus,corpus_colname,regex_list):
-    query_name = df_query[query_colname].apply(lambda name : simplify_name(name,regex_list)).values
-    corpus_name = df_corpus[corpus_colname].apply(lambda name : simplify_name(name,regex_list)).values
+    query_name = df_query[query_colname].progress_apply(lambda name : simplify_name(name,regex_list)).values
+    corpus_name = df_corpus[corpus_colname].progress_apply(lambda name : simplify_name(name,regex_list)).values
     return query_name,corpus_name
 
 @st.cache_data
@@ -134,35 +134,45 @@ def extract_NM(df_query,query_names,query_colname,
     
     # Define batch size
     batch_size = 1000
-    
-    # Calculate cosine similarity in batches
-    dic = {}
-    for q_start in stqdm(range(0, query_tfidf_matrix.shape[0], batch_size)):
-        q_end = min(q_start + batch_size, query_tfidf_matrix.shape[0])
-        for doc_idx in range(q_start,q_end):
-            dic[doc_idx] = []
-        for start in range(0, corpus_tfidf_matrix.shape[0], batch_size):
-            end = min(start + batch_size, corpus_tfidf_matrix.shape[0])
-            sim_matrix = cosine_similarity(corpus_tfidf_matrix[start:end], query_tfidf_matrix[q_start:q_end])
-            
-            max_indices = np.argmax(sim_matrix, axis=0) # max sim per each batch
-            refer_max_indices = max_indices + start
-            for query_idx in range(sim_matrix.shape[1]):
-                max_score = sim_matrix[max_indices[query_idx], query_idx]
-                if max_score > threshold:
-                    dic[query_idx + q_start].append((refer_max_indices[query_idx], max_score))
-                dic[query_idx + q_start]= sorted(dic[query_idx + q_start], key=lambda i: i[1], reverse=True)
-    
 
-    retrieve_matched = pd.DataFrame([[dic[idx][0:top_n] for idx in stqdm(dic)]]).transpose().reset_index()
-    retrieve_matched.columns = ['query_index','tfidf_matched']
-    retrieve_matched = retrieve_matched.explode('tfidf_matched').dropna()
-    retrieve_matched[['corpus_index','tfidf_score']] = pd.DataFrame(retrieve_matched['tfidf_matched'].tolist(),index = retrieve_matched.index)
+    upper = st.container()
+    lower = st.container()
+    with upper:
+        # Calculate cosine similarity in batches
+        prep_cal_c = lower.empty()
+        prep_cal_c.info('Calculate TF-IDF Cosine Similarity')
+        dic = {}
+        for q_start in stqdm(range(0, query_tfidf_matrix.shape[0], batch_size)):
+            q_end = min(q_start + batch_size, query_tfidf_matrix.shape[0])
+            for doc_idx in range(q_start,q_end):
+                dic[doc_idx] = []
+            for start in range(0, corpus_tfidf_matrix.shape[0], batch_size):
+                end = min(start + batch_size, corpus_tfidf_matrix.shape[0])
+                sim_matrix = cosine_similarity(corpus_tfidf_matrix[start:end], query_tfidf_matrix[q_start:q_end])
+                
+                max_indices = np.argmax(sim_matrix, axis=0) # max sim per each batch
+                refer_max_indices = max_indices + start
+                for query_idx in range(sim_matrix.shape[1]):
+                    max_score = sim_matrix[max_indices[query_idx], query_idx]
+                    if max_score > threshold:
+                        dic[query_idx + q_start].append((refer_max_indices[query_idx], max_score))
+                    dic[query_idx + q_start]= sorted(dic[query_idx + q_start], key=lambda i: i[1], reverse=True)
+        prep_cal_c.empty()
 
-    matched_df = retrieve_matched.merge(df_query.filter(['query_index','query_name',query_colname]),on = 'query_index').\
-            merge(df_corpus.filter(['corpus_index','corpus_name',corpus_colname]),on = 'corpus_index')
-    s_col = ['query_name','corpus_name','tfidf_score',query_colname,corpus_colname]
-    matched_df = matched_df.filter(s_col)
+        prep_retrieve = lower.empty()
+        prep_retrieve.info('Prepare')
+        retrieve_matched = pd.DataFrame([[dic[idx][0:top_n] for idx in stqdm(dic)]]).transpose().reset_index()
+        prep_retrieve.empty()
+
+        retrieve_matched.columns = ['query_index','tfidf_matched']
+        retrieve_matched = retrieve_matched.explode('tfidf_matched').dropna()
+        retrieve_matched[['corpus_index','tfidf_score']] = pd.DataFrame(retrieve_matched['tfidf_matched'].tolist(),index = retrieve_matched.index)
+
+
+        matched_df = retrieve_matched.merge(df_query.filter(['query_index','query_name',query_colname]),on = 'query_index').\
+                merge(df_corpus.filter(['corpus_index','corpus_name',corpus_colname]),on = 'corpus_index')
+        s_col = ['query_name','corpus_name','tfidf_score',query_colname,corpus_colname]
+        matched_df = matched_df.filter(s_col)
 
     matched_df['tfidf_score'] = np.round(matched_df['tfidf_score'] * 100,1)
     matched_df['fuzzy_ratio'] = matched_df.apply(lambda row : np.round(fuzz.ratio(row['query_name'],row['corpus_name']),1),axis = 1)
