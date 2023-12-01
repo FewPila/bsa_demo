@@ -142,48 +142,62 @@ def is_firm_eng(x):
 def preprocess_byRegex(names_df,names_namecolname,ord_all_options,firm_all_options):
     ## exclude en names
     total_names = names_df.copy()
-    #total_names.rename(columns = {names_namecolname:'name'},inplace = True)
-    total_names['is_eng'] = [bool(re.search('^.?.?[A-Z]',str(x))) for x in total_names[names_namecolname]]
-    #eng_names = total_names[[bool(re.search('^.?.?[A-Z]',str(x))) for x in total_names['name']]]
-    eng_names = total_names.query('is_eng == True')
-    total_names = anti_join(total_names,eng_names.filter([names_namecolname]))
-    
-    ## ord
-    total_names['is_ordinary'] = total_names[names_namecolname].progress_apply(lambda name: search_byRegex(name,ord_all_options))
-    regex_ord_df = total_names.query('is_ordinary == True')
-    
-    ## firm
-    total_names = anti_join(total_names,regex_ord_df.filter([names_namecolname]))
-    total_names['is_firm'] = total_names[names_namecolname].progress_apply(lambda name: search_byRegex(name,firm_all_options))
-    regex_firm_df = total_names.query('is_firm == True')
-    
-    # wait to classify with Nameseer
-    thai_names = anti_join(total_names,regex_firm_df.filter([names_namecolname]))
-    
-    ### classify eng names
-    # ord
-    #person_eng = eng_names[[bool(re.search("MR\\.|MRS\\.|MISS|MS\\.",str(x).upper().strip())) for x in eng_names['name']]]
-    eng_names['is_ordinary_eng'] = eng_names[names_namecolname].apply(lambda x : bool(re.search("MR\\.|MRS\\.|MISS|MS\\.",str(x).upper().strip())))
-    person_eng = eng_names.query('is_ordinary_eng == True')
-    eng_names = anti_join(eng_names,person_eng.filter([names_namecolname]))
-    
-    eng_names['is_firm'] = eng_names[names_namecolname].progress_apply(is_firm_eng)
-    firm_eng = eng_names.query('is_firm == True')
-    
-    person_eng2 = anti_join(eng_names,firm_eng.filter([names_namecolname]))
-    
-    ### classified eng
-    classified_person_eng = pd.concat([person_eng.filter([names_namecolname]),
-                                   person_eng2.filter([names_namecolname])]).reset_index(drop = True)
-    classified_person_eng['Class'] = 'person_eng'
+    upper = st.container()
+    lower = st.container()
+    with upper:
+        
+        ### detect is eng names?
+        prep_search_eng = lower.empty()
+        prep_search_eng.info('Process 1/5: Search English Names')
+        total_names['is_eng'] = [bool(re.search('^.?.?[A-Z]',str(x))) for x in stqdm(total_names[names_namecolname])]
+        prep_search_eng.empty()
+        eng_names = total_names.query('is_eng == True')
+        total_names = anti_join(total_names,eng_names.filter([names_namecolname]))
+        
+        ### search by person-regex
+        prep_regex_person = lower.empty()
+        prep_regex_person.info('Process 2/5: Search by Person-Regex')
+        total_names['is_ordinary'] = total_names[names_namecolname].progress_apply(lambda name: search_byRegex(name,ord_all_options))
+        prep_regex_person.empty()
+        ## search by firm-regex
+        prep_regex_firm = lower.empty()
+        prep_regex_firm.info('Process 3/5: Search by Firm-Regex')
+        total_names['is_firm'] = total_names[names_namecolname].progress_apply(lambda name: search_byRegex(name,firm_all_options))
+        regex_firm_df = total_names.query('is_firm == True')
+        prep_regex_firm.empty()
+        total_names = anti_join(total_names,regex_firm_df.filter([names_namecolname]))
+        regex_ord_df = total_names.query('is_ordinary == True')
+        thai_names = anti_join(total_names,regex_ord_df.filter([names_namecolname]))
+        
+        ###### classify eng names
+        # ord
+        prep_eng_names = lower.empty()
+        prep_eng_names.info('Process 4/5: Classify Class to English Names')
+        eng_names['is_ordinary_eng'] = eng_names[names_namecolname].progress_apply(lambda x : bool(re.search("MR\\.|MRS\\.|MISS|MS\\.",str(x).upper().strip())))
+        person_eng = eng_names.query('is_ordinary_eng == True')
+        eng_names = anti_join(eng_names,person_eng.filter([names_namecolname]))
+        
+        eng_names['is_firm'] = eng_names[names_namecolname].progress_apply(is_firm_eng)
+        firm_eng = eng_names.query('is_firm == True')
+        
+        person_eng2 = anti_join(eng_names,firm_eng.filter([names_namecolname]))
+        
+        ### classified eng
+        classified_person_eng = pd.concat([person_eng.filter([names_namecolname]),
+                                    person_eng2.filter([names_namecolname])]).reset_index(drop = True)
+        classified_person_eng['Class'] = 'person_eng'
 
-    classified_firm_eng = firm_eng.filter([names_namecolname]).reset_index(drop = True)
-    classified_firm_eng['Class'] = 'firm_eng'
-    
-    # find by nameseer
-    nc = NameClassifier.load_pretrained_model()
-    tagged_results = thai_names.progress_apply(lambda row : nameseer_string(nc,row[names_namecolname]),axis = 1)
-    thai_names[['tag_company','tag_person']] = pd.DataFrame({'tagged':tagged_results} )['tagged'].tolist()
+        classified_firm_eng = firm_eng.filter([names_namecolname]).reset_index(drop = True)
+        classified_firm_eng['Class'] = 'firm_eng'
+        prep_eng_names.empty()
+
+        ###### find by nameseer
+        prep_nameseer = lower.empty()
+        prep_nameseer.info('Process 5/5: Classify by Nameseer')
+        nc = NameClassifier.load_pretrained_model()
+        tagged_results = thai_names.progress_apply(lambda row : nameseer_string(nc,row[names_namecolname]),axis = 1)
+        thai_names[['tag_company','tag_person']] = pd.DataFrame({'tagged':tagged_results} )['tagged'].tolist()
+        prep_nameseer.empty()
     
     return thai_names,regex_ord_df,regex_firm_df,classified_person_eng,classified_firm_eng
 
