@@ -29,6 +29,14 @@ def none_but_please_show_progress_bar(*args, **kwargs):
         return False
     return checker
 
+@st.cache_data
+def read_upload_data(df):
+    section = st.empty()
+    section.info('reading uploaded data')
+    out = pd.read_csv(df,skiprows = none_but_please_show_progress_bar())
+    section.empty()
+    return out
+
 def conditional_st_write_df(df):
     file_size = df.memory_usage().sum()
     file_size_simp = file_size / 1000000
@@ -122,7 +130,8 @@ if st.session_state.app2_upload_stage == False:
             if st.session_state.app1_ExportOutput is None:
                 query_upload = st.file_uploader("Choose a file to query",key = 'query_upload')
                 if query_upload is not None:
-                    df_query = pd.read_csv(query_upload,skiprows = none_but_please_show_progress_bar())
+                    #df_query = pd.read_csv(query_upload,skiprows = none_but_please_show_progress_bar())
+                    df_query = read_upload_data(query_upload)
             elif st.session_state.app1_ExportOutput is not None:
                 df_query = st.session_state.app1_ExportOutput
             # select columns
@@ -140,7 +149,8 @@ if st.session_state.app2_upload_stage == False:
         with corpus_section.container():
             corpus_upload = st.file_uploader("Choose a file to match with ",key = 'corpus_upload')
             if corpus_upload is not None:
-                df_corpus_upload = pd.read_csv(corpus_upload,skiprows = none_but_please_show_progress_bar())
+                #df_corpus_upload = pd.read_csv(corpus_upload,skiprows = none_but_please_show_progress_bar())
+                df_corpus_upload = read_upload_data(corpus_upload)
                 #select col
                 c_box_list = [None]
                 c_box_list.extend(df_corpus_upload.columns)

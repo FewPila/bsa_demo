@@ -24,6 +24,14 @@ def none_but_please_show_progress_bar(*args, **kwargs):
         return False
     return checker
 
+@st.cache_data
+def read_upload_data(df):
+    section = st.empty()
+    section.info('reading uploaded data')
+    out = pd.read_csv(df,skiprows = none_but_please_show_progress_bar())
+    section.empty()
+    return out
+
 def conditional_st_write_df(df):
     file_size = df.memory_usage().sum()
     file_size_simp = file_size / 1000000
@@ -146,7 +154,9 @@ if st.session_state.app1_upload == False:
         st.header("Please Upload Your Dataset (.csv หรือ .xlsx)")
         uploaded_file = st.file_uploader("Choose a file")
         if uploaded_file is not None:
-            dataframe = pd.read_csv(uploaded_file,skiprows = none_but_please_show_progress_bar())
+            
+            #dataframe = pd.read_csv(uploaded_file,skiprows = none_but_please_show_progress_bar())
+            dataframe = read_upload_data(uploaded_file)
             # glimpse result
             col1,col2 = st.columns(2)
             col1.write('First 5 Rows ')
