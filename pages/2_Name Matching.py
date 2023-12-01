@@ -22,6 +22,25 @@ from streamlit_extras.switch_page_button import switch_page
 st.set_page_config(initial_sidebar_state = 'collapsed')
 st.title("Name Matching APP")
 
+def none_but_please_show_progress_bar(*args, **kwargs):
+    bar = stqdm(*args, **kwargs)
+    def checker(x):
+        bar.update(1)
+        return False
+    return checker
+
+def conditional_st_write_df(df):
+    file_size = df.memory_usage().sum()
+    file_size_simp = file_size / 1000000
+    if file_size_simp > 200:
+        divider = file_size_simp/200
+        sample_size = int(np.round(len(df)/divider))
+        portion_of = np.round(sample_size/len(df) * 100)
+        st.write(f'File Size is too large so we sample {portion_of}% of total')
+        st.write(df.sample(sample_size))
+    else:
+        st.write(df)
+
 @st.cache_data
 def init_data(path,name_colname):
     df = pd.read_csv(path)
@@ -94,6 +113,7 @@ if st.session_state.app2_upload_stage == False:
     c_option = None
     df_query = None
     st.header("Please Upload Your Dataset")
+    st.caption(":red[Column Name: ที่จะนำมาหา Name Matching ของแต่ละ Dataset ต้องไม่เหมือนกัน]")
     left,right = st.columns(2)
     with left:
         query_section = st.empty()
@@ -102,7 +122,7 @@ if st.session_state.app2_upload_stage == False:
             if st.session_state.app1_ExportOutput is None:
                 query_upload = st.file_uploader("Choose a file to query",key = 'query_upload')
                 if query_upload is not None:
-                    df_query = pd.read_csv(query_upload)
+                    df_query = pd.read_csv(query_upload,skiprows = none_but_please_show_progress_bar())
             elif st.session_state.app1_ExportOutput is not None:
                 df_query = st.session_state.app1_ExportOutput
             # select columns
@@ -110,9 +130,7 @@ if st.session_state.app2_upload_stage == False:
                 # select col
                 q_box_list = [None]
                 q_box_list.extend(df_query.columns)
-                q_option = st.selectbox(
-                'Which is Names Column ?',
-                    q_box_list)
+                q_option = st.selectbox('Which is Names Column ?',q_box_list,key = 'q_select_box')
                 if q_option is not None:
                     st.session_state.app2_df_query,st.session_state.app2_query_colname = init_data_upload_query(df_query,q_option)
                     st.write('your query dataset')
@@ -122,13 +140,11 @@ if st.session_state.app2_upload_stage == False:
         with corpus_section.container():
             corpus_upload = st.file_uploader("Choose a file to match with ",key = 'corpus_upload')
             if corpus_upload is not None:
-                df_corpus_upload = pd.read_csv(corpus_upload)
+                df_corpus_upload = pd.read_csv(corpus_upload,skiprows = none_but_please_show_progress_bar())
                 #select col
                 c_box_list = [None]
                 c_box_list.extend(df_corpus_upload.columns)
-                c_option = st.selectbox(
-                'Which is Names Column ?',
-                    c_box_list)
+                c_option = st.selectbox('Which is Names Column ?',c_box_list,key = 'c_select_box')
                 if c_option is not None:
                     st.session_state.app2_df_corpus,st.session_state.app2_corpus_colname = init_data_upload_corpus(df_corpus_upload,c_option)
                     st.write('your corpus dataset')
@@ -205,6 +221,8 @@ if st.session_state.app2_regex_list is not None:
 
     if st.session_state.app2_double_prep:
         # prep 1
+        info_session = st.empty()
+        info_session.info('Text Preprocess 1/2')
         query_names1,corpus_names1 = text_preprocess_byRegex(st.session_state.app2_df_query,st.session_state.app2_query_colname,
                                                        st.session_state.app2_df_corpus,st.session_state.app2_corpus_colname,
                                                        regex_list = st.session_state.app2_regex_listV1)
@@ -216,6 +234,7 @@ if st.session_state.app2_regex_list is not None:
         matched_df1['text_preprocess'] = '1'
 
         # prep 2
+        info_session.info('Text Preprocess 2/2')
         query_names2,corpus_names2 = text_preprocess_byRegex(st.session_state.app2_df_query,st.session_state.app2_query_colname,
                                                        st.session_state.app2_df_corpus,st.session_state.app2_corpus_colname,
                                                        regex_list = st.session_state.app2_regex_listV2)
@@ -225,7 +244,9 @@ if st.session_state.app2_regex_list is not None:
         matched_df2 = extract_NM(df_query2,df_query2.query_name,st.session_state.app2_query_colname,
                                 df_corpus2,df_corpus2.corpus_name,st.session_state.app2_corpus_colname)
         matched_df2['text_preprocess'] = '2'
-        
+        info_session.success('Complete')
+        time.sleep(1)
+        info_session.empty()
         matched_df = load_in(pd.concat([matched_df1,matched_df2]))
         matched_df.rename(columns = {'query_name':f'cleaned_{st.session_state.app2_query_colname}','corpus_name':f'cleaned_{st.session_state.app2_corpus_colname}'},inplace = True)
        
@@ -384,7 +405,8 @@ if st.session_state.app2_preprocessNM:
                         options = st.session_state.possible_col, default = st.session_state.possible_col,
                         key = 'col_selection')
     filtered_df = dataframe_explorer(nm_matched.filter(col_selection))
-    st.dataframe(filtered_df)
+    #st.dataframe(filtered_df)
+    conditional_st_write_df(filtered_df)
     st.info("กรณีชื่อที่ไม่ Matched จะมี Next Step สำหรับกการ Assign SNA")
     #st.caption(':green[กรณีชื่อที่ไม่ Matched จะมี Next Step สำหรับกการ Assign SNA]')
 
