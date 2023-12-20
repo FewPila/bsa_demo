@@ -417,7 +417,7 @@ def corpus2_SelectCol_click():
 
 def corpus2_SelectCol_list_click():
     st.session_state.corpus2_selected_col_list = load_in(st.session_state.corpus2_col_list_select_box)
-    st.session_state.corpus2_df = load_in(st.session_state.corpus2_df.filter(st.session_state.corpus2_selected_col_list)).sample(50000)
+    st.session_state.corpus2_df = load_in(st.session_state.corpus2_df.filter(st.session_state.corpus2_selected_col_list))#.sample(50000)
 
 def corpus2_submit():
     st.session_state.corpus2_partial_nm  = load_in(corpus2_partialnm_box)
