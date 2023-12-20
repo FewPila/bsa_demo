@@ -99,7 +99,7 @@ hard_simp_words = ['(กรุงเทพ)', '(ประเทศไทย)', '
 
 def simplify_name(x,regex_list):
     regex_list_re = '|'.join(regex_list)
-    x1 = x.strip().upper()
+    x1 = str(x).strip().upper()
     x2 = re.sub(regex_list_re,'',x1)
     return x2 if len(x2)>0 else x1
 
