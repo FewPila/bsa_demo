@@ -11,6 +11,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from stqdm import stqdm
 
+def anti_join(df1,df2):
+    outer = df1.merge(df2, how='outer', indicator=True)
+    return outer[(outer._merge=='left_only')].drop('_merge', axis=1)
+    
 default_regex_list = ['\\s','\\.','\\(.*\\)','-',',','[',']']
 
 soft_simp_words = ['CO', 'COMPANY', 'CORPORATION', 'CO\\.', 'CO\\s', 'ENTERPRISE',
