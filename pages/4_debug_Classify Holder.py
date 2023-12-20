@@ -319,14 +319,15 @@ if st.session_state.app1_nameseer:
     #st.session_state.app1_dataframe =  st.session_state.app1_dataframe.dropna(subset = st.session_state.app1_name_column).reset_index(drop = True)
     #st.header('2. คัดแยกบุคคล/บริษัท ด้วย Nameseer')
     st.header("2. คัดแยกบุคคล/บริษัท ด้วย Nameseer",divider = 'blue')
-    image = Image.open('material/images/nameseer.jpg')
+    # image = Image.open('material/images/nameseer.jpg')
 
-    with st.expander("See More Explanation"):
-        st.subheader('เป็นโมเดลสำหรับคัดแยกชื่อภาษาไทยว่าเป็น person หรือ company โดยจะมี score ซึ่งหมายถึงความมั่นใจของโมเดลในการคัดแยก')
-        st.write("ซึ่งมีประโยชน์สำหรับกรณีชื่อที่ไม่มีคำระบุประเภท (ตามตัวอย่างด้านล่าง) รวมถึงเมื่อใช้ร่วมกับ Regex จะทำให้การคัดแยกแม่นยำมากขึ้น")
-        st.image(image)
+    # with st.expander("See More Explanation"):
+    #     st.subheader('เป็นโมเดลสำหรับคัดแยกชื่อภาษาไทยว่าเป็น person หรือ company โดยจะมี score ซึ่งหมายถึงความมั่นใจของโมเดลในการคัดแยก')
+    #     st.write("ซึ่งมีประโยชน์สำหรับกรณีชื่อที่ไม่มีคำระบุประเภท (ตามตัวอย่างด้านล่าง) รวมถึงเมื่อใช้ร่วมกับ Regex จะทำให้การคัดแยกแม่นยำมากขึ้น")
+    #     st.image(image)
 
-    st.subheader("User สามารถปรับ Threshold Score ของบุคคล/บริษัท ได้ตามความเหมาะสม")
+    #st.subheader("User สามารถปรับ Threshold Score ของบุคคล/บริษัท ได้ตามความเหมาะสม")
+    st.subheader('กรุณาปรับ Threshold Score สำหรับคัดแยก "บุคคลธรรมดา/บริษัท"')
     # print(st.session_state.app1_inidiv_regex_output)
     # print(st.session_state.app1_company_regex_output)
     thai_names,regex_ord_df,regex_firm_df,classified_person_eng,classified_firm_eng = preprocess_byRegex(st.session_state.app1_dataframe,
