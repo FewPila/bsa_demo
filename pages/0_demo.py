@@ -10,7 +10,7 @@ from streamlit_extras.dataframe_explorer import dataframe_explorer
 import copy
 import time
 from utils.nm_utils import *
-
+sqtm.pandas()
 
 if 't_zero' not in st.session_state:
     st.session_state.t_zero = time.time()
