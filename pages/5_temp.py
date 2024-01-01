@@ -938,6 +938,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['start_pr
     for target in range(1,3+1):
         st.write(target)
         filtered_df =  st.session_state['data'][st.session_state['data']['Class'].str.contains(st.session_state[f'assign_sna_target{target}]']['Class'])]
+        filtered_df['holder_name'] = filtered_df['holder_name'].astype(str,skipna = True) 
         st.write(filtered_df)
         for rank in range(1,4+1):
             st.write(st.session_state[f'apply_order{target}_rank{rank}'])
