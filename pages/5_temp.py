@@ -96,7 +96,7 @@ if st.session_state['app3_rule_based'] == False:
                     
 
                 if 'isic_catalog1' not in st.session_state:
-                    st.session_state.isic_catalog1 = pd.read_excel("app3_demo_info.xlsx",sheet_name= 'isics')
+                    st.session_state.isic_catalog1 = pd.read_excel("data/app3_demo_info.xlsx",sheet_name= 'isics')
 
                 if 'add_isic_section1' not in st.session_state:
                     st.session_state.add_isic_section1 = False
@@ -520,7 +520,7 @@ if st.session_state['app3_rule_based'] == False:
 
                 ################################################# Rule-based Keyword #################################################
                 if 'keywords_catalog3' not in st.session_state:
-                    st.session_state.keywords_catalog3 = pd.read_excel("app3_demo_info.xlsx",sheet_name = 'keywords_en')
+                    st.session_state.keywords_catalog3 = pd.read_excel("data/app3_demo_info.xlsx",sheet_name = 'keywords_en')
 
                 if 'add_keyword_section3' not in st.session_state:
                     st.session_state.add_keyword_section3 = False
