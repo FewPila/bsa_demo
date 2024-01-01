@@ -12,7 +12,7 @@ def assign_byIsic(*args,condition = True):
         if not pd.isna(isic):
             # if isic match
             for idx,row in isic_action.iterrows():
-                if bool(re.search(row.isic4,isic)):
+                if bool(re.search(row.isic4,str(isic))):
                     return row.target_sna10
             # if don't match
             return sna
@@ -55,7 +55,7 @@ def assign_byKeywords(*args,condition = True):
     def get_sna_keywords(sna,name,keywords_action):
         for idx,row in keywords_action.iterrows():
             # if match
-            if bool(re.search(row.word_token,name)):
+            if bool(re.search(row.word_token,str(name))):
                 return row.target_sna10
         # if don't match
         return sna
@@ -93,7 +93,7 @@ def assign_byMatchedSNA(*args,condition = True):
     
     def get_sna_nmmatched(sna,matched_sna,sna_action):
         for idx,row in sna_action.iterrows():
-            if bool(re.search(row.sna_code,matched_sna)):
+            if bool(re.search(row.sna_code,str(matched_sna))):
                 return row.target_sna10 # return in SNA10 format
         # if don't match
         return sna
