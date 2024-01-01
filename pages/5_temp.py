@@ -877,7 +877,7 @@ if 'start_prep' not in st.session_state:
     st.session_state['start_prep'] = False
 
 if 'data' not in st.session_state:
-    st.session_state['data'] = pd.read_excel('data/fake_data.xlsx',engine = 'openpyxl')
+    st.session_state['data'] = None #pd.read_excel('data/fake_data.xlsx',engine = 'openpyxl')
     st.session_state['upload_data'] = False
 
 def get_upload():
@@ -912,6 +912,7 @@ def conditional_st_write_df(df):
         st.dataframe(df.sample(sample_size),use_container_width = True)
     else:
         st.dataframe(df,use_container_width = True)
+        
 if st.session_state['app3_rule_based_prioritize'] :
     st.button('upload ja',key = 'upload_data_bt',on_click = get_upload)
     if st.session_state['upload_data']:
