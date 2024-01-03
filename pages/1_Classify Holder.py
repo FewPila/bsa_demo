@@ -24,6 +24,14 @@ def none_but_please_show_progress_bar(*args, **kwargs):
         return False
     return checker
 
+def prepLines(lines):
+    show_df = pd.DataFrame(lines)
+    show_df = show_df.iloc[:,1:]
+    show_df.columns = show_df.iloc[0]
+    show_df.rename(columns = {'Non-Null':'Non-Null-Rows'},inplace = True)
+    show_df = show_df.iloc[2:,[0,1]]
+    return show_df
+
 @st.cache_data
 def read_upload_data(df):
     section = st.empty()
@@ -40,9 +48,9 @@ def conditional_st_write_df(df):
         sample_size = int(np.round(len(df)/divider))
         portion_of = np.round(sample_size/len(df) * 100)
         st.write(f'File Size is too large so we sample {portion_of}% of total')
-        st.write(df.sample(sample_size))
+        st.dataframe(df.sample(sample_size),use_container_width= True)
     else:
-        st.write(df)
+        st.dataframe(df,use_container_width= True)
         
 @st.cache_data
 def load_in(input_):
@@ -83,18 +91,15 @@ def RevertToUserChoices():
 
 def click_evaluation():
     st.session_state.app1_MockupEvaluation = True
-
-def click_get_back():
-    st.session_state.app1_regex = True
-    st.session_state.app1_nameseer = False
-    st.session_state.app1_dev_CleanRestName = False
-    st.session_state.app1_MockupEvaluation = False
     
 def ClickToNext():
     st.session_state.app1_NextPage = True
 
 def click_startClassify():
     st.session_state.app1_nameseer = True
+    st.session_state.app1_inidiv_regex_output = load_in(st.session_state.app1_selected_indiv)
+    st.session_state.app1_company_regex_output = load_in(st.session_state.app1_selected_company)
+    st.session_state.app1_regex = False
 
 @st.cache_data
 def Export_ToNext(input_):
@@ -106,6 +111,7 @@ def click_evaluation():
 
 def click_concat_mult():
     st.session_state.app1_prep_mult_nmcol = True
+
 def click_get_back():
     st.session_state.app1_regex = True
     st.session_state.app1_nameseer = False
@@ -148,49 +154,72 @@ if 'app1_NameClassify' not in st.session_state:
     st.session_state.app1_NextPage = False
 
 ################## 0. Upload Dataset ##################
+st.title('App 1. คัดแยกประเภทผู้ถือหุ้น')
+st.write('การทำงานของโปรแกรมนี้จะใช้ทั้งหมด 2 วิธีในการคัดแยกประเภทของผู้ถือหุ้นว่าเป็น "บุคคลธรรมดา/บริษัท"')
+
+image = Image.open('material/images/nameseerV2.jpg')
+st.write(":blue[1.คัดแยกโดย Regex (Regular Expression)]")
+st.code('Regex หรือก็คือ Keywords ในการเข้ามาจับ pattern ของแต่ละชื่อ \nเช่น "บริษัท,หจก.,จำกัด" หากมีคำดังกล่าวอยู่ในชื่อจะถูกคัดแยกเป็น -> "บริษัท" \nกรณีไม่สามารถคัดแยกได้ด้วย Regex จะถูกคัดแยกในขั้นตอนถัดไปคือ Nameseer')
+
+with st.expander("คลิกเพื่อดูตัวอย่างการทำงานของ Regex"):
+    st.write('ตัวอย่างการกำหนด Regex')
+    st.code('''person_regex = ['นาย','นาง|นางสาว','^นาย'] # | หมายถึงหรือ,^ หมายถึงขึ้นต้นด้วย  \ncompany_regex = ['บริษัท','จำกัด','หจก.','มหาชน']''')
+    first_text = 'นาย ปิติยาธร พิลาออน -> "บุคคลธรรมดา" \nปิติยาธร พิลาออน -> "Unknown" #เพราะไม่เจอใน person_regex'
+    second_text = 'บริษัท ความอดทนมี จำกัด -> "บริษัท"\nเครือเจริญโภคภัณฑ์ -> "Unknown" #เพราะไม่เจอใน company_regex ' 
+    st.caption(":orange[ตัวอย่าง ผลลัพธ์การคัดแยกประเภท]")
+    st.code(f'{first_text}\n{second_text}')
+    st.caption('หลังจากนั้นจะนำชื่อที่เป็น Unknown ไปคัดแยกต่อด้วย Nameseer')
+
+st.write(":blue[2.คัดแยกโดย Nameseer]")
+nameseer_v = 'Nameseer เป็นโมเดลสำหรับคัดแยกชื่อภาษาไทยว่าเป็น "บุคคลธรรมดา" หรือ "บริษัท" \nโดยจะมี score ซึ่งหมายถึงความมั่นใจ(%) ของโมเดลในการคัดแยก \nคัดแยกโดยจะต้องตั้ง threshold เช่น person_score > 0.7 จะคัดแยกเป็น "บุคคลธรรมดา"'
+st.code(f'{nameseer_v}')
+
+with st.expander("See More Explanation"):
+    #st.write("ซึ่งมีประโยชน์สำหรับกรณีชื่อที่ไม่มีคำระบุประเภท (ตามตัวอย่างด้านล่าง) รวมถึงเมื่อใช้ร่วมกับ Regex จะทำให้การคัดแยกแม่นยำมากขึ้น")
+    st.write('โดยจะใช้คัดแยกชื่อที่ไม่สามารถคัดแยกประเภทได้จาก Regex โดยผลของ Nameseer อาจมีความผิดพลาดได้เพราะเป็นโมเดลที่ใช้ความน่าจะเป็น \nตามตัวอย่างด้านล่าง')
+    st.image(image)
+    st.caption("หมายเหตุ: ชื่อจะมีได้แค่ Class เดียว เช่น หากมี person_score >= 0.5 ชื่อดังกล่าวจะไม่มีคะแนนในส่วนของ company_score ")
+
+st.divider()
 if st.session_state.app1_upload == False:
     first_section = st.empty()
     with first_section.container():
-        st.header("Please Upload Your Dataset (.csv หรือ .xlsx)")
+        
+        #st.header("Please Upload Your Dataset (.csv หรือ .xlsx)")
+        st.header("กรุณาอัพโหลด Dataset เพื่อเริ่ม (.csv)")
         uploaded_file = st.file_uploader("Choose a file")
         if uploaded_file is not None:
             
-            #dataframe = pd.read_csv(uploaded_file,skiprows = none_but_please_show_progress_bar())
             dataframe = read_upload_data(uploaded_file)
-            # glimpse result
-            col1,col2 = st.columns(2)
-            col1.write('First 5 Rows ')
-            col1.write(dataframe.head())
-            col2.write('Last 5 Rows')
-            col2.write(dataframe.tail())
-
-            col3,col4 = st.columns(2)
-            col3.write('Summarized Fields')
-            #col3.write(dataframe.columns.values)
+            conditional_st_write_df(dataframe)
+            st.write(f'{dataframe.shape[0]} rows , {dataframe.shape[1]} columns')
             buf = io.StringIO()
             dataframe.info(buf=buf)
             s = buf.getvalue()
             lines = [line.split() for line in s.splitlines()[3:-2]]
-            col3.write(pd.DataFrame(lines))
-
-            col4.write(f'Total Rows = {len(dataframe)}')
-
+            st.write('สรุปรายละเอียดของ Dataset')
+            st.write(prepLines(lines))
+            
             box_list = [None]
             box_list.extend(dataframe.columns)
-           
-            optional_concat = st.checkbox('IF Your Names Column is Multiple')
-            if not optional_concat:
-                option = st.selectbox('Which is Names Column ?',box_list,key = 'selected_option')
-                st.session_state.option = st.session_state.selected_option
-            elif optional_concat:
-                option = st.multiselect(label = '',options = dataframe.columns.values,default = None,key = 'multiple_name_columns')
-                submit_option = st.button('submit Name columns',on_click = click_concat_mult)
-                if submit_option:
-                    st.session_state.option = 'concated_name'
-                    st.success("OK please start")
+
+            upper_container = st.container()
+            #optional_concat = st.checkbox('IF Your Names Column is Multiple')
+            optional_concat = st.checkbox('หากต้องการรวมชื่อจากหลายคอลัมน์')
+            with upper_container:
+                if not optional_concat:
+                    st.write('โปรดเลือกคอลัมน์ชื่อที่ต้องการคัดแยกประเภท "บุคคลธรรมดา/ธุรกิจ"')
+                    option = st.selectbox('',box_list,key = 'selected_option',label_visibility='collapsed')
+                    st.session_state.option = st.session_state.selected_option
+                elif optional_concat:
+                    option = st.multiselect(label = '',options = dataframe.columns.values,default = None,key = 'multiple_name_columns')
+                    submit_option = st.button('submit Name columns',on_click = click_concat_mult)
+                    if submit_option:
+                        st.session_state.option = 'concated_name'
+                        st.success("OK please start")
                 
             if option is not None:
-                start_name_classify =  st.button('Submit To Start')
+                start_name_classify =  st.button('คลิกเพื่อเริ่ม')
                 if start_name_classify:
                     if st.session_state.app1_prep_mult_nmcol:
                         dataframe['concated_name'] = concat_name(dataframe.filter(st.session_state.multiple_name_columns))
@@ -207,81 +236,76 @@ if st.session_state.app1_upload == False:
 if st.session_state.app1_regex:
     st.session_state.app1_upload = True
     ### 1.1 Individuals
-    indiv_regex_section = st.empty()
-    with indiv_regex_section.container():
-        st.header("1. คัดแยกบุคคล/บริษัท ด้วย Regex")
-        with st.expander('more explanation about Regex'):
-            st.write('regex is ...')
-            
-        st.write('ใช้ keyword ในการคัดแยกว่าเป็นบุคคลหรือบริษัท')
-        st.subheader("1.1 คัดแยกบุคคลธรรมดา")
+    st.header("1. คัดแยกบุคคล/บริษัท ด้วย Regex")
+    with st.expander('more explanation about Regex'):
+        st.write('regex is ...')
         
-        user_indiv_regex_choices = st.radio(label = '',options = ['default_regex','developer_regex'],
-                                            captions = ['keywords สำหรับคัดแยกบุคคลธรรมดา','*(Recommend) keywords ที่ developer ทำเอาไว้'], 
-                                            index = 0,key = 'user_indiv_regex_choices_')
-        if user_indiv_regex_choices == 'default_regex':
-            st.session_state.app1_possible_indiv_regex = st.session_state.app1_user_indiv_regex
-            st.session_state.app1_possible_indiv_default = copy.deepcopy(st.session_state.app1_user_indiv_regex)
-        elif user_indiv_regex_choices == 'developer_regex':
-            st.session_state.app1_possible_indiv_regex = st.session_state.app1_developer_indiv_regex
-            st.session_state.app1_possible_indiv_default = copy.deepcopy(st.session_state.app1_developer_indiv_regex)
+    st.write('ใช้ keyword ในการคัดแยกว่าเป็นบุคคลหรือบริษัท')
+    st.subheader("1.1 คัดแยกบุคคลธรรมดา",divider = 'blue')
+    
+    user_indiv_regex_choices = st.radio(label = '',options = ['Suggested set of Keywords','Customize your own Keywords'],
+                                        captions = ['Keywords ที่ Developer คัดสรรมาให้ซึ่งคิดว่าเหมาะสมกับ Dataset: CPFS_Shareholder','ปรับแต่ง Keywords เองทั้งหมด'], 
+                                        index = 0,key = 'user_indiv_regex_choices_',label_visibility= 'collapsed')
 
-        t_indiv = st.text_input(label = 'add your person regex here',key = 'individuals_customize_input')
-        if t_indiv != '':
-            if t_indiv not in st.session_state.app1_possible_indiv_regex:
-                st.session_state.app1_possible_indiv_regex.append(t_indiv)
-                st.session_state.app1_possible_indiv_default.append(t_indiv)
-        
-        multi_indiv = st.multiselect(label = 'Choose your ordinary regex',
-                        options = st.session_state.app1_possible_indiv_regex, default = st.session_state.app1_possible_indiv_default,
-                        key='app1_selected_indiv',on_change = protect_indiv_key)
+    if user_indiv_regex_choices == 'Customize your own Keywords':
+        st.session_state.app1_possible_indiv_regex = st.session_state.app1_user_indiv_regex
+        st.session_state.app1_possible_indiv_default = copy.deepcopy(st.session_state.app1_user_indiv_regex)
+    elif user_indiv_regex_choices == 'Suggested set of Keywords':
+        st.session_state.app1_possible_indiv_regex = st.session_state.app1_developer_indiv_regex
+        st.session_state.app1_possible_indiv_default = copy.deepcopy(st.session_state.app1_developer_indiv_regex)
+
+    t_indiv = st.text_input(label = 'เพิ่ม Keyword ตรงนี้',key = 'individuals_customize_input')
+    if t_indiv != '':
+        if t_indiv not in st.session_state.app1_possible_indiv_regex:
+            st.session_state.app1_possible_indiv_regex.append(t_indiv)
+            st.session_state.app1_possible_indiv_default.append(t_indiv)
+    
+    multi_indiv = st.multiselect(label = 'Keywords ทั้งหมดที่จะนำไปใช้คัดแยก "บุคคลธรรมดา"',
+                    options = st.session_state.app1_possible_indiv_regex, default = st.session_state.app1_possible_indiv_default,
+                    key='app1_selected_indiv',on_change = protect_indiv_key)
     ### 1.2 Company
-    company_regex_section = st.empty()
-    with company_regex_section.container():
-        st.subheader("1.2 คัดแยกบริษัท")
-        
-        user_company_regex_choices = st.radio(label = '',options = ['default_regex','developer_regex'],
-                                            captions = ['keywords สำหรับคัดแยกบริษัท','*(Recommend) keywords ที่ developer ทำเอาไว้'], 
-                                            index = 0,key = 'user_company_regex_choices_')
-        if user_company_regex_choices == 'default_regex':
-            st.session_state.app1_possible_company_regex = st.session_state.app1_user_company_regex
-            st.session_state.app1_possible_company_default = copy.deepcopy(st.session_state.app1_user_company_regex)
-        elif user_company_regex_choices == 'developer_regex':
-            st.session_state.app1_possible_company_regex = st.session_state.app1_developer_company_regex
-            st.session_state.app1_possible_company_default = copy.deepcopy(st.session_state.app1_developer_company_regex)
+    st.subheader("1.2 คัดแยกบริษัท",divider = 'blue')
 
-        t_company = st.text_input(label = 'add your company regex here',key = 'company_customize_input')
-        if t_company != '':
-            if t_company not in st.session_state.possible_company_regex:
-                st.session_state.app1_possible_company_regex.append(t_company)
-                st.session_state.app1_possible_company_default.append(t_company)
-        
-        multi_company = st.multiselect(label = 'Choose your Company regex',
-                        options = st.session_state.app1_possible_company_regex, default = st.session_state.app1_possible_company_default,
-                        key='app1_selected_company',on_change = protect_company_key)
+    user_company_regex_choices = st.radio(label = '',options = ['Suggested set of Keywords','Customize your own Keywords'],
+                                        captions = ['Keywords ที่ Developer คัดสรรมาให้ซึ่งคิดว่าเหมาะสมกับ Dataset: CPFS_Shareholder','ปรับแต่ง Keywords เองทั้งหมด'], 
+                                        index = 0,key = 'user_company_regex_choices_',label_visibility= 'collapsed')
+
+    if user_company_regex_choices == 'Customize your own Keywords':
+        st.session_state.app1_possible_company_regex = st.session_state.app1_user_company_regex
+        st.session_state.app1_possible_company_default = copy.deepcopy(st.session_state.app1_user_company_regex)
+    elif user_company_regex_choices == 'Suggested set of Keywords':
+        st.session_state.app1_possible_company_regex = st.session_state.app1_developer_company_regex
+        st.session_state.app1_possible_company_default = copy.deepcopy(st.session_state.app1_developer_company_regex)
+
+    t_company = st.text_input(label = 'เพิ่ม Keyword ตรงนี้',key = 'company_customize_input')
+    if t_company != '':
+        if t_company not in st.session_state.possible_company_regex:
+            st.session_state.app1_possible_company_regex.append(t_company)
+            st.session_state.app1_possible_company_default.append(t_company)
+    
+    multi_company = st.multiselect(label = 'Keywords ทั้งหมดที่จะนำไปใช้คัดแยก "บริษัท"',
+                    options = st.session_state.app1_possible_company_regex, default = st.session_state.app1_possible_company_default,
+                    key='app1_selected_company',on_change = protect_company_key)
 
     ### submit to start classify process
-    page1_section = st.empty()
-    with page1_section.container():
-        start_classify = st.button('Next',key = 'start_classify',on_click= click_startClassify)
-        if start_classify:
-            st.session_state.app1_inidiv_regex_output = load_in(st.session_state.app1_selected_indiv)
-            st.session_state.app1_company_regex_output = load_in(st.session_state.app1_selected_company)
-            indiv_regex_section.empty()
-            company_regex_section.empty()
-            #st.session_state.app1_nameseer = True
-            page1_section.empty()
 
+    left,right = st.columns([10,1])
+    with right:
+        start_classify = st.button('Next',key = 'start_classify',on_click= click_startClassify)
+
+    # <- get back 1
+    def click_get_back1():
+        st.session_state['app1_upload'] = False
+        st.session_state['app1_regex'] = False
+
+    if st.session_state.app1_regex:
+        with left:
+            st.button('Back',key = 'back1',on_click= click_get_back1)
 
 ################## 2. Classify by Nameseer ##################
 if st.session_state.app1_nameseer:
-    st.session_state.app1_regex = False
-    #names_df,names_namecolname = init_data()
-    # if isinstance(st.session_state.app1_name_column,list):
-    #     st.session_state.app1_name_column = load_in(st.session_state.app1_name_column[0])
-    #st.session_state.app1_dataframe =  st.session_state.app1_dataframe.dropna(subset = st.session_state.app1_name_column).reset_index(drop = True)
-    #st.header('2. คัดแยกบุคคล/บริษัท ด้วย Nameseer')
-    st.header("2. คัดแยกบุคคล/บริษัท ด้วย Nameseer",divider = 'orange')
+
+    st.header("2. คัดแยกบุคคล/บริษัท ด้วย Nameseer",divider = 'blue')
     image = Image.open('material/images/nameseer.jpg')
 
     with st.expander("See More Explanation"):
@@ -299,8 +323,8 @@ if st.session_state.app1_nameseer:
     
     slider_container = st.container()
     
-    developer_choices_checkBox = st.checkbox("USE Developer Choices !!!")
-    st.caption("หมายเหตุ: จะเป็น Rules ที่ Developer ลอง trial & error เพื่อให้ได้ผลที่คิดว่าดีที่สุด")
+    developer_choices_checkBox = st.checkbox("Suggested Threshold")
+    st.caption("หมายเหตุ: จะเป็น Threshold ที่ Developer ลอง trial & error และมีการคำนวณใช้กฎเพิ่มเติมเพื่อให้ได้ผลที่คิดว่าดีที่สุด")
     if ('nameseer_person') and ('nameseer_company') not in st.session_state:
         st.session_state.nameseer_person = 0.5
         st.session_state.nameseer_company = 0.6
@@ -311,7 +335,7 @@ if st.session_state.app1_nameseer:
     with slider_container:
         #st.slider(label = 'คัดแยกเป็นบุคคลธรรมดาเมื่อ person_score >=',min_value = 0.5,max_value =  1.0,value =  st.session_state.nameseer_person, step = 0.01,key = 'nameseer_person')
         nameseer_p = st.slider(label = 'คัดแยกเป็นบุคคลธรรมดาเมื่อ person_score >=',min_value = 0.5,max_value =  1.0,value =  st.session_state.nameseer_person, step = 0.01,key = 'nameseer_person')
-        st.markdown("<div style='text-align: right;'><pre>ยิ่งมากยิ่งลด False Positive </pre>แต่มีความเสี่ยงที่ False Negative เพิ่มขึ้นหรือเกิด UNK ขึ้น</div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: right;'><pre>ยิ่งมากยิ่งลด False Positive </pre>แต่มีความเสี่ยงที่ False Negative เพิ่มขึ้นหรือเกิด Unknown ขึ้น</div>", unsafe_allow_html=True)
         
         #st.slider(label = 'คัดแยกเป็นบริษัทเมื่อ company_score >=',min_value = 0.5,max_value =  1.0,value =  st.session_state.nameseer_company, step = 0.01)
         nameseer_c = st.slider(label = 'คัดแยกเป็นบริษัทเมื่อ company_score >=',min_value = 0.5,max_value =  1.0,value =  st.session_state.nameseer_company, step = 0.01,key = 'nameseer_company')
@@ -334,6 +358,9 @@ if st.session_state.app1_nameseer:
         suspect_ord_2 = nameseer_firm_df.query('tag_company < 0.6')
         total_the_rest = pd.concat([suspect_ord_1.filter([st.session_state.app1_name_column]),suspect_ord_2.filter([st.session_state.app1_name_column]),
                             rest_name_th.filter([st.session_state.app1_name_column])])
+
+        nameseer_ord_df = anti_join(nameseer_ord_df,suspect_ord_1.filter([st.session_state.app1_name_column]))
+        nameseer_firm_df = anti_join(nameseer_firm_df,suspect_ord_2.filter([st.session_state.app1_name_column]))
 
         firm_keywords = ['CO', 'COMPANY', 'CORPORATION', 'CO\\.', 'CO\\s', 'ENTERPRISE',
             'ENTERPRISES', 'INC', 'INTERNATIONAL', 'LIMITED', 'LLC', 'LTD','TRUST','SERVICE',
@@ -361,33 +388,38 @@ if st.session_state.app1_nameseer:
             
         firm_the_rest = anti_join(total_the_rest,ord_the_rest.filter([st.session_state.app1_name_column]))
         ### gather output
-        classified_person_th = pd.concat([ord_the_rest.filter([st.session_state.app1_name_column]),
+        classified_person_th = pd.concat([nameseer_ord_df.filter([st.session_state.app1_name_column]),
+                                            ord_the_rest.filter([st.session_state.app1_name_column]),
                                             regex_ord_df.filter([st.session_state.app1_name_column]),
                                             nameseer_ord_df.filter([st.session_state.app1_name_column])])
-        classified_person_th['Class'] = 'person_th'
+        classified_person_th['Classified_Class'] = 'person_th'
 
 
-        classified_firm_th = pd.concat([firm_the_rest.filter([st.session_state.app1_name_column]),
+        classified_firm_th = pd.concat([nameseer_firm_df.filter([st.session_state.app1_name_column]),
+                                        firm_the_rest.filter([st.session_state.app1_name_column]),
                                         regex_firm_df.filter([st.session_state.app1_name_column]),
                                         nameseer_firm_df.filter([st.session_state.app1_name_column])])
-        classified_firm_th['Class'] = 'firm_th'
+        classified_firm_th['Classified_Class'] = 'firm_th'
 
-        output_classified = pd.concat([
-                            classified_person_th.filter([st.session_state.app1_name_column,'Class']),
-                            classified_firm_th.filter([st.session_state.app1_name_column,'Class']),
-                            classified_person_eng.filter([st.session_state.app1_name_column,'Class']),
-                            classified_firm_eng.filter([st.session_state.app1_name_column,'Class'])
+        classified_result = pd.concat([
+                            classified_person_th.filter([st.session_state.app1_name_column,'Classified_Class']),
+                            classified_firm_th.filter([st.session_state.app1_name_column,'Classified_Class']),
+                            classified_person_eng.filter([st.session_state.app1_name_column,'Classified_Class']),
+                            classified_firm_eng.filter([st.session_state.app1_name_column,'Classified_Class'])
                             ]).drop_duplicates(st.session_state.app1_name_column)
+        output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
+                                                                                           'Classified_Class']),how = 'left')
+        
         #refer count
         class_values = ['person_th','person_eng','firm_th','firm_eng','Unknown']
         values = [0,0,0,0,0]
-        refer_c = pd.DataFrame({'Class':class_values,'Count':values})
+        refer_c = pd.DataFrame({'Classified_Class':class_values,'Count':values})
 
-        classifier_results = output_classified.Class.value_counts().reset_index()
-        classifier_results.columns = ['Class','Count']
+        classifier_results = output_classified['Classified_Class'].value_counts().reset_index()
+        classifier_results.columns = ['Classified_Class','Count']
 
         result_c = refer_c.merge(classifier_results,
-                    on=['Class'],
+                    on=['Classified_Class'],
                     how='left',
                     suffixes=('_x', None)).ffill(axis=1).drop(columns='Count_x')
         result_c['Count'] = result_c['Count'].astype(int)
@@ -410,31 +442,34 @@ if st.session_state.app1_nameseer:
         nameseer_ord_df['Classified_By'] = 'nameseer'
         classified_person_th = pd.concat([regex_ord_df.filter([st.session_state.app1_name_column,'Classified_By']),
                                         nameseer_ord_df.filter([st.session_state.app1_name_column,'Classified_By'])])
-        classified_person_th['Class'] = 'person_th'
+        classified_person_th['Classified_Class'] = 'person_th'
 
 
         classified_firm_th = pd.concat([regex_firm_df.filter([st.session_state.app1_name_column,'Classified_By']),
                                     nameseer_firm_df.filter([st.session_state.app1_name_column,'Classified_By'])])
-        classified_firm_th['Class'] = 'firm_th'
+        classified_firm_th['Classified_Class'] = 'firm_th'
 
-        rest_name_th['Class'] = 'Unknown'
+        rest_name_th['Classified_Class'] = 'Unknown'
         rest_name_th['Classified_By'] = None
 
-        output_classified = pd.concat([classified_person_th,
+        classified_result = pd.concat([classified_person_th,
                                 classified_firm_th,
                                 classified_person_eng,
                                 classified_firm_eng,
-                                rest_name_th]).filter([st.session_state.app1_name_column,'Class','Classified_By']).reset_index(drop = True)
+                                rest_name_th]).filter([st.session_state.app1_name_column,'Classified_Class','Classified_By']).reset_index(drop = True)
+        output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
+                                                                                           'Classified_Class','Classified_By']),how = 'left')
+        
         #refer count
         class_values = ['person_th','person_eng','firm_th','firm_eng','Unknown']
         values = [0,0,0,0,0]
-        refer_c = pd.DataFrame({'Class':class_values,'Count':values})
+        refer_c = pd.DataFrame({'Classified_Class':class_values,'Count':values})
 
-        classifier_results = output_classified.Class.value_counts().reset_index()
-        classifier_results.columns = ['Class','Count']
+        classifier_results = output_classified['Classified_Class'].value_counts().reset_index()
+        classifier_results.columns = ['Classified_Class','Count']
 
         result_c = refer_c.merge(classifier_results,
-                    on=['Class'],
+                    on=['Classified_Class'],
                     how='left',
                     suffixes=('_x', None)).ffill(axis=1).drop(columns = 'Count_x')
         result_c['Count'] = result_c['Count'].astype(int)
@@ -443,7 +478,7 @@ if st.session_state.app1_nameseer:
     #st.header('3. Classify Results')
     st.divider()
     st.header("3. Classifed Results",divider = 'green')
-    st.subheader('จำนวนชื่อแยกรายประเภทที่คัดแยกได้') 
+    st.subheader(f'คัดแยกได้ทั้งหมด {len(classified_result)} ชื่อแยกเป็นประเภทดังนี้') 
     st.write(result_c)
     st.subheader("Output ที่คัดแยกเสร็จแล้ว")
     #st.write(output_classified)
@@ -495,77 +530,83 @@ if st.session_state.app1_download_file:
         st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
 
 ################## 2.1 Evaluation ##################
-if st.session_state.app1_nameseer:
-    st.divider()
-    st.subheader("(Optional) จำลองการประเมินผล Classifier")
-    with st.expander('Psuedo Evaluation'):
-        st.subheader('เป็นการประเมินผลของ Classifiers (Regex/Nameseer)')
-        st.caption('Disclaimer ผลของ evaluation มาจาก psuedo_label (เป็นผลที่โมเดลทำนายยังไม่ใช่ของจริง) จึงไม่เหมาะกับการนำไปอ้างอิงแบบจริงจัง')
-        evaluation_button = st.button('Get Evaluation Results',key = 'evaluation_click',on_click = click_evaluation)
-        if st.session_state.app1_MockupEvaluation:
-            #mockup_df = st.session_state.app1_dataframe
-            #mockup_df.rename(columns = {st.session_state.app1_name_column:'name'},inplace = True)
-            indiv_answ,comp_answ = evaluation_mockup(st.session_state.app1_dataframe,st.session_state.app1_name_column)
+# if st.session_state.app1_nameseer:
+#     st.divider()
+#     st.subheader("(Optional) จำลองการประเมินผล Classifier")
+#     with st.expander('Psuedo Evaluation'):
+#         st.subheader('เป็นการประเมินผลของ Classifiers (Regex/Nameseer)')
+#         st.caption('Disclaimer ผลของ evaluation มาจาก psuedo_label (เป็นผลที่โมเดลทำนายยังไม่ใช่ของจริง) จึงไม่เหมาะกับการนำไปอ้างอิงแบบจริงจัง')
+#         evaluation_button = st.button('Get Evaluation Results',key = 'evaluation_click',on_click = click_evaluation)
+#         if st.session_state.app1_MockupEvaluation:
+#             #mockup_df = st.session_state.app1_dataframe
+#             #mockup_df.rename(columns = {st.session_state.app1_name_column:'name'},inplace = True)
+#             indiv_answ,comp_answ = evaluation_mockup(st.session_state.app1_dataframe,st.session_state.app1_name_column)
             
-            eva_col1,eva_col2 = st.columns(2)
-            with eva_col1:
-                if indiv_answ is not None:
-                    st.write('Psuedo Evaluation Class: บุคคลธรรมดาที่เป็นชื่อภาษาไทย (person_th)')
-                    indiv_answ = indiv_answ.filter([st.session_state.app1_name_column,'tag_person']).merge(output_classified,how = 'left').filter([st.session_state.app1_name_column,'Class','tag_person'])
-                    indiv_answ['Psuedo_Label'] = 1
-                    indiv_answ['Predict'] = [1 if x == 'person_th' else 0 for x in indiv_answ['Class']]
+#             eva_col1,eva_col2 = st.columns(2)
+#             with eva_col1:
+#                 if indiv_answ is not None:
+#                     st.write('Psuedo Evaluation Class: บุคคลธรรมดาที่เป็นชื่อภาษาไทย (person_th)')
+#                     indiv_answ = indiv_answ.filter([st.session_state.app1_name_column,'tag_person']).merge(output_classified,how = 'left').filter([st.session_state.app1_name_column,'Classified_Class','tag_person'])
+#                     indiv_answ['Psuedo_Label'] = 1
+#                     indiv_answ['Predict'] = [1 if x == 'person_th' else 0 for x in indiv_answ['Classified_Class']]
 
-                    indiv_acc = accuracy_score(indiv_answ['Psuedo_Label'],indiv_answ['Predict'])
-                    indiv_precision = precision_score(indiv_answ['Psuedo_Label'],indiv_answ['Predict'])
-                    indiv_recall = recall_score(indiv_answ['Psuedo_Label'],indiv_answ['Predict'])
-                    indiv_f1 = f1_score(indiv_answ['Psuedo_Label'],indiv_answ['Predict'])
-                    indiv_total_samples = len(indiv_answ)
-                    indiv_eva = pd.DataFrame({'acc':[indiv_acc],'precision':[indiv_precision],'recall':[indiv_recall],'f1_score':[indiv_f1],'sample':[indiv_total_samples]})
+#                     indiv_acc = accuracy_score(indiv_answ['Psuedo_Label'],indiv_answ['Predict'])
+#                     indiv_precision = precision_score(indiv_answ['Psuedo_Label'],indiv_answ['Predict'])
+#                     indiv_recall = recall_score(indiv_answ['Psuedo_Label'],indiv_answ['Predict'])
+#                     indiv_f1 = f1_score(indiv_answ['Psuedo_Label'],indiv_answ['Predict'])
+#                     indiv_total_samples = len(indiv_answ)
+#                     indiv_eva = pd.DataFrame({'acc':[indiv_acc],'precision':[indiv_precision],'recall':[indiv_recall],'f1_score':[indiv_f1],'sample':[indiv_total_samples]})
                     
-                    indiv_answ['Psuedo_Label'] = 'person_th'
-                    indiv_answ['Predict'] = indiv_answ['Class']
-                    indiv_answ = indiv_answ.filter([st.session_state.app1_name_column,'Psuedo_Label','Predict'])
-                    #indiv_answ.rename(columns = {st.session_state.app1_name_column:st.session_state.app1_name_column},inplace = True)
-                    st.write(indiv_eva)
-                    #st.write(indiv_answ.query('Actual != Predict'))
-                    st.write('ตัวอย่างชื่อที่ classify ไม่ตรงกับ Psuedo Label')
-                    #st.dataframe(indiv_answ.query('Psuedo_Label != Predict'), use_container_width=True)
-                    conditional_st_write_df(indiv_answ.query('Psuedo_Label != Predict'))
-            with eva_col2:
-                if comp_answ is not None:
-                    st.write('Psuedo Evaluation Class: บริษัทที่เป็นชื่อภาษาไทย (company_th)')
+#                     indiv_answ['Psuedo_Label'] = 'person_th'
+#                     indiv_answ['Predict'] = indiv_answ['Classified_Class']
+#                     indiv_answ = indiv_answ.filter([st.session_state.app1_name_column,'Psuedo_Label','Predict'])
+#                     #indiv_answ.rename(columns = {st.session_state.app1_name_column:st.session_state.app1_name_column},inplace = True)
+#                     st.write(indiv_eva)
+#                     #st.write(indiv_answ.query('Actual != Predict'))
+#                     st.write('ตัวอย่างชื่อที่ classify ไม่ตรงกับ Psuedo Label')
+#                     #st.dataframe(indiv_answ.query('Psuedo_Label != Predict'), use_container_width=True)
+#                     conditional_st_write_df(indiv_answ.query('Psuedo_Label != Predict'))
+#             with eva_col2:
+#                 if comp_answ is not None:
+#                     st.write('Psuedo Evaluation Class: บริษัทที่เป็นชื่อภาษาไทย (company_th)')
                 
-                    comp_answ = comp_answ.filter([st.session_state.app1_name_column,'tag_company']).merge(output_classified,how = 'left').filter([st.session_state.app1_name_column,'Class','tag_company'])
-                    comp_answ['Psuedo_Label'] = 1
-                    comp_answ['Predict'] = [1 if x == 'firm_th' else 0 for x in comp_answ['Class']]
+#                     comp_answ = comp_answ.filter([st.session_state.app1_name_column,'tag_company']).merge(output_classified,how = 'left').filter([st.session_state.app1_name_column,'Classified_Class','tag_company'])
+#                     comp_answ['Psuedo_Label'] = 1
+#                     comp_answ['Predict'] = [1 if x == 'firm_th' else 0 for x in comp_answ['Classified_Class']]
 
-                    comp_acc = accuracy_score(comp_answ['Psuedo_Label'],comp_answ['Predict'])
-                    comp_precision = precision_score(comp_answ['Psuedo_Label'],comp_answ['Predict'])
-                    comp_recall = recall_score(comp_answ['Psuedo_Label'],comp_answ['Predict'])
-                    comp_f1 = f1_score(comp_answ['Psuedo_Label'],comp_answ['Predict'])
-                    comp_total_samples = len(comp_answ)
-                    comp_eva = pd.DataFrame({'acc':[comp_acc],'precision':[comp_precision],'recall':[comp_recall],'f1_score':[comp_f1],'sample':[comp_total_samples]})
-                    comp_answ['Psuedo_Label'] = 'firm_th'
+#                     comp_acc = accuracy_score(comp_answ['Psuedo_Label'],comp_answ['Predict'])
+#                     comp_precision = precision_score(comp_answ['Psuedo_Label'],comp_answ['Predict'])
+#                     comp_recall = recall_score(comp_answ['Psuedo_Label'],comp_answ['Predict'])
+#                     comp_f1 = f1_score(comp_answ['Psuedo_Label'],comp_answ['Predict'])
+#                     comp_total_samples = len(comp_answ)
+#                     comp_eva = pd.DataFrame({'acc':[comp_acc],'precision':[comp_precision],'recall':[comp_recall],'f1_score':[comp_f1],'sample':[comp_total_samples]})
+#                     comp_answ['Psuedo_Label'] = 'firm_th'
                     
-                    comp_answ['Predict'] = comp_answ['Class']
-                    comp_answ = comp_answ.filter([st.session_state.app1_name_column,'Psuedo_Label','Predict'])
-                    #comp_answ.rename(columns = {'name':st.session_state.app1_name_column},inplace = True)
-                    st.write(comp_eva)
-                    st.write('ตัวอย่างชื่อที่ classify ไม่ตรงกับ Psuedo Label')
-                    #st.dataframe(comp_answ.query('Psuedo_Label != Predict'), use_container_width=True)
-                    conditional_st_write_df(comp_answ.query('Psuedo_Label != Predict'))
-                    #st.write(comp_answ.query('Actual != Predict'))
-
-
+#                     comp_answ['Predict'] = comp_answ['Classified_Class']
+#                     comp_answ = comp_answ.filter([st.session_state.app1_name_column,'Psuedo_Label','Predict'])
+#                     #comp_answ.rename(columns = {'name':st.session_state.app1_name_column},inplace = True)
+#                     st.write(comp_eva)
+#                     st.write('ตัวอย่างชื่อที่ classify ไม่ตรงกับ Psuedo Label')
+#                     #st.dataframe(comp_answ.query('Psuedo_Label != Predict'), use_container_width=True)
+#                     conditional_st_write_df(comp_answ.query('Psuedo_Label != Predict'))
+#                     #st.write(comp_answ.query('Actual != Predict'))
 
 ################## Back & Forward ##################
 st.divider()
 mult_cols = st.columns(9)
 back_col = mult_cols[0]
 next_col = mult_cols[-1]
+
+def click_get_back2():
+    st.session_state.app1_regex = True
+    st.session_state.app1_nameseer = False
+    st.session_state.app1_dev_CleanRestName = False
+    st.session_state.app1_MockupEvaluation = False
+
+# <- get back 2
 with back_col:
     if (st.session_state.app1_regex == False) and (st.session_state.app1_upload == True):
-        get_back = st.button('Back',key = 'get_back',on_click = click_get_back)
+        get_back = st.button('Back',key = 'get_back2',on_click = click_get_back2)
 with next_col:
     if (st.session_state.app1_nameseer):
         get_next = st.button('Next')
