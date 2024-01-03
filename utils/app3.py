@@ -2,24 +2,25 @@ import pandas as pd
 import numpy as np
 import os
 import re
-
+import time
+import streamlit as st
 
 
 def assign_byIsic(*args,condition = True):
-    
+
     def get_sna_isic(sna,isic,isic_action):
         # if have isic
         if not pd.isna(isic):
             # if isic match
             for idx,row in isic_action.iterrows():
-                if bool(re.search(row.isic4,str(isic))):
+                if bool(re.search(row.isic4,isic)):
                     return row.target_sna10
             # if don't match
             return sna
         # if don't have isic
         else: 
             return sna
-      
+
     sna = args[0][args[1][0]]
     nat = args[0][args[1][1]]
     isic = args[0][args[1][2]]
@@ -29,33 +30,34 @@ def assign_byIsic(*args,condition = True):
     if pd.isna(sna):
         # assign only when nat
         if condition == True:
-
             if not pd.isna(nat):
                 # if th
                 th_search = bool(re.search('TH|Thai|ไทย',nat))
                 if th_search:
-                    return get_sna_isic(sna,isic,isic_action) # apply function
+                    out =  get_sna_isic(sna,isic,isic_action) # apply function
                 # if non-th
                 else:
-                    return sna
+                    out = sna
             # if non-nationalities       
             else:
-                return sna
+                out = sna
 
         # assign whatever condition
         else:
-            return get_sna_isic(sna,isic,isic_action) # apply function
+            out = get_sna_isic(sna,isic,isic_action) # apply function
 
     # if snaed
     else:
-        return sna
+        out = sna
+
+    return out
 
 def assign_byKeywords(*args,condition = True):
-    
+
     def get_sna_keywords(sna,name,keywords_action):
         for idx,row in keywords_action.iterrows():
             # if match
-            if bool(re.search(row.word_token,str(name))):
+            if bool(re.search(row.word_token,name)):
                 return row.target_sna10
         # if don't match
         return sna
@@ -73,27 +75,27 @@ def assign_byKeywords(*args,condition = True):
                 # if th
                 th_search = bool(re.search('TH|Thai|ไทย',nat))
                 if th_search:
-                    return get_sna_keywords(sna,name,keywords_action) # apply function
+                    out = get_sna_keywords(sna,name,keywords_action) # apply function
                 # if non-th
                 else:
-                    return sna
+                    out = sna
             # if non-nationalities       
             else:
-                return sna
+                out = sna
 
         # assign whatever condition
         else:
-            return get_sna_keywords(sna,name,keywords_action) # apply function
+            out = get_sna_keywords(sna,name,keywords_action) # apply function
 
     # if snaed
     else:
-        return sna
+        out = sna
+    return out
 
 def assign_byMatchedSNA(*args,condition = True):
-    
     def get_sna_nmmatched(sna,matched_sna,sna_action):
         for idx,row in sna_action.iterrows():
-            if bool(re.search(row.sna_code,str(matched_sna))):
+            if bool(re.search(row.sna_code,matched_sna)):
                 return row.target_sna10 # return in SNA10 format
         # if don't match
         return sna
@@ -111,23 +113,25 @@ def assign_byMatchedSNA(*args,condition = True):
                 # if th
                 th_search = bool(re.search('TH|Thai|ไทย',nat))
                 if th_search:
-                    return get_sna_nmmatched(sna,matched_sna,sna_action) # apply function
+                    out = get_sna_nmmatched(sna,matched_sna,sna_action) # apply function
                 # if non-th
                 else:
-                    return sna
+                    out = sna
             # if non-nationalities       
             else:
-                return sna
+                out = sna
             
         # assign whatever condition
         else:
-            return get_sna_nmmatched(sna,matched_sna,sna_action) # apply function  
+            out = get_sna_nmmatched(sna,matched_sna,sna_action) # apply function  
         
     # if snaed
     else:
-        return sna
+        out = sna
+    return out
 
 def assign_byNationalities(*args,condition):
+
     sna = args[0][args[1][0]]
     nat = args[0][args[1][1]]
     isic = args[0][args[1][2]]
@@ -139,22 +143,25 @@ def assign_byNationalities(*args,condition):
             th_search = bool(re.search('TH|Thai|ไทย',nat))
             if th_search:
                 if condition == 1: # just nat == th
-                    return 'ONFC'
+                    out = 'ONFC'
                 elif condition == 2:  # if nat == th and isic not None
                     if not pd.isna(isic):
-                        return 'ONFC'
+                        out = 'ONFC'
                     else:
-                        return sna
+                        out = sna
             else: # if non-th
-                return 'ROW'
+                out = 'ROW'
         # if Nationality == 'NA'
         else:
-            return sna
+            out = sna
     # if have sna
     else:
-        return sna
+        out = sna
+    
+    return out
 
 def assign_byNationalitiesOrd(*args,condition):
+
     sna = args[0][args[1][0]]
     nat = args[0][args[1][1]]
     isic = args[0][args[1][2]]
@@ -165,12 +172,14 @@ def assign_byNationalitiesOrd(*args,condition):
         if not pd.isna(nat):
             th_search = bool(re.search('TH|Thai|ไทย',nat))
             if th_search:
-                return 'HH'
+                out =  'HH'
             else: # if non-th
-                return 'ROW'
+                out =  'ROW'
         # if Nationality == 'NA'
         else:
-            return sna
+            out =  sna
     # if have sna
     else:
-        return sna
+        out =  sna
+    
+    return out
