@@ -33,7 +33,7 @@ st.write('การทำงานของ App 3. Assign SNA จะมีอย
 
 st.write("***:orange[1.กำหนด Rule Based]***")
 st.code('"Rule Based" จะกำหนด Pattern จากข้อมูลบางส่วน เช่น "Isic4","ชื่อประกอบไปด้วย ..." เป็นต้น \nโดยจะแยกการ Apply ตามประเภทของผู้ถือหุ้น 1."Firm TH", 2."Firm ENG", 3."Person"  \nรายละเอียดของแต่ละ Rule สามารถดูได้ด้านล่าง')
-img = Image.open('Material/images/arrow1.png')
+img = Image.open('material/images/arrow1.png')
 with st.expander('คำอธิบายเพิ่มเติมเกี่ยวกับการกำหนด Rule Based'):
     st.write(':grey[Class จะมีทั้งหมด 3 Class ซึ่งแต่ละ Class จะมี Rule Based ของตัวเองไม่ซ้ำกัน]')
     st.write("1.:blue[Firm TH]  >>  หมายถึง ชื่อผู้ถือหุ้นที่เป็นธุรกิจที่มีชื่อภาษาไทย")
