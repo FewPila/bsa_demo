@@ -50,7 +50,7 @@ st.code(f'{text_prep_descrip}')
 image = Image.open('material/images/app2.jpg')
 with st.expander("See More Explanation"):
     #st.write("ซึ่งมีประโยชน์สำหรับกรณีชื่อที่ไม่มีคำระบุประเภท (ตามตัวอย่างด้านล่าง) รวมถึงเมื่อใช้ร่วมกับ Regex จะทำให้การคัดแยกแม่นยำมากขึ้น")
-    st.write('ในตัวอย่างจะกำหนดทุก TF-IDF >= 70 ขึ้นไปถึงจะ Confirm Matching')
+    st.write('ในตัวอย่างจะกำหนดจะกำหนด Matching Rules 3 ข้อ (Apply ทุก Rule ด้วยเงื่อนไข OR)')
     st.image(image)
     st.caption("ซึ่งตัว Matching Rules สามารถมีกี่อันก็ได้โดยจะเป็นเงื่อนไข OR")
 
