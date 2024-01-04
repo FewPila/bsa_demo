@@ -44,7 +44,7 @@ with st.expander("คลิกเพื่อดูตัวอย่างก�
     st.caption("Fuzzy Partial Ratio : :green[72.2]")
 
 st.write("***:orange[2.Matching Rules + Text Preprocess]***")
-text_prep_descrip = 'ใช้ Matching Rules กำหนดว่า Score เท่าใดถึงจะ Confirm การ Matching และ \nการทำ Text Preprocess สามารถจะสามารถช่วยทำให้สามารถทำ Matching ได้ถูกต้องง่ายมากขึ้น'
+text_prep_descrip = 'กำหนด "Matching Rules" ว่า Score เท่าใดถึงจะ Confirm การ Matching และ \nการทำ Text Preprocess สามารถจะสามารถช่วยทำให้สามารถทำ Matching ได้ถูกต้องง่ายมากขึ้น'
 st.code(f'{text_prep_descrip}')
 
 image = Image.open('material/images/app2.jpg')
@@ -54,6 +54,7 @@ with st.expander("See More Explanation"):
     st.image(image)
     st.caption("ซึ่งตัว Matching Rules สามารถมีกี่อันก็ได้โดยจะเป็นเงื่อนไข OR")
 
+st.divider()
 
 if 't_zero' not in st.session_state:
     st.session_state.t_zero = time.time()
@@ -149,7 +150,7 @@ if 'query_input' not in st.session_state:
     st.session_state.query_namecolname = None
 #################################################################################################### 1 Query Input ####################################################################################################
 if  st.session_state.query_input == False:
-    st.header("Step 1: Input Query")
+    st.header("Step 1: Input Dataset",divider= 'blue')
     ### check query input
     if st.session_state.app1_ExportOutput is not None:
         check_box = st.checkbox('use app1 input')
@@ -157,7 +158,7 @@ if  st.session_state.query_input == False:
         check_box = False
     if st.session_state.query_cache == False:
         if check_box == False:
-            query_upload = st.file_uploader("Choose a file to query",key = 'query_upload')
+            query_upload = st.file_uploader("Choose a file to upload",key = 'query_upload')
             if query_upload is not None:
                 st.session_state.query_df = read_upload_data(query_upload)
                 st.session_state.query_cache = True
@@ -167,24 +168,23 @@ if  st.session_state.query_input == False:
                 st.session_state.query_cache = True
     # after have input
     if st.session_state.query_df is not None:
-        st.subheader('This is Your Query Dataset')
+        #st.subheader('This is Your Query Dataset')
         conditional_st_write_df(st.session_state.query_df)
 
         st.write(f'{st.session_state.query_df.shape[0]} rows , {st.session_state.query_df.shape[1]} columns')
         # select Name Column
         query_namecol_box = [None]
         query_namecol_box.extend(st.session_state.query_df.columns)
-        query_namecol_option = st.selectbox('Which is Names Column ?',query_namecol_box,key = 'namecol_select_box')
+        query_namecol_option = st.selectbox('โปรดเลือกคอลัมน์ "ชื่อ" ที่ต้องการจะ Name Matching',query_namecol_box,key = 'namecol_select_box')
         # select Column to keep
         query_keep_col_list = st.session_state.query_df.columns.values.tolist()
-        st.multiselect(label = 'Please select column to Keep',options = query_keep_col_list,default = query_keep_col_list,key = 'query_keep_col')
+        st.multiselect(label = 'โปรดเลือกคอลัมน์ ที่ต้องการจะเก็บไว้',options = query_keep_col_list,default = query_keep_col_list,key = 'query_keep_col')
         # submit query_input
-        submit_input_query = st.button('Submit_query',on_click = submit_input_query)
+        submit_input_query = st.button('Submit',on_click = submit_input_query)
 
 if st.session_state.app2_input == False:
     if st.session_state.query_input == True:
-        st.header('Step 1: Input Query')
-        st.subheader('This is Your Query Dataset')
+        st.header('Step 1: Input Dataset',divider = 'blue')
         conditional_st_write_df(st.session_state.query_df)
         st.write(f'{st.session_state.query_df.shape[0]} rows , {st.session_state.query_df.shape[1]} columns')
 #################################################################################################### 1 Query Input ####################################################################################################
@@ -281,15 +281,15 @@ def click_add_corpus2():
 #################################################################################################### 2.1 Corpus Input ####################################################################################################
 if st.session_state.query_input == True and st.session_state.corpus1_input == False and st.session_state.app2_input == False:
     st.divider()
-    st.header('Step 2: Input Corpus')
-    corpus1_upload = st.file_uploader("Choose a file to query",key = 'corpus1_upload')
+    st.header('Step 2: Dataset ที่ต้องการจะ Matching ด้วย',divider= 'orange')
+    corpus1_upload = st.file_uploader("Choose a file to upload",key = 'corpus1_upload')
     if corpus1_upload is not None:
         if st.session_state.corpus1_cache == False:
             st.session_state.corpus1_df = read_upload_data(corpus1_upload)
             st.session_state.corpus1_cache = True
     
     if st.session_state.corpus1_df is not None:
-        st.subheader('This is Your Corpus Dataset')
+        #st.subheader('This is Your Corpus Dataset')
         conditional_st_write_df(st.session_state.corpus1_df)
         st.write(f'{st.session_state.corpus1_df.shape[0]} rows , {st.session_state.corpus1_df.shape[1]} columns')
         
@@ -297,17 +297,23 @@ if st.session_state.query_input == True and st.session_state.corpus1_input == Fa
             #select Name Column
             corpus1_namecol_box = [None]
             corpus1_namecol_box.extend(st.session_state.corpus1_df.columns)
-            corpus1_namecol_option = st.selectbox('Which is Names Column ?',corpus1_namecol_box,key = 'corpus1_namecol_select_box')
-            corpus1_selected_namecol = st.button('next',on_click = corpus1_SelectCol_click)
+            corpus1_namecol_option = st.selectbox('โปรดเลือกคอลัมน์ "ชื่อ" ที่ต้องการจะ Name Matching',corpus1_namecol_box,key = 'corpus1_namecol_select_box')
+            corpus1_selected_namecol = st.button('Next',on_click = corpus1_SelectCol_click)
         
         if st.session_state.corpus1_namecolname is not None and st.session_state.corpus1_selected_col_list is None:
             #select Name Column
             corpus1_columnsFromDf = st.session_state['corpus1_df'].columns.values
-            st.multiselect(label = 'Please Select Column to Keep',options = corpus1_columnsFromDf,default = corpus1_columnsFromDf,key = 'corpus1_col_list_select_box')
-            corpus1_selected_col_list_button = st.button('next',on_click = corpus1_SelectCol_list_click,key = 's_col_button')
+            st.multiselect(label = 'โปรดเลือกคอลัมน์ ที่ต้องการจะเก็บไว้',options = corpus1_columnsFromDf,default = corpus1_columnsFromDf,key = 'corpus1_col_list_select_box')
+            corpus1_selected_col_list_button = st.button('Next',on_click = corpus1_SelectCol_list_click,key = 's_col_button')
 
         if st.session_state.corpus1_namecolname is not None and st.session_state.corpus1_selected_col_list is not None:
-            corpus1_partialnm_box = st.checkbox('Want to Apply Partial Name Matching')
+            pm_images = Image.open('material/images/app2_pm.jpg')
+            with st.expander("คำอธิบายเพิ่มเติมสำหรับ Partial Name Matching"):
+                st.write('การทำ Partial Name Matching จะหมายถึงเลือกทำเพียงแค่บางส่วน')
+                st.write('เช่น ต้องการเลือกทำ Name Matching บน Class == "firm_th" เท่านั้น')
+                st.image(pm_images)
+
+            corpus1_partialnm_box = st.checkbox('ต้องการทำ Partial Name Matching')
             if corpus1_partialnm_box:
                 st.write("↳")
                 adjust_query_checkbox = st.checkbox('Adjust on Query Dataset')
@@ -366,14 +372,23 @@ if st.session_state.query_input == True and st.session_state.corpus1_input == Fa
                                 st.write(f'Now -> {filtered_df_corpus1.shape[0]} rows , {filtered_df_corpus1.shape[1]} columns')
                         # if Object
                         elif bool(re.search('str|object',corpus1_type_string)):
+                            # st.session_state.corpus1_filter_range = None
+                            # st.write(corpus1_filter_option)
+                            # st.write(st.session_state.corpus1_df[corpus1_filter_option].unique().tolist())
+                            # st.multiselect(label = f'filter on {corpus1_filter_option}',options = st.session_state.corpus1_df[corpus1_filter_option].unique().tolist(),default= None,key  = 'corpus1_filter_choices')
                             st.session_state.corpus1_filter_range = None
-                            st.multiselect(label = f'filter on {corpus1_filter_option}',options = st.session_state.corpus1_df[corpus1_filter_option].unique().tolist(),default= None,key  = 'corpus1_filter_choices')
+                            temp_list = st.session_state.corpus1_df[corpus1_filter_option].unique().tolist()
+                            #st.multiselect(label = '',options = temp_list,key = 'corpus1_filter_choice')
+                            st.multiselect(label = f'filter on {corpus1_filter_option}',options = temp_list,key = "corpus1_filter_choices")
+                            if st.session_state.corpus1_filter_choices is not None:
+                                filtered_df_corpus1 = st.session_state.corpus1_df[st.session_state.corpus1_df[corpus1_filter_option].isin(st.session_state.corpus1_filter_choices)]
+                                st.write(f'Now -> {filtered_df_corpus1.shape[0]} rows , {filtered_df_corpus1.shape[1]} columns')
 
-            submit_button1 = st.button('submit',key = 'submit_c1',on_click = corpus1_submit)
+            submit_button1 = st.button('Submit',key = 'submit_c1',on_click = corpus1_submit)
 
 if st.session_state.corpus1_input == True and st.session_state.app2_input == False:
     st.divider()
-    st.header('Step 2: Input Corpus')
+    st.header('Step 2: Dataset ที่ต้องการจะ Matching ด้วย',divider= 'orange')
     st.session_state['order']['corpus1'] = load_in(True)
     
     #conditional_st_write_df(st.session_state.corpus1_df.filter(st.session_state.corpus1_selected_col_list))
@@ -535,7 +550,13 @@ if st.session_state.query_input and (st.session_state.corpus2_input == False) an
             corpus2_selected_col_list_button = st.button('next',on_click = corpus2_SelectCol_list_click,key = 's_col_button')
 
         if st.session_state.corpus2_namecolname is not None and st.session_state.corpus2_selected_col_list is not None:
-            corpus2_partialnm_box = st.checkbox('Want to Apply Partial Name Matching')
+            pm_images = Image.open('material/images/app2_pm.jpg')
+            with st.expander("คำอธิบายเพิ่มเติมสำหรับ Partial Name Matching"):
+                st.write('การทำ Partial Name Matching จะหมายถึงเลือกทำเพียงแค่บางส่วน')
+                st.write('เช่น ต้องการเลือกทำ Name Matching บน Class == "firm_th" เท่านั้น')
+                st.image(pm_images)
+
+            corpus2_partialnm_box = st.checkbox('ต้องการทำ Partial Name Matching')
             if corpus2_partialnm_box:
                 st.write("↳")
                 adjust_query_checkbox = st.checkbox('Adjust on Query Dataset')
@@ -597,7 +618,7 @@ if st.session_state.query_input and (st.session_state.corpus2_input == False) an
                             st.session_state.corpus2_filter_range = None
                             st.multiselect(label = f'filter on {corpus2_filter_option}',options = st.session_state.corpus2_df[corpus2_filter_option].unique().tolist(),default= None,key  = 'corpus2_filter_choices')
 
-            submit_button2 = st.button('submit',key = 'submit_c2',on_click = corpus2_submit)
+            submit_button2 = st.button('Submit',key = 'submit_c2',on_click = corpus2_submit)
 
 if st.session_state.corpus2_input == True and st.session_state.app2_input == False:
     st.divider()
@@ -762,7 +783,13 @@ if st.session_state.query_input and (st.session_state.corpus3_input == False) an
             corpus3_selected_col_list_button = st.button('next',on_click = corpus3_SelectCol_list_click,key = 's_col_button')
 
         if st.session_state.corpus3_namecolname is not None and st.session_state.corpus3_selected_col_list is not None:
-            corpus3_partialnm_box = st.checkbox('Want to Apply Partial Name Matching')
+            pm_images = Image.open('material/images/app2_pm.jpg')
+            with st.expander("คำอธิบายเพิ่มเติมสำหรับ Partial Name Matching"):
+                st.write('การทำ Partial Name Matching จะหมายถึงเลือกทำเพียงแค่บางส่วน')
+                st.write('เช่น ต้องการเลือกทำ Name Matching บน Class == "firm_th" เท่านั้น')
+                st.image(pm_images)
+
+            corpus3_partialnm_box = st.checkbox('ต้องการทำ Partial Name Matching')
             if corpus3_partialnm_box:
                 st.write("↳")
                 adjust_query_checkbox = st.checkbox('Adjust on Query Dataset')
@@ -824,7 +851,7 @@ if st.session_state.query_input and (st.session_state.corpus3_input == False) an
                             st.session_state.corpus3_filter_range = None
                             st.multiselect(label = f'filter on {corpus3_filter_option}',options = st.session_state.corpus3_df[corpus3_filter_option].unique().tolist(),default= None,key  = 'corpus3_filter_choices')
 
-            submit_button3 = st.button('submit',key = 'submit_c3',on_click = corpus3_submit)
+            submit_button3 = st.button('Submit',key = 'submit_c3',on_click = corpus3_submit)
 
 
 if st.session_state.corpus3_input == True and st.session_state.app2_input == False:
@@ -869,6 +896,9 @@ if st.session_state.corpus3_input == True and st.session_state.app2_input == Fal
 
 #################################################################################################### 3. Text-Preprocess ####################################################################################################
 
+if 'app2_double_prep' not in st.session_state:
+    st.session_state['app2_double_prep'] = False
+
 def submit_textpreprocess_regex():
     if st.session_state.app2_double_prep:
         st.session_state.app2_regex_listV1 = load_in(regex_tags)
@@ -878,33 +908,41 @@ def submit_textpreprocess_regex():
         st.session_state.app2_textprocess_regex_list = load_in(regex_tags)
     st.session_state.app2_textprocess  = True
 
-if (st.session_state.app2_input == True) and (st.session_state.app2_textprocess == False) :
-    st.header("1. Text Preprocess",divider= 'blue')
-    st.caption("Text Preprocess จะทำการลบ keywords (regex) ดังกล่าว ในชื่อทั้งหมดของ Dataset")
-    st.caption('_(หากกรอก keyword ที่เป็นภาษาอังกฤษ กรุณาใช้ UPPER CASE)_')
 
+
+if (st.session_state.app2_input == True) and (st.session_state.app2_textprocess == False) :
+    #l1,r1 = st.columns([10,2])
+    st.header("1. Text Preprocess",divider= 'blue')
+    st.write('ขั้นตอนการทำ Text Preprocess จะทำการลบ Keywords (Regex) ดังกล่าวออกจากชื่อผู้ถือหุ้นทั้งหมด')
+    st.code('name = "บริษัท เคอรี่โลจิสติกส์ จำกัด" \nRegex = ["บริษัท","จำกัด","มหาชน"]')
+    st.write('จุดประสงค์หลักคือ :orange[ต้องการลบพวก common words ออกจากชื่อบริษัท] เพื่อทำให้ Name Matching เจอได้ง่ายขึ้น')
+    st.code('TextPreprocess(name) -> "เคอรี่โลจิสติกส์"')
+    # st.caption("Text Preprocess จะทำการลบ keywords (regex) ดังกล่าว ในชื่อทั้งหมดของ Dataset")
+    # st.caption('_(หากกรอก keyword ที่เป็นภาษาอังกฤษ กรุณาใช้ UPPER CASE)_')
+    st.divider()
+    st.subheader('กรุณากำหนด Text Preprocess Regex')
     regex_section = st.empty()
     with regex_section.container():
         container = st.container()
         container2 = st.container()
 
-        app2_double_prep = st.checkbox('Optional Double Text Preprocess (for more specific)')
-        if app2_double_prep:
-            st.session_state.app2_double_prep = True
-        else:
-            st.session_state.app2_double_prep = False
+        #app2_double_prep = st.checkbox('Optional Double Text Preprocess (for more specific)')
+        # if app2_double_prep:
+        #     st.session_state.app2_double_prep = True
+        # else:
+        #     st.session_state.app2_double_prep = False
 
-        agree = st.checkbox('Developer Choices*')
+        agree = st.checkbox('Suggested set of keywords')
         if agree:
             st.session_state.app2_choices = 'developer'
         else:
             st.session_state.app2_choices = 'default'            
-
+       
         with container: # to put it to top of checkbox
             if st.session_state.app2_choices == 'default':
-                regex_tags = st_tags(label = 'Text Preprocess',value = st.session_state.app2_default_regex_list,text = 'regex',maxtags = -1)
+                regex_tags = st_tags(label = '',value = st.session_state.app2_default_regex_list,text = 'regex',maxtags = -1)
             elif st.session_state.app2_choices == 'developer':
-                regex_tags = st_tags(label = 'Text Preprocess',value = st.session_state.app2_developer_regex_list,text = 'soft_simplify',maxtags= -1)
+                regex_tags = st_tags(label = '',value = st.session_state.app2_developer_regex_list,text = 'soft_simplify',maxtags= -1)
 
         if st.session_state.app2_double_prep:
             with container2: # to put it to top of checkbox
@@ -913,8 +951,14 @@ if (st.session_state.app2_input == True) and (st.session_state.app2_textprocess 
                 elif st.session_state.app2_choices == 'developer':
                     regex_tagsV2 = st_tags(label = 'Text Preprocess II.',value = st.session_state.app2_developer_regex_listV2,text = 'hard_simplify',maxtags= -1)
             
-        ### submit to next-step                            
-        regex_submit_button = st.button("Submit your Regex choices",key = 'regex_customize_submit_button',on_click=submit_textpreprocess_regex)
+        ### submit to next-step        
+    l1,r1 = st.columns([12,5])       
+    r1.button("กดเพื่อเริ่ม Name Matching",key = 'regex_customize_submit_button',on_click=submit_textpreprocess_regex)
+
+def back_click1():
+    st.session_state.app2_input = False
+if (st.session_state.app2_input == True) and (st.session_state.app2_textprocess == False) :
+    l1.button('Back',key = 'back_click1',on_click=back_click1)
 
 #################################################################################################### 3. Text-Preprocess ####################################################################################################
 
@@ -1066,7 +1110,7 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
     ## Interactive session
     st.header('2. Name Matching',divider = 'blue')
     st.subheader("2.1 กรุณากำหนด :orange[Matching Rules]")
-    st.caption("สามารถปรับแต่ง Rule ด้วย Score ต่างๆด้านล่างเพื่อ Match ชื่อ")
+    st.caption("สามารถปรับแต่ง Score ต่างๆ และเพิ่ม Rule ด้านล่างเพื่อ Match ชื่อ")
 
     col1,col2 = st.columns(2)
     with col1:
@@ -1083,27 +1127,27 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
 
     col3,col4 = st.columns(2)
     with col3:
-        agree2 = st.checkbox('adjust Fuzzy Ratio')
+        agree2 = st.checkbox('adjust Fuzzy Score')
     with col4:
         if agree2:
             st.session_state.fuzzy_checkbox = False
         else:
             st.session_state.fuzzy_checkbox = True
 
-        st.slider(label = 'fuzzy_ratio >= ',min_value = 0,max_value =  100,value =  70, step = 1,
+        st.slider(label = 'fuzzy_score >= ',min_value = 0,max_value =  100,value =  70, step = 1,
                     key = 'Fuzzy_Ratio',disabled = st.session_state.fuzzy_checkbox)
         print(st.write(st.session_state.Fuzzy_Ratio))
 
     col5,col6 = st.columns(2)
     with col5:
-        agree3 = st.checkbox('adjust Fuzzy Partial Ratio')
+        agree3 = st.checkbox('adjust Fuzzy Partial Score')
     with col6:
         if agree3:
             st.session_state.fuzzy_partial_checkbox = False
         else:
             st.session_state.fuzzy_partial_checkbox = True
 
-        st.slider(label = 'fuzzy_partial_ratio >= ',min_value = 0,max_value =  100,value =  70, step = 1,
+        st.slider(label = 'fuzzy_partial_score >= ',min_value = 0,max_value =  100,value =  70, step = 1,
                     key = 'Fuzzy_Partial_Ratio',disabled = st.session_state.fuzzy_partial_checkbox)
         print(st.write(st.session_state.Fuzzy_Partial_Ratio))
 
@@ -1112,7 +1156,7 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         agree5 = st.checkbox('only text_process 2')
 
     index = np.where([agree,agree2,agree3])[0]
-    display = np.array(['tfidf_score','fuzzy_ratio','fuzzy_partialratio'])
+    display = np.array(['tfidf_score','fuzzy_ratio','fuzzy_partialratio']) # ค่อยมาเปลี่ยนเป็น score เดี๋ยวมันจะพังเอา
     values = np.array([st.session_state.TFIDF_Score,st.session_state.Fuzzy_Ratio,st.session_state.Fuzzy_Partial_Ratio])
     user_rules = values[index]
     if len(user_rules) == 1:
@@ -1140,7 +1184,7 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
     submit_botton = st.button('Click to Add Your Rule',key = 'submit_thresh_button',on_click = click_submit_threshold)
                 
     Thresh_List = st_tags(label = '',value = st.session_state.app2_possible_threshold_list,text = '')
-    st.caption("*หมายเหตุ: เป็น OR Condition ซึ่งจะ Apply ใช้ทุก Rules เพื่อ Match ชื่อออกมา")
+    st.caption("*หมายเหตุ: เป็น OR Condition ซึ่งจะ Apply ใช้ทุก Rules เพื่อใช้ Confirm ว่าสองชื่อดังกล่าว Matched")
     for v in st.session_state.app2_possible_threshold_list:
         if v not in Thresh_List:
             st.session_state.app2_possible_threshold_list.remove(v)
@@ -1159,27 +1203,28 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         st.session_state.processThreshold = True
 
     # show candidate results
-    st.subheader("Candidate Matched Name")
-    if st.session_state.read_df1:
-        st.write(f"From file: {st.session_state[f'corpus{1}_file_name']}")
-        st.write(st.session_state[f'matched{1}_df'])
-        st.write(f"{st.session_state[f'matched{1}_df'].shape[0]} rows , {st.session_state[f'matched{1}_df'].shape[1]} columns")
+    st.subheader("ตรวจเช็ค  :orange[ชื่อที่มีความเป็นไปได้ว่าจะ Matched]")
+    with st.expander('Candidate Matched Name'):
+        if st.session_state.read_df1:
+            st.write(f"From file: {st.session_state[f'corpus{1}_file_name']}")
+            st.write(st.session_state[f'matched{1}_df'])
+            st.write(f"{st.session_state[f'matched{1}_df'].shape[0]} rows , {st.session_state[f'matched{1}_df'].shape[1]} columns")
 
-    elif st.session_state.read_df2:
-        st.write(f"From file: {st.session_state[f'corpus{2}_file_name']}")
-        st.write(st.session_state[f'matched{2}_df'])
-        st.write(f"{st.session_state[f'matched{2}_df'].shape[0]} rows , {st.session_state[f'matched{2}_df'].shape[1]} columns")
-    elif st.session_state.read_df3:
-        st.write(f"From file: {st.session_state[f'corpus{3}_file_name']}")
-        st.write(st.session_state[f'matched{3}_df'])
-        st.write(f"{st.session_state[f'matched{3}_df'].shape[0]} rows , {st.session_state[f'matched{3}_df'].shape[1]} columns")
+        elif st.session_state.read_df2:
+            st.write(f"From file: {st.session_state[f'corpus{2}_file_name']}")
+            st.write(st.session_state[f'matched{2}_df'])
+            st.write(f"{st.session_state[f'matched{2}_df'].shape[0]} rows , {st.session_state[f'matched{2}_df'].shape[1]} columns")
+        elif st.session_state.read_df3:
+            st.write(f"From file: {st.session_state[f'corpus{3}_file_name']}")
+            st.write(st.session_state[f'matched{3}_df'])
+            st.write(f"{st.session_state[f'matched{3}_df'].shape[0]} rows , {st.session_state[f'matched{3}_df'].shape[1]} columns")
 
     if sum(st.session_state.order.values()) > 1:
         if st.session_state.order['corpus1'] and st.session_state.order['corpus2'] and st.session_state.order['corpus3']:
             style = (10,1,1,1)
             col1,col2,col3,col4 = st.columns(style)
             with col1:
-                st.write('result of each corpus')
+                st.write('ผลลัพธ์ของแต่ละ Dataset ที่ต้องการ Matching')
             with col2:
                 st.button('1',on_click = click_read_df1,key = 'read1')
             with col3:
@@ -1190,7 +1235,7 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
             style = (10,1,1)
             col1,col2,col3 = st.columns(style)
             with col1:
-                st.write('result of each corpus')
+                st.write('ผลลัพธ์ของแต่ละ Dataset ที่ต้องการ Matching')
             with col2:
                 st.button('1',on_click = click_read_df1,key = 'read1')
             with col3:
@@ -1198,7 +1243,7 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         
 
     if st.session_state.processThreshold and st.session_state['app2_output'] is None:
-        st.info('Processing NM')
+        #st.info('Processing NM')
         time.sleep(1)
         #query_mat = pd.DataFrame()
         query_mat = st.session_state['query_df'].filter([st.session_state['query_namecolname']])
@@ -1308,12 +1353,12 @@ def export_to_Extension():
 
 if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is None:
     st.divider()
-    mult_cols = st.columns(8)
+    mult_cols = st.columns(4)
     back_col = mult_cols[0]
     next_col = mult_cols[-1]
 
     with next_col:
-        st.button('Tidy Output',on_click = export_to_Extension)
+        st.button('Go to Assign SNA',on_click = export_to_Extension)
 
     # <- back button 7
     def back_7():
@@ -1321,7 +1366,7 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         st.session_state['app2_textprocess'] = False
         st.session_state['app2_preprocessNM']  = False
     with back_col:
-        st.button('back',key = 'back_7',on_click = back_7)
+        st.button('Back',key = 'back_7',on_click = back_7)
         
     
 if st.session_state['app2_output'] is not None:
@@ -1399,16 +1444,18 @@ if st.session_state['app2_output'] is not None:
             def back_8():
                 st.session_state['app2_output'] = None
                 st.session_state['app2_finalize_adjust_column']  = False
-            st.button('back',key = 'back_8',on_click = back_8)
+            st.button('Back',key = 'back_8',on_click = back_8)
 
     if st.session_state.app2_finalize_column and st.session_state['app2_finalize_output'] is None:
+        
         if st.session_state['temporary_df'] is not None:
             st.write(st.session_state['temporary_df'])
-
+        
         if st.session_state['submit_coltoKeep'] == False:
             columnsFromDf = st.session_state['temporary_df'].columns.values
             st.multiselect(label = 'Please Select Column to Keep',options = columnsFromDf,default = columnsFromDf,key = 'col_list_select_box')
-            st.button('Submit',on_click = finalize_column,key = 's_col_button')
+            l9,r9 = st.columns([11,2])
+            r9.button('Submit',on_click = finalize_column,key = 's_col_button')
         
         # <- back button 9
         if st.session_state['app2_finalize_output'] is None:
@@ -1416,7 +1463,7 @@ if st.session_state['app2_output'] is not None:
                 st.session_state['app2_finalize_adjust_column'] = True
                 st.session_state['add_section'] = False
                 st.session_state['app2_finalize_column']  = False
-            st.button('back',key = 'back_9',on_click = back_9)
+            l9.button('Back',key = 'back_9',on_click = back_9)
     
     # Show Results
     if st.session_state['app2_finalize_output'] is not None:
@@ -1471,4 +1518,4 @@ if st.session_state['app2_finalize_output'] is not None:
     def back_10():
         st.session_state['app2_finalize_output'] = None
         st.session_state['submit_coltoKeep'] = False
-    st.button('back',key = 'back_10',on_click = back_10)
+    st.button('Back',key = 'back_10',on_click = back_10)
