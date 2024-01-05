@@ -1065,53 +1065,58 @@ if 'app3_rule_based_process' not in st.session_state:
 if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rule_based_process']:
     st.header('3. Final Results',divider= 'green')
     time.sleep(0.5)
-    st.session_state['data']['FINAL_SNA'] = np.nan
-    # 1.firm-th 2.firm_eng 3. person
-    total_df = pd.DataFrame()
-    for target in range(1,3+1):
-        filtered_df =  st.session_state['data'][st.session_state['data']['Class'].str.contains(st.session_state[f'assign_sna_target{target}]']['Class'])]
-        block1 = st.empty()
-        block1.info(f"Class : {st.session_state[f'assign_sna_target{target}]']['Class']}")
-        for rank in range(1,4+1):
-            if len(st.session_state[f'apply_order{target}_rank{rank}']) > 0:
-                block2 = st.empty()
-                block2.info(f"{st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__}")
-                # skip matchedsna for person case
-                if bool(re.search('PERSON|ORD',st.session_state[f'assign_sna_target{target}]']['Class'].upper())) and bool(re.search('MATCHEDSNA',st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__.upper())):
+    if st.session_state['app3_finalize_output'] is None:
+        st.session_state['data']['FINAL_SNA'] = np.nan
+        # 1.firm-th 2.firm_eng 3. person
+        total_df = pd.DataFrame()
+        for target in range(1,3+1):
+            filtered_df =  st.session_state['data'][st.session_state['data']['Class'].str.contains(st.session_state[f'assign_sna_target{target}]']['Class'])]
+            block1 = st.empty()
+            block1.info(f"Class : {st.session_state[f'assign_sna_target{target}]']['Class']}")
+            for rank in range(1,4+1):
+                if len(st.session_state[f'apply_order{target}_rank{rank}']) > 0:
+                    block2 = st.empty()
+                    block2.info(f"{st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__}")
+                    # skip matchedsna for person case
+                    if bool(re.search('PERSON|ORD',st.session_state[f'assign_sna_target{target}]']['Class'].upper())) and bool(re.search('MATCHEDSNA',st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__.upper())):
+                        block2.empty()
+                        continue
+                    else:
+                        filtered_df['FINAL_SNA'] = filtered_df.progress_apply(lambda row: \
+                                                st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
+                                                                                                                st.session_state[f'apply_order{target}_rank{rank}']['input_column'],
+                                                                                                                st.session_state[f'apply_order{target}_rank{rank}']['action'],
+                                                                                                                condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
+                                                                                                                axis = 1)
                     block2.empty()
-                    continue
-                else:
-                    filtered_df['FINAL_SNA'] = filtered_df.progress_apply(lambda row: \
-                                            st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
-                                                                                                            st.session_state[f'apply_order{target}_rank{rank}']['input_column'],
-                                                                                                            st.session_state[f'apply_order{target}_rank{rank}']['action'],
-                                                                                                            condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
-                                                                                                            axis = 1)
-                block2.empty()
-        block1.empty()
-        # combine red
-        total_df = pd.concat([total_df,filtered_df])
-        st.session_state['app3_finalize_output'] = load_in(total_df)
-        # count res
-        target_col = 'FINAL_SNA'
-        sna10_c = pd.DataFrame(total_df[f'{target_col}'].value_counts().reset_index())
-        total_c = sum(sna10_c[f'{target_col}'])
-        if total_c == total_df.shape[0]:
-            sna10_c = sna10_c.copy()
-            sna10_c.columns = [f'{target_col}','Counts']
-        else:
-            unk_extension = pd.DataFrame({'index':['UNKOWN'],f'{target_col}':[total_df.shape[0] - total_c]})
-            sna10_c = pd.concat([sna10_c,unk_extension]).sort_values(f'{target_col}',ascending= False).reset_index(drop = True)
-            sna10_c.columns = [f'{target_col}','Counts']
-        
-        matched_percent = np.round((total_c/total_df.shape[0])* 100,1)
-        
+            block1.empty()
+            # combine red
+            total_df = pd.concat([total_df,filtered_df])
+            # count res
+            target_col = 'FINAL_SNA'
+            sna10_c = pd.DataFrame(total_df[f'{target_col}'].value_counts().reset_index())
+            total_c = sum(sna10_c[f'{target_col}'])
+            if total_c == total_df.shape[0]:
+                sna10_c = sna10_c.copy()
+                sna10_c.columns = [f'{target_col}','Counts']
+            else:
+                unk_extension = pd.DataFrame({'index':['UNKOWN'],f'{target_col}':[total_df.shape[0] - total_c]})
+                sna10_c = pd.concat([sna10_c,unk_extension]).sort_values(f'{target_col}',ascending= False).reset_index(drop = True)
+                sna10_c.columns = [f'{target_col}','Counts']
+            
+            matched_percent = np.round((total_c/total_df.shape[0])* 100,1)
+            if 'app3_output_total_c' not in st.session_state:
+                st.session_state['app3_output_total_c'] = load_in(total_c)
+                st.session_state['app3_output_matched_percent'] = load_in(matched_percent)
+                st.session_state['app3_output_result_c'] = load_in(sna10_c)
+            st.session_state['app3_finalize_output'] = load_in(total_df)
+            
 if st.session_state['app3_finalize_output'] is not None:
     st.write(st.session_state['app3_finalize_output'])
-    if 'app3_output_total_c' not in st.session_state:
-        st.session_state['app3_output_total_c'] = load_in(total_c)
-        st.session_state['app3_output_matched_percent'] = load_in(matched_percent)
-        st.session_state['app3_output_result_c'] = load_in(sna10_c)
+    # if 'app3_output_total_c' not in st.session_state:
+    #     st.session_state['app3_output_total_c'] = load_in(total_c)
+    #     st.session_state['app3_output_matched_percent'] = load_in(matched_percent)
+    #     st.session_state['app3_output_result_c'] = load_in(sna10_c)
     st.session_state['app3_rule_based_process'] = False
 
     st.success(f"สามารถ Assign SNA ได้ :green[{st.session_state['app3_output_matched_percent']}%] จากทั้งหมด", icon="✅")
