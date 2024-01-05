@@ -12,12 +12,7 @@ import copy
 from streamlit_extras.switch_page_button import switch_page
 
 stqdm.pandas()
-st.title('Sectoral Balance Sheet Production')
-st.divider()
-
-st.write('User สามารถเลือก Product ที่ต้องการผ่านการคลิกที่ด้านล่าง หรือ ทาง Side Bar ซ้ายมือ')
-# def navigate1():
-#     switch_page('classify holder')
+st.title('Menu')
 
 st.subheader(':green[1.Application: Classify Holder]')
 st.write('ใช้สำหรับคัดแยกประเภทผู้ถือหุ้น')
@@ -26,7 +21,7 @@ if nav_app1:
     switch_page('classify holder')
 
 st.subheader(':red[2.Application: Name Matching]')
-st.write('ใช้ทำ Name matching กับอีก dataset')
+st.write('ใช้ทำ Name matching ระหว่าง dataset')
 nav_app2 = st.button('2. Go To Name Matching App')
 if nav_app2:
     switch_page('name matching')
