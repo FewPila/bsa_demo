@@ -11,6 +11,7 @@ import copy
 import time
 from PIL import Image
 from utils.nm_utils import *
+from streamlit_extras.switch_page_button import switch_page
 
 st.title('App 2. การทำ Name Matching')
 st.write('เชื่อมข้อมูลที่เกี่ยวข้องกันระหว่าง 2 Dataset เพื่อเอาข้อมูลที่ต้องการโดยใช้ "ชื่อ" เป็นตัวเชื่อม')
@@ -50,7 +51,7 @@ st.code(f'{text_prep_descrip}')
 image = Image.open('material/images/app2.jpg')
 with st.expander("See More Explanation"):
     #st.write("ซึ่งมีประโยชน์สำหรับกรณีชื่อที่ไม่มีคำระบุประเภท (ตามตัวอย่างด้านล่าง) รวมถึงเมื่อใช้ร่วมกับ Regex จะทำให้การคัดแยกแม่นยำมากขึ้น")
-    st.write('ในตัวอย่างจะกำหนดจะกำหนด Matching Rules 3 ข้อ (Apply ทุก Rule ด้วยเงื่อนไข OR)')
+    st.write('ในตัวอย่างจะกำหนดทุก TF-IDF >= 70 ขึ้นไปถึงจะ Confirm Matching')
     st.image(image)
     st.caption("ซึ่งตัว Matching Rules สามารถมีกี่อันก็ได้โดยจะเป็นเงื่อนไข OR")
 
@@ -151,11 +152,18 @@ if 'query_input' not in st.session_state:
 #################################################################################################### 1 Query Input ####################################################################################################
 if  st.session_state.query_input == False:
     st.header("Step 1: Input Dataset",divider= 'blue')
+    
+    def checkbox_check():
+        st.session_state['query_df'] = None
+        st.session_state['query_cache'] = False
+        st.rerun()
+
     ### check query input
     if st.session_state.app1_ExportOutput is not None:
-        check_box = st.checkbox('use app1 input')
+        check_box = st.checkbox('Use App1 Input',on_change = checkbox_check )
     else:
         check_box = False
+  
     if st.session_state.query_cache == False:
         if check_box == False:
             query_upload = st.file_uploader("Choose a file to upload",key = 'query_upload')
@@ -180,7 +188,8 @@ if  st.session_state.query_input == False:
         query_keep_col_list = st.session_state.query_df.columns.values.tolist()
         st.multiselect(label = 'โปรดเลือกคอลัมน์ ที่ต้องการจะเก็บไว้',options = query_keep_col_list,default = query_keep_col_list,key = 'query_keep_col')
         # submit query_input
-        submit_input_query = st.button('Submit',on_click = submit_input_query)
+        if st.session_state['namecol_select_box'] is not None:
+            submit_input_query = st.button('Submit',on_click = submit_input_query)
 
 if st.session_state.app2_input == False:
     if st.session_state.query_input == True:
@@ -298,7 +307,8 @@ if st.session_state.query_input == True and st.session_state.corpus1_input == Fa
             corpus1_namecol_box = [None]
             corpus1_namecol_box.extend(st.session_state.corpus1_df.columns)
             corpus1_namecol_option = st.selectbox('โปรดเลือกคอลัมน์ "ชื่อ" ที่ต้องการจะ Name Matching',corpus1_namecol_box,key = 'corpus1_namecol_select_box')
-            corpus1_selected_namecol = st.button('Next',on_click = corpus1_SelectCol_click)
+            if st.session_state['corpus1_namecol_select_box'] is not None:
+                corpus1_selected_namecol = st.button('Next',on_click = corpus1_SelectCol_click)
         
         if st.session_state.corpus1_namecolname is not None and st.session_state.corpus1_selected_col_list is None:
             #select Name Column
@@ -425,7 +435,7 @@ if st.session_state.corpus1_input == True and st.session_state.app2_input == Fal
     if st.session_state.add_corpus2 == False:
         col1,col2 = st.columns([1,0.2])
         with col1:
-            corpus2_add = st.button('Add More Corpus?',on_click = click_add_corpus2,key = 'corpus2_add')
+            corpus2_add = st.button('Add More to be Matched Dataset?',on_click = click_add_corpus2,key = 'corpus2_add')
         with col2:
             next_button1 = st.button('Next',on_click = click_to_NM,key = 'next_button1')
 #################################################################################################### 2.1 Corpus Input ####################################################################################################
@@ -540,7 +550,8 @@ if st.session_state.query_input and (st.session_state.corpus2_input == False) an
             corpus2_namecol_box = [None]
             corpus2_namecol_box.extend(st.session_state.corpus2_df.columns)
             corpus2_namecol_option = st.selectbox('Which is Names Column ?',corpus2_namecol_box,key = 'corpus2_namecol_select_box')
-            corpus2_selected_namecol = st.button('next',on_click = corpus2_SelectCol_click)
+            if st.session_state['corpus2_namecol_select_box'] is not None:
+                corpus2_selected_namecol = st.button('next',on_click = corpus2_SelectCol_click)
         
         if st.session_state.corpus2_namecolname is not None and st.session_state.corpus2_selected_col_list is None:
             #select Name Column
@@ -658,7 +669,7 @@ if st.session_state.corpus2_input == True and st.session_state.app2_input == Fal
     if st.session_state.add_corpus3 == False:
         col1,col2 = st.columns([1,0.2])
         with col1:
-            corpus2_add = st.button('Add More Corpus?',on_click = click_add_corpus3,key = 'corpus2_add')
+            corpus2_add = st.button('Add More to be Matched Dataset?',on_click = click_add_corpus3,key = 'corpus2_add')
         with col2:
             next_button2 = st.button('Next',on_click = click_to_NM,key = 'next_button2')
 #################################################################################################### 2.2 Corpus Input ####################################################################################################
@@ -773,7 +784,8 @@ if st.session_state.query_input and (st.session_state.corpus3_input == False) an
             corpus3_namecol_box = [None]
             corpus3_namecol_box.extend(st.session_state.corpus3_df.columns)
             corpus3_namecol_option = st.selectbox('Which is Names Column ?',corpus3_namecol_box,key = 'corpus3_namecol_select_box')
-            corpus3_selected_namecol = st.button('next',on_click = corpus3_SelectCol_click)
+            if st.session_state['corpus3_namecol_select_box'] is not None:
+                corpus3_selected_namecol = st.button('next',on_click = corpus3_SelectCol_click)
         
         if st.session_state.corpus3_namecolname is not None and st.session_state.corpus3_selected_col_list is None:
             #select Name Column
@@ -902,7 +914,7 @@ if 'app2_double_prep' not in st.session_state:
 def submit_textpreprocess_regex():
     if st.session_state.app2_double_prep:
         st.session_state.app2_regex_listV1 = load_in(regex_tags)
-        st.session_state.app2_regex_listV2 = load_in(regex_tagsV2)
+        #st.session_state.app2_regex_listV2 = load_in(regex_tagsV2)
         st.session_state.app2_textprocess_regex_list = load_in(['not_empty'])
     else:
         st.session_state.app2_textprocess_regex_list = load_in(regex_tags)
@@ -931,25 +943,38 @@ if (st.session_state.app2_input == True) and (st.session_state.app2_textprocess 
         #     st.session_state.app2_double_prep = True
         # else:
         #     st.session_state.app2_double_prep = False
-
-        agree = st.checkbox('Suggested set of keywords')
-        if agree:
-            st.session_state.app2_choices = 'developer'
-        else:
-            st.session_state.app2_choices = 'default'            
+        st.radio(label = '',options = ['Suggested set of Keywords','Suggested set of Keywords (II.)','Customize your own Keywords'],
+                                        captions = ['เป็นคำ Common Words ของบริษัททำให้สามารถ Name Matching เจอง่ายขึ้น',
+                                                    "เป็นคำ Common Words ของบริษัทที่จะ More Specific Business ทำให้สามารถ Name Matching เจอง่ายขึ้น",
+                                                    'ปรับแต่ง Keywords เองทั้งหมด'], 
+                                        index = 0,key = 'user_textprep_regex_choices',label_visibility= 'collapsed')
+        
+        if st.session_state['user_textprep_regex_choices'] == "Suggested set of Keywords":
+            regex_tags = st_tags(label = '',value = st.session_state.app2_developer_regex_list,text = 'soft_simplify',maxtags= -1)
+        elif st.session_state['user_textprep_regex_choices'] == "Suggested set of Keywords (II.)":
+            regex_tags = st_tags(label = 'Text Preprocess II.',value = st.session_state.app2_developer_regex_listV2,text = 'hard_simplify',maxtags= -1)
+        if st.session_state['user_textprep_regex_choices'] == "Customize your own Keywords":
+            regex_tags = st_tags(label = '',value = st.session_state.app2_default_regex_list,text = 'customize',maxtags = -1)
        
-        with container: # to put it to top of checkbox
-            if st.session_state.app2_choices == 'default':
-                regex_tags = st_tags(label = '',value = st.session_state.app2_default_regex_list,text = 'regex',maxtags = -1)
-            elif st.session_state.app2_choices == 'developer':
-                regex_tags = st_tags(label = '',value = st.session_state.app2_developer_regex_list,text = 'soft_simplify',maxtags= -1)
+        #agree = st.checkbox('Suggested set of keywords')
 
-        if st.session_state.app2_double_prep:
-            with container2: # to put it to top of checkbox
-                if st.session_state.app2_choices == 'default':
-                    regex_tagsV2 = st_tags(label = 'Text Preprocess II.',value = ['บริษัท','จำกัด','มหาชน','INC'],text = 'regex',maxtags = -1)
-                elif st.session_state.app2_choices == 'developer':
-                    regex_tagsV2 = st_tags(label = 'Text Preprocess II.',value = st.session_state.app2_developer_regex_listV2,text = 'hard_simplify',maxtags= -1)
+        # if agree:
+        #     st.session_state.app2_choices = 'developer'
+        # else:
+        #     st.session_state.app2_choices = 'default'            
+       
+        # with container: # to put it to top of checkbox
+        #     if st.session_state.app2_choices == 'default':
+        #         regex_tags = st_tags(label = '',value = st.session_state.app2_default_regex_list,text = 'customize',maxtags = -1)
+        #     elif st.session_state.app2_choices == 'developer':
+        #         regex_tags = st_tags(label = '',value = st.session_state.app2_developer_regex_list,text = 'soft_simplify',maxtags= -1)
+
+        # if st.session_state.app2_double_prep:
+        #     with container2: # to put it to top of checkbox
+        #         if st.session_state.app2_choices == 'default':
+        #             regex_tagsV2 = st_tags(label = 'Text Preprocess II.',value = ['บริษัท','จำกัด','มหาชน','INC'],text = 'regex',maxtags = -1)
+        #         elif st.session_state.app2_choices == 'developer':
+        #             regex_tagsV2 = st_tags(label = 'Text Preprocess II.',value = st.session_state.app2_developer_regex_listV2,text = 'hard_simplify',maxtags= -1)
             
         ### submit to next-step        
     l1,r1 = st.columns([12,5])       
@@ -1518,4 +1543,20 @@ if st.session_state['app2_finalize_output'] is not None:
     def back_10():
         st.session_state['app2_finalize_output'] = None
         st.session_state['submit_coltoKeep'] = False
-    st.button('Back',key = 'back_10',on_click = back_10)
+    
+    def export_app2_output():
+        st.session_state['app2_ExportOutput'] = load_in(st.session_state['app2_finalize_output'])
+
+    @st.cache_data
+    def Export_ToNext(input_):
+        output = copy.deepcopy(input_)
+        return output
+    
+    l_col_10,r_col_10 = st.columns([10,3])
+    with l_col_10:
+        st.button('Back',key = 'back_10',on_click = back_10)
+    with r_col_10:
+        to_app3_bt = st.button('To Assign SNA',key = 'to_app3')
+        if to_app3_bt:
+            st.session_state['app2_ExportOutput'] = Export_ToNext(st.session_state['app2_finalize_output'])
+            switch_page('assign sna')

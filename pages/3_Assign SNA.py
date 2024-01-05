@@ -33,7 +33,7 @@ st.write('การทำงานของ App 3. Assign SNA จะมีอย
 
 st.write("***:orange[1.กำหนด Rule Based]***")
 st.code('"Rule Based" จะกำหนด Pattern จากข้อมูลบางส่วน เช่น "Isic4","ชื่อประกอบไปด้วย ..." เป็นต้น \nโดยจะแยกการ Apply ตามประเภทของผู้ถือหุ้น 1."Firm TH", 2."Firm ENG", 3."Person"  \nรายละเอียดของแต่ละ Rule สามารถดูได้ด้านล่าง')
-img = Image.open('material/images/arrow1.png')
+img = Image.open('Material/images/arrow1.png')
 with st.expander('คำอธิบายเพิ่มเติมเกี่ยวกับการกำหนด Rule Based'):
     st.write(':grey[Class จะมีทั้งหมด 3 Class ซึ่งแต่ละ Class จะมี Rule Based ของตัวเองไม่ซ้ำกัน]')
     st.write("1.:blue[Firm TH]  >>  หมายถึง ชื่อผู้ถือหุ้นที่เป็นธุรกิจที่มีชื่อภาษาไทย")
@@ -93,6 +93,11 @@ def get_upload():
     st.session_state['upload_data'] = True
 
 @st.cache_data
+def load_in(input_):
+    output = input_
+    return output
+
+@st.cache_data
 def read_upload_data(df):
     section = st.empty()
     section.info('reading uploaded data')
@@ -126,17 +131,33 @@ if 'data' not in st.session_state:
     st.session_state['data'] = None
     st.session_state['upload_data'] = False
 
+if 'app2_ExportOutput' not in st.session_state:
+    st.session_state['app2_ExportOutput'] = None
+
 def submit_app3_input():
     st.session_state['app3_input'] = True
 
 if st.session_state['app3_input'] == False :
-    st.header("กรุณาอัพโหลด Dataset เพื่อเริ่ม (.csv)")
-    uploaded_file = st.file_uploader("Choose a file")
-    if uploaded_file is not None:
-        dataframe = read_upload_data(uploaded_file)
-        conditional_st_write_df(dataframe)
-        st.write(f'{dataframe.shape[0]} rows , {dataframe.shape[1]} columns')
-        st.session_state['data'] = load_in(dataframe)
+    first_container = st.container()
+    ### check app2 input
+    if st.session_state['app2_ExportOutput'] is not None:
+        check_box = st.checkbox('Use App2 Input')
+        if check_box:
+            st.session_state['data'] = load_in(st.session_state['app2_ExportOutput'])
+            conditional_st_write_df(st.session_state['data'])
+            st.write(f"{st.session_state['data'].shape[0]} rows , {st.session_state['data'].shape[1]} columns")
+    else:
+        check_box = False
+    if check_box == False:
+        first_container.header("กรุณาอัพโหลด Dataset เพื่อเริ่ม (.csv)")
+        uploaded_file = st.file_uploader("Choose a file")
+        if uploaded_file is not None:
+            dataframe = read_upload_data(uploaded_file)
+            conditional_st_write_df(dataframe)
+            st.write(f'{dataframe.shape[0]} rows , {dataframe.shape[1]} columns')
+            st.session_state['data'] = load_in(dataframe)
+
+    if st.session_state['data'] is not None:
         st.button('Submit',on_click = submit_app3_input ,key = 'submit_app3_input')
 
 if st.session_state['app3_rule_based'] == False and st.session_state['app3_input']:
