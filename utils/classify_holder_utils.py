@@ -191,13 +191,16 @@ def preprocess_byRegex(names_df,names_namecolname,ord_all_options,firm_all_optio
         classified_firm_eng['Class'] = 'firm_eng'
         prep_eng_names.empty()
 
-        ###### find by nameseer
-        prep_nameseer = lower.empty()
-        prep_nameseer.info('Process 5/5: Classify by Nameseer')
-        nc = NameClassifier.load_pretrained_model()
-        tagged_results = thai_names.progress_apply(lambda row : nameseer_string(nc,row[names_namecolname]),axis = 1)
-        thai_names[['tag_company','tag_person']] = pd.DataFrame({'tagged':tagged_results} )['tagged'].tolist()
-        prep_nameseer.empty()
+        if len(thai_names)>0:
+            ###### find by nameseer
+            prep_nameseer = lower.empty()
+            prep_nameseer.info('Process 5/5: Classify by Nameseer')
+            nc = NameClassifier.load_pretrained_model()
+            tagged_results = thai_names.progress_apply(lambda row : nameseer_string(nc,row[names_namecolname]),axis = 1)
+            thai_names[['tag_company','tag_person']] = pd.DataFrame({'tagged':tagged_results} )['tagged'].tolist()
+            prep_nameseer.empty()
+        else:
+            thai_names = pd.DataFrame()
     
     return thai_names,regex_ord_df,regex_firm_df,classified_person_eng,classified_firm_eng
 
