@@ -304,20 +304,20 @@ if st.session_state.app1_regex:
 ################## 2. Classify by Nameseer ##################
 if st.session_state.app1_nameseer:
     if 'nameseer_buffer' not in st.session_state:
-        thai_names = ['A','B','C']
+        st.session_state['thai_names'] = ['A','B','C']
         st.session_state['nameseer_buffer'] = True
         
-    if st.session_state['nameseer_buffer'] and len(thai_names) > 0:
+    if st.session_state['nameseer_buffer'] and len(st.session_state['thai_names']) > 0:
         st.header("2. คัดแยกบุคคล/บริษัท ด้วย Nameseer",divider = 'blue')
 
     # print(st.session_state.app1_inidiv_regex_output)
     # print(st.session_state.app1_company_regex_output)
-    thai_names,regex_ord_df,regex_firm_df,classified_person_eng,classified_firm_eng = preprocess_byRegex(st.session_state.app1_dataframe,
+    st.session_state['thai_names'],regex_ord_df,regex_firm_df,classified_person_eng,classified_firm_eng = preprocess_byRegex(st.session_state.app1_dataframe,
                                                                                                         st.session_state.app1_name_column,
                                                                                                        st.session_state.app1_inidiv_regex_output,
                                                                                                        st.session_state.app1_company_regex_output)
     
-    if len(thai_names) == 0:
+    if len(st.session_state['thai_names']) == 0:
         st.session_state['nameseer_buffer'] = False
         classified_person_th = regex_ord_df.filter([st.session_state.app1_name_column])
         classified_person_th['Classified_Class'] = 'person_th'
@@ -367,7 +367,7 @@ if st.session_state.app1_nameseer:
             nameseer_c = st.slider(label = 'คัดแยกเป็นบริษัทเมื่อ company_score >=',min_value = 0.5,max_value =  1.0,value =  st.session_state.nameseer_company, step = 0.01,key = 'nameseer_company')
 
         if developer_choices_checkBox:
-            thai_names_ = thai_names.copy()
+            thai_names_ = st.session_state['thai_names'].copy()
             #nameseer_ord_df = thai_names_.query('tag_person >= @st.session_state.nameseer_person')
             nameseer_ord_df = thai_names_.query('tag_person >= @nameseer_p')
             
@@ -452,7 +452,7 @@ if st.session_state.app1_nameseer:
             result_c = result_c.sort_values('Count',ascending = False).query('Count > 0').reset_index(drop = True)
         
         else:
-            thai_names_ = thai_names.copy()
+            thai_names_ = st.session_state['thai_names'].copy()
             #nameseer_ord_df = thai_names_.query('tag_person >= @st.session_state.nameseer_person')
             nameseer_ord_df = thai_names_.query('tag_person >= @nameseer_p')
             #nameseer_firm_df = thai_names_.query('tag_company >= @st.session_state.nameseer_company')

@@ -29,19 +29,26 @@ if 'matchedsna_df_left' not in st.session_state:
     st.session_state['matchedsna_df_right'] = pd.read_excel('data/matched_sna.xlsx',sheet_name= 'right')
 
 st.title('App 3. Assign SNA ให้กับผู้ถือหุ้น')
-st.write('การทำงานของ App 3. Assign SNA จะมีอยู่ 2 ขั้นตอนคือ')
+st.write("ซึ่งการจะหา SNA ให้กับผู้ถือหุ้นสามารถทำได้หลายวิธี อาทิ")
+st.write("เชื่อมโยงกับถังข้อมูลที่มี SNA อยู่แล้ว (เช่นถัง IPI) ผ่านการทำ :red[Name Matching]")
+st.write('หรือใช้ข้อมูล :green["Field" ที่มีความสามารถในการคัดแยก SNA] และกำหนดออกมาเป็น :orange[Rule Based] เช่น')
+st.code('1. "รหัส Isic4" เช่น รหัส "ขึ้นต้นด้วย K" มีโอกาสสูงที่ผู้ถือหุ้นจะเป็น -> ตัวกลางทางการเงิน OFC\
+        \n2. "คีย์เวิร์ด" ที่ระบุชัดเจนว่าเป็น Sector ไหน เช่น คำว่า "ธนาคาร" มีโอกาสที่จะเป็น -> OFC\
+        \n3. "สัญชาติของผู้ถือหุ้น" เช่น หากเป็นผู้ถือหุ้น "ต่างชาติ" ก็มีโอกาสที่จะเป็น -> ROW')
 
+st.subheader('การทำงานของ App 3. Assign SNA จะมีอยู่ 2 ขั้นตอนคือ')
 st.write("***:orange[1.กำหนด Rule Based]***")
-st.code('"Rule Based" จะกำหนด Pattern จากข้อมูลบางส่วน เช่น "Isic4","ชื่อประกอบไปด้วย ..." เป็นต้น \nโดยจะแยกการ Apply ตามประเภทของผู้ถือหุ้น 1."Firm TH", 2."Firm ENG", 3."Person"  \nรายละเอียดของแต่ละ Rule สามารถดูได้ด้านล่าง')
+st.code('"Rule Based" จะเป็นการใช้ประโยชน์จาก "Field" เข้ามาคัดแยก SNA โดยกำหนดรูปแบบตามที่เรากำหนด \nโดยจะแยกการ Apply ตามประเภทของผู้ถือหุ้น 1."Firm TH", 2."Firm ENG", 3."Person"  \nรายละเอียดของแต่ละ Rule สามารถดูได้ด้านล่าง')
 img = Image.open('material/images/arrow1.png')
 with st.expander('คำอธิบายเพิ่มเติมเกี่ยวกับการกำหนด Rule Based'):
     st.write(':grey[Class จะมีทั้งหมด 3 Class ซึ่งแต่ละ Class จะมี Rule Based ของตัวเองไม่ซ้ำกัน]')
-    st.write("1.:blue[Firm TH]  >>  หมายถึง ชื่อผู้ถือหุ้นที่เป็นธุรกิจที่มีชื่อภาษาไทย")
-    st.write("2.:orange[Firm ENG]  >>  หมายถึง ชื่อผู้ถือหุ้นที่เป็นธุรกิจที่มีชื่อภาษาอังกฤษ")
-    st.write("3.:green[Person]  >>  หมายถึง ชื่อผู้ถือหุ้นที่เป็นบุคคลธรรมดา ที่มีชื่อภาษาไทย หรือ ภาษาอังกฤษ")
+    st.write("1.:blue[Firm TH]  >>  หมายถึง ชื่อผู้ถือหุ้นที่เป็นธุรกิจที่มีชื่อ:blue[ภาษาไทย]")
+    st.write("2.:orange[Firm ENG]  >>  หมายถึง ชื่อผู้ถือหุ้นที่เป็นธุรกิจที่มีชื่อ:orange[ภาษาอังกฤษ]")
+    st.write("3.:green[Person]  >>  หมายถึง ชื่อผู้ถือหุ้นที่เป็น:green[บุคคลธรรมดา] ที่มีชื่อภาษาไทย หรือ ภาษาอังกฤษ")
     st.divider()
     st.subheader('Rule Based จะมีทั้งหมด 4 ประเภท')
     st.write('***:red[1. Rule Based : Isic]***')
+    st.write(':red[*ปกติ Isic จะไม่มีในข้อมูลผู้ถือหุ้นฉะนั้น Field Isic4 ที่เราใช้ คือ Isic4 ได้มาจากการ Name Matching]')
     st.code("#ISIC4 CODE\nBOT = ['K6411'] \nOFC = ['K649250','K651100','K']")
     isic_col1,isic_col2,isic_col3 = st.columns([14,8,20])
     isic_col1.write(st.session_state['isic_df_left'])
@@ -60,14 +67,14 @@ with st.expander('คำอธิบายเพิ่มเติมเกี�
     nat_col2.image(img)
     nat_col3.write(st.session_state['nat_df_right'])
     st.write('***:red[4. Rule Based : Matched SNA]***')
-    st.write('จะเป็นการใช้ค่า SNA จากที่ Name Matching มากได้จาก Process ก่อนหน้า')
+    st.write('จะเป็นการใช้ค่า SNA จากที่ Name Matching มาจากได้จาก Process ก่อนหน้า')
     msna_col1,msna_col2,msna_col3 = st.columns([22,6,16])
     msna_col1.dataframe(st.session_state['matchedsna_df_left'],hide_index= True,use_container_width= True)
     msna_col2.image(img)
     msna_col3.dataframe(st.session_state['matchedsna_df_right'],hide_index= True,use_container_width=True)
 
 st.write("***:orange[2.กำหนดลำดับของการ Apply Rule Based]***")
-st.code("ใช้กำหนดลำดับความสำคัญของ Rule Based ว่าจะ Apply Rule ไหนก่อน")
+st.code('ใช้กำหนดลำดับความสำคัญของ "Rule Based" ว่าจะ Apply Rule ไหนก่อน')
 st.divider()
 
 if 'app3_rule_based' not in st.session_state:
@@ -168,32 +175,34 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
     style = (8,2,2,2)
     fake_col,col_page1,col_page2,col_page3 = st.columns(style)
 
-    def render_page1():
-        st.session_state['page1'] = True
-        st.session_state['page2'] = False
-        st.session_state['page3'] = False
+    # def render_page1():
+    #     st.session_state['page1'] = True
+    #     st.session_state['page2'] = False
+    #     st.session_state['page3'] = False
 
-    def render_page2():
-        st.session_state['page1'] = False
-        st.session_state['page2'] = True
-        st.session_state['page3'] = False
+    # def render_page2():
+    #     st.session_state['page1'] = False
+    #     st.session_state['page2'] = True
+    #     st.session_state['page3'] = False
 
-    def render_page3():
-        st.session_state['page1'] = False
-        st.session_state['page2'] = False
-        st.session_state['page3'] = True   
-    with fake_col:
-        st.write('Rule Based ของแต่ละประเภท')
-    with col_page1:
-        st.button('TH',on_click = render_page1,key = 'read1')
-    with col_page2:
-        st.button('ENG',on_click= render_page2,key = 'read2')
-    with col_page3:
-        st.button('Person',on_click= render_page3,key = 'read3')
+    # def render_page3():
+    #     st.session_state['page1'] = False
+    #     st.session_state['page2'] = False
+    #     st.session_state['page3'] = True   
+    # with fake_col:
+    #     st.write('Rule Based ของแต่ละประเภท')
+    # with col_page1:
+    #     st.button('TH',on_click = render_page1,key = 'read1')
+    # with col_page2:
+    #     st.button('ENG',on_click= render_page2,key = 'read2')
+    # with col_page3:
+    #     st.button('Person',on_click= render_page3,key = 'read3')
 
     if st.session_state['page1']:
         rule_based_container1 = st.container()
-        target_rule_based1 =  st.selectbox(label = '',options = ['Firm-TH','Firm-ENG','Person'],index = 0,key = 'target_rule_based1',label_visibility= 'collapsed')
+        #target_rule_based1 =  st.selectbox(label = '',options = ['Firm-TH','Firm-ENG','Person'],index = 0,key = 'target_rule_based1',label_visibility= 'collapsed')
+        if 'target_rule_based1' not in st.session_state:
+            st.session_state['target_rule_based1'] = 'Firm-TH'
         if bool(re.search('TH',str(st.session_state['target_rule_based1']).upper())):
             with rule_based_container1:
                 st.header(f"Rule-based สำหรับ :blue[{st.session_state['target_rule_based1']}]",divider = 'blue')
@@ -362,28 +371,45 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                     st.session_state['keywords1_checkbox_out'] = load_in(st.session_state['keywords1_checkbox'])
                     st.session_state['nat1_checkbox_out'] = load_in(st.session_state['nat1_checkbox'])
                     st.session_state['rule_based1'] = True
+                    st.session_state['target_rule_based1_out'] = load_in(st.session_state['target_rule_based1'])
+                    st.session_state['page2'] = True
+                    st.session_state['page1'] = False
+                    
                     
                 # submit button
                 if st.session_state['rule_based1'] == False:
                     st.button('submit rule-based 1',key ='submit_rule_based1',on_click = submit_rule_based1)
             
-            # after-submit
-            else:
-                if st.session_state['rule_based1_isic_action'] is not None:
-                    st.write('Isic Rule Based:')
-                    st.write(st.session_state['rule_based1_isic_action'])
-                if st.session_state['rule_based1_keywords_action'] is not None:
-                    st.write('Keywords Rule Based:')
-                    st.write(st.session_state['rule_based1_keywords_action'])
-                st.write('Nationality Rule Based:',st.session_state['rule_based1_nat_else_th'], st.session_state['rule_based1_nat_else_nonth'])
-                st.write('Submitted')
+            # # after-submit
+            # else:
+            #     if st.session_state['rule_based1_isic_action'] is not None:
+            #         st.write('Isic Rule Based:')
+            #         st.write(st.session_state['rule_based1_isic_action'])
+            #     if st.session_state['rule_based1_keywords_action'] is not None:
+            #         st.write('Keywords Rule Based:')
+            #         st.write(st.session_state['rule_based1_keywords_action'])
+            #     st.write('Nationality Rule Based:',st.session_state['rule_based1_nat_else_th'], st.session_state['rule_based1_nat_else_nonth'])
+            #     st.write('Submitted')
+    if st.session_state['rule_based1']:
+        st.header(f"Rule-based สำหรับ :blue[{st.session_state['target_rule_based1_out']}]",divider = 'blue')
+        if st.session_state['rule_based1_isic_action'] is not None:
+            st.write('Isic Rule Based:')
+            st.write(st.session_state['rule_based1_isic_action'])
+        if st.session_state['rule_based1_keywords_action'] is not None:
+            st.write('Keywords Rule Based:')
+            st.write(st.session_state['rule_based1_keywords_action'])
+        st.write('Nationality Rule Based:',st.session_state['rule_based1_nat_else_th'], st.session_state['rule_based1_nat_else_nonth'])
+        st.write('Submitted')
+
     ############################################################## 1.FIRM_TH ##############################################################
 
 
    ############################################################## 2.FIRM_EN ##############################################################
     if st.session_state['page2']:
         rule_based_container2 = st.container()
-        target_rule_based2 =  st.selectbox(label = '',options = ['Firm-TH','Firm-ENG','Person'],index = 1,key = 'target_rule_based2',label_visibility= 'collapsed')
+        #target_rule_based2 =  st.selectbox(label = '',options = ['Firm-TH','Firm-ENG','Person'],index = 1,key = 'target_rule_based2',label_visibility= 'collapsed')
+        if 'target_rule_based2' not in st.session_state:
+            st.session_state['target_rule_based2'] = 'Firm-ENG'
         if bool(re.search('EN',str(st.session_state['target_rule_based2']).upper())):
             with rule_based_container2:
                 st.header(f"Rule-based สำหรับ :orange[{st.session_state['target_rule_based2']}]",divider = 'orange')
@@ -550,6 +576,9 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                     st.session_state['isic2_checkbox_out'] = load_in(st.session_state['isic2_checkbox'])
                     st.session_state['keywords2_checkbox_out'] = load_in(st.session_state['keywords2_checkbox'])
                     st.session_state['nat2_checkbox_out'] = load_in(st.session_state['nat2_checkbox'])
+                    st.session_state['target_rule_based2_out'] = load_in(st.session_state['target_rule_based2'])
+                    st.session_state['page2'] = False
+                    st.session_state['page3'] = True
                     
                     # submit rules-based
                     st.session_state['rule_based2'] = True
@@ -558,24 +587,35 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                 if st.session_state['rule_based2'] == False:
                     st.button('submit rule-based 2',key ='submit_rule_based2',on_click = submit_rule_based2)
             
-            # after-submit
-            else:
-                if st.session_state['rule_based2_isic_action'] is not None:
-                    st.write('Isic Rule Based:')
-                    st.write(st.session_state['rule_based2_isic_action'])
-                if st.session_state['rule_based2_keywords_action'] is not None:
-                    st.write('Keywords Rule Based:')
-                    st.write(st.session_state['rule_based2_keywords_action'])
-                st.write('Nationality Rule Based:',st.session_state['rule_based2_nat_else_th'], st.session_state['rule_based2_nat_else_nonth'])
-                st.write('Submitted')
+            # # after-submit
+            # else:
+            #     if st.session_state['rule_based2_isic_action'] is not None:
+            #         st.write('Isic Rule Based:')
+            #         st.write(st.session_state['rule_based2_isic_action'])
+            #     if st.session_state['rule_based2_keywords_action'] is not None:
+            #         st.write('Keywords Rule Based:')
+            #         st.write(st.session_state['rule_based2_keywords_action'])
+            #     st.write('Nationality Rule Based:',st.session_state['rule_based2_nat_else_th'], st.session_state['rule_based2_nat_else_nonth'])
+            #     st.write('Submitted')
+    if st.session_state['rule_based2']:
+        st.header(f"Rule-based สำหรับ :orange[{st.session_state['target_rule_based2_out']}]",divider = 'blue')
+        if st.session_state['rule_based2_isic_action'] is not None:
+            st.write('Isic Rule Based:')
+            st.write(st.session_state['rule_based2_isic_action'])
+        if st.session_state['rule_based2_keywords_action'] is not None:
+            st.write('Keywords Rule Based:')
+            st.write(st.session_state['rule_based2_keywords_action'])
+        st.write('Nationality Rule Based:',st.session_state['rule_based2_nat_else_th'], st.session_state['rule_based2_nat_else_nonth'])
+        st.write('Submitted')                    
     ############################################################## 2.FIRM_EN ##############################################################
 
     ############################################################## 3.Person ##############################################################
     if st.session_state['page3']:
         rule_based_container3 = st.container()
         
-        target_rule_based3 =  st.selectbox(label = '',options = ['Firm-TH','Firm-ENG','Person'],index = 2,key = 'target_rule_based3',label_visibility= 'collapsed')
-        
+        #target_rule_based3 =  st.selectbox(label = '',options = ['Firm-TH','Firm-ENG','Person'],index = 2,key = 'target_rule_based3',label_visibility= 'collapsed')
+        if 'target_rule_based3' not in st.session_state:
+            st.session_state['target_rule_based3'] = 'Person'
 
         if bool(re.search('PER',str(st.session_state['target_rule_based3']).upper())):
             with rule_based_container3:
@@ -742,7 +782,9 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                     st.session_state['isic3_checkbox_out'] = load_in(st.session_state['isic3_checkbox'])
                     st.session_state['keywords3_checkbox_out'] = load_in(st.session_state['keywords3_checkbox'])
                     st.session_state['nat3_checkbox_out'] = load_in(st.session_state['nat3_checkbox'])
-                    
+                    st.session_state['target_rule_based3_out'] = load_in(st.session_state['target_rule_based3'])
+                    #st.session_state['page2'] = True
+                    st.session_state['page3'] = False
                     # submit rules-based
                     st.session_state['rule_based3'] = True
                     
@@ -751,15 +793,25 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                     st.button('submit rule-based 3',key ='submit_rule_based3',on_click = submit_rule_based3)
             
             # after-submit
-            else:
-                if st.session_state['rule_based3_isic_action'] is not None:
-                    st.write('Isic Rule Based:')
-                    st.write(st.session_state['rule_based3_isic_action'])
-                if st.session_state['rule_based3_keywords_action'] is not None:
-                    st.write('Keywords Rule Based:')
-                    st.write(st.session_state['rule_based3_keywords_action'])
-                st.write('Nationality Rule Based:',st.session_state['rule_based3_nat_else_th'], st.session_state['rule_based3_nat_else_nonth'])
-                st.write('Submitted')
+            # else:
+            #     if st.session_state['rule_based3_isic_action'] is not None:
+            #         st.write('Isic Rule Based:')
+            #         st.write(st.session_state['rule_based3_isic_action'])
+            #     if st.session_state['rule_based3_keywords_action'] is not None:
+            #         st.write('Keywords Rule Based:')
+            #         st.write(st.session_state['rule_based3_keywords_action'])
+            #     st.write('Nationality Rule Based:',st.session_state['rule_based3_nat_else_th'], st.session_state['rule_based3_nat_else_nonth'])
+            #     st.write('Submitted')
+    if st.session_state['rule_based3']:
+        st.header(f"Rule-based สำหรับ :green[{st.session_state['target_rule_based3_out']}]",divider = 'blue')
+        if st.session_state['rule_based3_isic_action'] is not None:
+            st.write('Isic Rule Based:')
+            st.write(st.session_state['rule_based3_isic_action'])
+        if st.session_state['rule_based3_keywords_action'] is not None:
+            st.write('Keywords Rule Based:')
+            st.write(st.session_state['rule_based3_keywords_action'])
+        st.write('Nationality Rule Based:',st.session_state['rule_based3_nat_else_th'], st.session_state['rule_based3_nat_else_nonth'])
+        st.write('Submitted')                    
     ############################################################## 3.Person ##############################################################
 
     def submit_app3_rule_based():
@@ -773,7 +825,7 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
     back_col = mult_cols[0]
     next_col = mult_cols[-1]
     with next_col:
-        if (st.session_state.app3_rule_based == False):
+        if (st.session_state.app3_rule_based == False) and st.session_state['rule_based1'] and st.session_state['rule_based2'] and st.session_state['rule_based3']:
             get_next = st.button('Next',on_click = submit_app3_rule_based )
     with back_col:
         back_bt1 = st.button('Back',on_click= back_click1)
@@ -782,23 +834,7 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
 if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_prioritize'] == False:
     ################################################# Select Necessary Column #################################################
     st.header('2. กำหนดลำดับการ Apply Rule Based',divider = 'blue')
-    st.subheader('โปรดเลือกคอลัมน์')
     
-    choices = [None]
-    choices.extend(st.session_state['data'].columns.values)
-    #choices = [None,'SNA','NAT','NAME','ISIC'] # df input_column
-
-    left,right,out = st.columns([10,10,10])
-    left.subheader(f':gray[SNA :]')
-    right.selectbox(label = '',options = choices,index = 0,key = 'input_sna',label_visibility = 'collapsed')
-    left.subheader(f':gray[สัญชาติผู้ถือหุ้น :]')
-    right.selectbox(label = '',options = choices,index = 0,key = 'input_nat',label_visibility = 'collapsed')
-    left.subheader(f':gray[ชื่อผู้ถือหุ้น :]')
-    right.selectbox(label = '',options = choices,index = 0,key = 'input_hldrname',label_visibility = 'collapsed')
-    left.subheader(f':gray[รหัส isic4 :]')
-    right.selectbox(label = '',options = choices,index = 0,key = 'input_isic',label_visibility = 'collapsed')
-    st.divider()
-
     st.subheader('โปรดเลือกลำดับการให้ SNA แก่ผู้ถือหุ้น')
     choices = [None,'สัญชาติผู้ถือหุ้น','Isic','Keywords','Matched SNA']
     first_container = st.container()
@@ -867,7 +903,24 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
         left4.subheader(f':gray[4.Rule: {st.session_state["global_prioritize_option_rank4"]}]')
         with out4:
             findout(st.session_state['global_prioritize_option_rank4'],desired_key = 'rank4')
-        st.divider()
+    st.divider()
+
+    # Select Necessary Columns
+    st.subheader('โปรดเลือกคอลัมน์')
+    choices = [None]
+    choices.extend(st.session_state['data'].columns.values)
+    #choices = [None,'SNA','NAT','NAME','ISIC'] # df input_column
+
+    left,right,out = st.columns([10,10,10])
+    left.subheader(f':gray[SNA :]')
+    right.selectbox(label = '',options = choices,index = 0,key = 'input_sna',label_visibility = 'collapsed')
+    left.subheader(f':gray[สัญชาติผู้ถือหุ้น :]')
+    right.selectbox(label = '',options = choices,index = 0,key = 'input_nat',label_visibility = 'collapsed')
+    left.subheader(f':gray[ชื่อผู้ถือหุ้น :]')
+    right.selectbox(label = '',options = choices,index = 0,key = 'input_hldrname',label_visibility = 'collapsed')
+    left.subheader(f':gray[รหัส isic4 :]')
+    right.selectbox(label = '',options = choices,index = 0,key = 'input_isic',label_visibility = 'collapsed')
+    st.divider()
 
     def submit_prioritize():
         # input column (draft)
@@ -915,7 +968,7 @@ if st.session_state['app3_rule_based_prioritize']:
             allowance = st.session_state[f'nat{target_}_checkbox_out']
         return allowance
 
-    def find_input(type_,dummy_sna = 'TEMP_SNA'):
+    def find_input(type_,dummy_sna = 'FINAL_SNA'):
         if type_ == "isic":
             input_ = [dummy_sna,st.session_state['global_input']['nat'],st.session_state['global_input']['isic4']]
         elif type_ == "keywords":
@@ -1004,10 +1057,15 @@ if st.session_state['app3_rule_based_prioritize']:
                                                                                             option_= st.session_state[f'rank{rank}']['option'],
                                                                                             condition_= st.session_state[f'rank{rank}']['condition']) 
 
+if 'app3_rule_based_process' not in st.session_state:
+    st.session_state['app3_rule_based_process'] = True
+    st.session_state['app3_finalize_output'] = None
+
 # Process Assign SNA to Dataset
-if st.session_state['app3_rule_based_prioritize']:
+if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rule_based_process']:
+    st.header('3. Final Results',divider= 'green')
     time.sleep(0.5)
-    st.session_state['data']['TEMP_SNA'] = np.nan
+    st.session_state['data']['FINAL_SNA'] = np.nan
     # 1.firm-th 2.firm_eng 3. person
     total_df = pd.DataFrame()
     for target in range(1,3+1):
@@ -1023,7 +1081,7 @@ if st.session_state['app3_rule_based_prioritize']:
                     block2.empty()
                     continue
                 else:
-                    filtered_df['TEMP_SNA'] = filtered_df.progress_apply(lambda row: \
+                    filtered_df['FINAL_SNA'] = filtered_df.progress_apply(lambda row: \
                                             st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
                                                                                                             st.session_state[f'apply_order{target}_rank{rank}']['input_column'],
                                                                                                             st.session_state[f'apply_order{target}_rank{rank}']['action'],
@@ -1031,11 +1089,82 @@ if st.session_state['app3_rule_based_prioritize']:
                                                                                                             axis = 1)
                 block2.empty()
         block1.empty()
+        # combine red
         total_df = pd.concat([total_df,filtered_df])
-    st.write(total_df)
+        st.session_state['app3_finalize_output'] = load_in(total_df)
+        # count res
+        target_col = 'FINAL_SNA'
+        sna10_c = pd.DataFrame(total_df[f'{target_col}'].value_counts().reset_index())
+        total_c = sum(sna10_c[f'{target_col}'])
+        if total_c == total_df.shape[0]:
+            sna10_c = sna10_c.copy()
+            sna10_c.columns = [f'{target_col}','Counts']
+        else:
+            unk_extension = pd.DataFrame({'index':['UNKOWN'],f'{target_col}':[total_df.shape[0] - total_c]})
+            sna10_c = pd.concat([sna10_c,unk_extension]).sort_values(f'{target_col}',ascending= False).reset_index(drop = True)
+            sna10_c.columns = [f'{target_col}','Counts']
+        
+        matched_percent = np.round((total_c/total_df.shape[0])* 100,1)
+        
+if st.session_state['app3_finalize_output'] is not None:
+    st.write(st.session_state['app3_finalize_output'])
+    if 'app3_output_total_c' not in st.session_state:
+        st.session_state['app3_output_total_c'] = load_in(total_c)
+        st.session_state['app3_output_matched_percent'] = load_in(matched_percent)
+        st.session_state['app3_output_result_c'] = load_in(sna10_c)
+    st.session_state['app3_rule_based_process'] = False
 
+    st.success(f"สามารถ Assign SNA ได้ :green[{st.session_state['app3_output_matched_percent']}%] จากทั้งหมด", icon="✅")
+    st.write(st.session_state['app3_output_result_c'])
+
+############################## download    
+    if 'app3_download_file' not in st.session_state:
+        st.session_state.app3_download_file  = False
+
+    def click_download():
+        st.session_state.app3_download_file = True
+
+    def click_fin_download():
+        st.session_state.app3_download_file = False
+
+    @st.cache_data
+    def convert_df(df):
+        # IMPORTANT: Cache the conversion to prevent computation on every rerun
+        return df.to_csv().encode('utf-8')
+
+    if st.session_state['app3_finalize_output'] is not None:
+        #st.divider()
+        if len(st.session_state['app3_finalize_output']) > 0:
+            download_but = st.button('Download',on_click = click_download)
+
+    if st.session_state.app3_download_file:
+        prompt = False
+        submitted = False
+        csv = convert_df(st.session_state['app3_finalize_output'])
+        with st.form('chat_input_form'):
+            # Create two columns; adjust the ratio to your liking
+            col1, col2 = st.columns([3,1]) 
+            # Use the first column for text input
+            with col1:
+                prompt = st.text_input(label = '',value='',placeholder='please write your file_name',label_visibility='collapsed')
+            # Use the second column for the submit button
+            with col2:
+                submitted = st.form_submit_button('Submit')
+            
+            if prompt and submitted:
+                # Do something with the inputted text here
+                st.write(f"Your file_name is: {prompt}.csv")
+
+    if st.session_state.app3_download_file:
+        if prompt and submitted:
+            st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
+
+############################## Get Back
     def back_click3():
         st.session_state['app3_rule_based_prioritize'] = False
+        st.session_state['app3_rule_based_process'] = True
+        st.session_state['app3_finalize_output'] = None
+        st.session_state.pop('app3_output_total_c',None)
 
     l3,r3 = st.columns([10,1])
     # with r2:
