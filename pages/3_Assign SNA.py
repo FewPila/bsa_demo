@@ -1095,6 +1095,8 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             # count res
             target_col = 'FINAL_SNA'
             sna10_c = pd.DataFrame(total_df[f'{target_col}'].value_counts().reset_index())
+            st.write(sna10_c)
+            st.write(sna10_c[f'{target_col}'])
             total_c = sum(sna10_c[f'{target_col}'])
             if total_c == total_df.shape[0]:
                 sna10_c = sna10_c.copy()
