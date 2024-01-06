@@ -1092,26 +1092,27 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             block1.empty()
             # combine red
             total_df = pd.concat([total_df,filtered_df])
-            # count res
-            target_col = 'FINAL_SNA'
-            sna10_c = pd.DataFrame(total_df[f'{target_col}'].value_counts()).reset_index()
-            st.write(sna10_c)
-
-            total_c = sum(sna10_c['count'])
-            if total_c == total_df.shape[0]:
-                sna10_c = sna10_c.copy()
-                sna10_c.columns = [f'{target_col}','Counts']
-            else:
-                unk_extension = pd.DataFrame({f'{target_col}':['UNKNOWN'],'count':[total_df.shape[0] - total_c]})
-                sna10_c = pd.concat([sna10_c,unk_extension]).sort_values('count',ascending= False).reset_index(drop = True)
-                sna10_c.columns = [f'{target_col}','Counts']
             
-            matched_percent = np.round((total_c/total_df.shape[0])* 100,1)
-            if 'app3_output_total_c' not in st.session_state:
-                st.session_state['app3_output_total_c'] = load_in(total_c)
-                st.session_state['app3_output_matched_percent'] = load_in(matched_percent)
-                st.session_state['app3_output_result_c'] = load_in(sna10_c)
-            st.session_state['app3_finalize_output'] = load_in(total_df)
+        time.sleep(0.5)
+        # count fin res
+        target_col = 'FINAL_SNA'
+        sna10_c = pd.DataFrame(total_df[f'{target_col}'].value_counts()).reset_index()
+        st.write(sna10_c)
+        total_c = sum(sna10_c['count'])
+        if total_c == total_df.shape[0]:
+            sna10_c = sna10_c.copy()
+            sna10_c.columns = [f'{target_col}','Counts']
+        else:
+            unk_extension = pd.DataFrame({f'{target_col}':['UNKNOWN'],'count':[total_df.shape[0] - total_c]})
+            sna10_c = pd.concat([sna10_c,unk_extension]).sort_values('count',ascending= False).reset_index(drop = True)
+            sna10_c.columns = [f'{target_col}','Counts']
+        
+        matched_percent = np.round((total_c/total_df.shape[0])* 100,1)
+        if 'app3_output_total_c' not in st.session_state:
+            st.session_state['app3_output_total_c'] = load_in(total_c)
+            st.session_state['app3_output_matched_percent'] = load_in(matched_percent)
+            st.session_state['app3_output_result_c'] = load_in(sna10_c)
+        st.session_state['app3_finalize_output'] = load_in(total_df)
             
 if st.session_state['app3_finalize_output'] is not None:
     st.write(st.session_state['app3_finalize_output'])
