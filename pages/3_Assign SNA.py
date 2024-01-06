@@ -1094,17 +1094,16 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             total_df = pd.concat([total_df,filtered_df])
             # count res
             target_col = 'FINAL_SNA'
-            sna10_c = pd.DataFrame(total_df[f'{target_col}'].value_counts())
+            sna10_c = pd.DataFrame(total_df[f'{target_col}'].value_counts()).reset_index()
             st.write(sna10_c)
-            #st.write(sna10_c[f'{target_col}'])
-            total_c = sum(sna10_c[f'{target_col}'])
-            #total_c = sum(sna10_c['count'])
+
+            total_c = sum(sna10_c['count'])
             if total_c == total_df.shape[0]:
                 sna10_c = sna10_c.copy()
                 sna10_c.columns = [f'{target_col}','Counts']
             else:
-                unk_extension = pd.DataFrame({'index':['UNKOWN'],f'{target_col}':[total_df.shape[0] - total_c]})
-                sna10_c = pd.concat([sna10_c,unk_extension]).sort_values(f'{target_col}',ascending= False).reset_index(drop = True)
+                unk_extension = pd.DataFrame({f'{target_col}':['UNKNOWN'],'count':[total_df.shape[0] - total_c]})
+                sna10_c = pd.concat([sna10_c,unk_extension]).sort_values('count',ascending= False).reset_index(drop = True)
                 sna10_c.columns = [f'{target_col}','Counts']
             
             matched_percent = np.round((total_c/total_df.shape[0])* 100,1)
