@@ -1232,16 +1232,16 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
     with st.expander('Candidate Matched Name'):
         if st.session_state.read_df1:
             st.write(f"From file: {st.session_state[f'corpus{1}_file_name']}")
-            st.write(st.session_state[f'matched{1}_df'])
+            st.write(dataframe_explorer(st.session_state[f'matched{1}_df']))
             st.write(f"{st.session_state[f'matched{1}_df'].shape[0]} rows , {st.session_state[f'matched{1}_df'].shape[1]} columns")
 
         elif st.session_state.read_df2:
             st.write(f"From file: {st.session_state[f'corpus{2}_file_name']}")
-            st.write(st.session_state[f'matched{2}_df'])
+            st.write(dataframe_explorer(st.session_state[f'matched{2}_df']))
             st.write(f"{st.session_state[f'matched{2}_df'].shape[0]} rows , {st.session_state[f'matched{2}_df'].shape[1]} columns")
         elif st.session_state.read_df3:
             st.write(f"From file: {st.session_state[f'corpus{3}_file_name']}")
-            st.write(st.session_state[f'matched{3}_df'])
+            st.write(dataframe_explorer(st.session_state[f'matched{3}_df']))
             st.write(f"{st.session_state[f'matched{3}_df'].shape[0]} rows , {st.session_state[f'matched{3}_df'].shape[1]} columns")
 
     if sum(st.session_state.order.values()) > 1:
