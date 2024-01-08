@@ -1323,6 +1323,12 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด', icon="✅")
         st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')
         st.caption('หมายเหตุ: ผลสามารถเป็นได้ทั้ง False Positive/Negative ไม่ใช่เป็นการ Confirm Matched')
+        st.write('จำนวนประเภททั้งหมดใน Dataset')
+        if 'Class' in st.session_state['query_df']:
+            st.write(pd.DataFrame(st.session_state['query_df']['Class'].value_counts()))
+        elif 'Classified_Class' in st.session_state['query_df']:
+            st.write(pd.DataFrame(st.session_state['query_df']['Classified_Class'].value_counts()))
+        
         st.write(st.session_state['query_matched_results'])
     if 't_end' not in st.session_state:
         st.session_state.t_end = time.time()
