@@ -120,14 +120,14 @@ if 'app2_input' not in st.session_state:
     st.session_state.app2_output = None
     st.session_state['app2_finalize_output'] = None
 
-if 'app2_textprocess' not in st.session_state:
-    st.session_state.app2_textprocess = False
-    st.session_state.app2_textprocess_regex_list = False
-    st.session_state.app2_default_regex_list = copy.deepcopy(default_regex_list)
-    st.session_state.app2_developer_regex_list = copy.deepcopy(soft_simp_words)
-    st.session_state.app2_developer_regex_listV2 = copy.deepcopy(hard_simp_words)
-    st.session_state.app2_regex_listV1 = None
-    st.session_state.app2_regex_listV2 = None
+# if 'app2_textprocess' not in st.session_state:
+#     st.session_state.app2_textprocess = False
+#     st.session_state.app2_textprocess_regex_list = False
+#     st.session_state.app2_default_regex_list = copy.deepcopy(default_regex_list)
+#     st.session_state.app2_developer_regex_list = copy.deepcopy(soft_simp_words)
+#     st.session_state.app2_developer_regex_listV2 = copy.deepcopy(hard_simp_words)
+#     st.session_state.app2_regex_listV1 = None
+#     st.session_state.app2_regex_listV2 = None
 
 if 'app2_preprocessNM' not in st.session_state:
     st.session_state.app2_preprocessNM = False
@@ -197,10 +197,41 @@ if st.session_state.app2_input == False:
         conditional_st_write_df(st.session_state.query_df)
         st.write(f'{st.session_state.query_df.shape[0]} rows , {st.session_state.query_df.shape[1]} columns')
 #################################################################################################### 1 Query Input ####################################################################################################
+from rapidfuzz import fuzz
+
+# correct name with fuzzy
+soft_simp_words = ['CO', 'COMPANY', 'CORPORATION', 'CO\\.', 'CO\\s', 'ENTERPRISE',
+    'ENTERPRISES', 'INC', 'INTERNATIONAL', 'LIMITED', 'LLC', 'LTD',
+    'NOMINEE', 'NOMINEES', 'PLC', 'PTE', 'PUBLIC', 'THAILAND', 'THE',
+    '^.?บจ\\.?', '^.?หส\\.?', '^บ\\s', '^บจ', '^หจ', '^หส',
+    'กิจการ', 'กิจการร่วมค้า', 'คอร์ปอร์เรชั่น', 'คอร์ปอเรชั่น',
+    'คอร์ปอเรชั้น', 'คอร์ปอเรท', 'คอร์เปอร์เรชั่น', 'คอร์เปอเรชั่น',
+    'คัมปะนี', 'คัมพะนี', 'คัมพานี', 'จำกัด', 'จีเอ็มบีเอช', 'ทีม',
+    'นอมินี', 'บ\\.', 'บจก', 'บมจ', 'บริษัท', 'บริษํท', 'บลจ',
+    'ประเทศไทย', 'พีทีวาย', 'พีทีอี', 'พีแอลซี', 'มหาชน', 'ลิมิเด็ด',
+    'ลิมิเต็ด', 'ศูนย์บริหาร', 'หจ\\.?', 'หจก', 'หจก\\.?', 'หส\\.',
+    'หุ้น', 'ห้างหุ้นส่วนสามัญ', 'อิงค์', 'อิงส์', 'อินเตอร์เนชันแนล',
+    'อินเตอร์เนชั่นแนล', 'อุตสาหกรรม', 'เทศบาล', 'เอ็นเตอร์ไพรส์',
+    'เอ็นเตอร์ไพรส์เซส', 'เอ็นเตอร์ไพร์ส', 'แอลซี', 'แอลทีดี',
+    'แอลเอซี', 'แอลแอลซี', 'โฮลดิง', 'โฮลดิ้ง']
+
+def simplify_name(x,regex_list):
+    x = str(x)
+    regex_list_re = '|'.join(regex_list)
+    x1 = str(x).strip().upper()
+    x2 = re.sub(regex_list_re,'',x1)
+    return x2 if len(x2)>0 else x1
+
+
+if 'ipi_df' not in st.session_state:
+    st.session_state['ipi_df'] = pd.read_csv('fake_dataset/fake_ipi.csv')
+    st.session_state['ipi_df']['SRC_UNQ_ID'] = st.session_state['ipi_df']['SRC_UNQ_ID'].astype(str).str.zfill(13)
 
 if 'corpus1_input' not in st.session_state:
     st.session_state.corpus1_input = False
     st.session_state.corpus1_cache  = False
+    st.session_state['uploaded_corpus1'] = False
+    st.session_state['corpus1_use_ipi'] = False
     # input corpus
     st.session_state.corpus1_df = None
     st.session_state.corpus1_namecolname = None
@@ -218,16 +249,6 @@ if 'corpus1_input' not in st.session_state:
     st.session_state.query1_filter_range_out = None
     st.session_state.query1_filter_choices_out = None
     st.session_state.query1_filter_condition = None
-    # adjust corpus
-    st.session_state.adjust_corpus1 = False
-    st.session_state.corpus1_filter_option = None
-    st.session_state.corpus1_filter_option_dtype = None
-    st.session_state.corpus1_filter_range = None
-    st.session_state.corpus1_filter_choices = None
-    st.session_state.corpus1_filter_option_out = None
-    st.session_state.corpus1_filter_range_out = None
-    st.session_state.corpus1_filter_choices_out = None
-    st.session_state.corpus1_filter_condition = None
     # add corpus
     st.session_state.add_corpus2 = False
 
@@ -238,6 +259,11 @@ def corpus1_SelectCol_list_click():
     st.session_state.corpus1_selected_col_list = load_in(st.session_state.corpus1_col_list_select_box)
     st.session_state.corpus1_df = load_in(st.session_state.corpus1_df.filter(st.session_state.corpus1_selected_col_list))
 
+def corpus1_click_use_ipi():
+    st.session_state['corpus1_df'] = st.session_state['ipi_df'].copy()
+    st.session_state['uploaded_corpus1'] = True
+    st.session_state['corpus1_use_ipi'] = True
+
 def corpus1_submit():
     st.session_state.corpus1_partial_nm  = load_in(corpus1_partialnm_box)
     
@@ -247,12 +273,6 @@ def corpus1_submit():
         st.session_state.query1_filter_choices_out = load_in(st.session_state.query1_filter_choices)
     elif st.session_state.query1_filter_range is not None:
         st.session_state.query1_filter_range_out = load_in(st.session_state.query1_filter_range)
-    # adjust corpus
-    st.session_state.corpus1_filter_option_out = load_in(st.session_state.corpus1_filter_option)
-    if st.session_state.corpus1_filter_choices is not None:
-        st.session_state.corpus1_filter_choices_out = load_in(st.session_state.corpus1_filter_choices)
-    elif st.session_state.corpus1_filter_range is not None:
-        st.session_state.corpus1_filter_range_out = load_in(st.session_state.corpus1_filter_range)
     
     if st.session_state.query1_filter_option_out is not None:
         st.session_state.adjust_query1 = load_in(True)
@@ -260,29 +280,37 @@ def corpus1_submit():
             st.session_state.query1_filter_option_dtype = load_in('numeric')
         else:
             st.session_state.query1_filter_option_dtype = load_in('object')
-
-    if st.session_state.corpus1_filter_option_out is not None:
-        st.session_state.adjust_corpus1 = load_in(True)
-        if bool(re.search('num|float|int',corpus1_type_string)):
-            st.session_state.corpus1_filter_option_dtype = load_in('numeric')
-        else:
-            st.session_state.corpus1_filter_option_dtype = load_in('object')
     
     if st.session_state.query1_filter_choices_out is not None:
         st.session_state.query1_filter_condition = load_in(st.session_state.query1_filter_choices_out)
     elif st.session_state.query1_filter_range_out is not None:
         st.session_state.query1_filter_condition = load_in(st.session_state.query1_filter_range_out)
     
-    if st.session_state.corpus1_filter_choices_out is not None:
-        st.session_state.corpus1_filter_condition = load_in(st.session_state.corpus1_filter_choices_out)
-    elif st.session_state.corpus1_filter_range_out is not None:
-        st.session_state.corpus1_filter_condition = load_in(st.session_state.corpus1_filter_range_out)
-    
-    st.session_state.corpus1_file_name = load_in(re.sub('\\.csv','',corpus1_upload.name))
+    # input file_name
+    st.session_state.corpus1_file_name = 'data1'
+    # if not st.session_state['corpus1_use_ipi']:
+    #     st.session_state.corpus1_file_name = load_in(re.sub('\\.csv','',corpus1_upload.name))
+    # else:
+    #     st.session_state.corpus1_file_name = load_in('IPI_DATASET')
     st.session_state.corpus1_df = st.session_state.corpus1_df.reset_index(drop = True).reset_index()
     st.session_state.corpus1_df = load_in(st.session_state.corpus1_df.rename(columns = {'index':'corpus_index'}))
+
+    # Merge IPI Session
+    if not st.session_state['corpus1_use_ipi']:
+        if corpus1_merge_ipi_box:
+            st.session_state['corpus1_RID_CN']
+            st.session_state['corpus1_Name_CN']
+            st.session_state['corpus1_df'][st.session_state['corpus1_RID_CN']] = st.session_state['corpus1_df'][st.session_state['corpus1_RID_CN']].astype(str).str.zfill(13)
+            r_df = st.session_state['corpus1_df'].merge(st.session_state['ipi_df'].rename(columns = {'SRC_UNQ_ID':st.session_state['corpus1_RID_CN']}),
+                                                        on = st.session_state['corpus1_RID_CN'],
+                                                        how = 'left')
+            r_df['SCORE'] = r_df.apply(lambda row: fuzz.ratio(row[st.session_state['corpus1_Name_CN']],row['RGST_NM_TH']),axis = 1)
+            r_df['SIMP_SCORE'] = r_df.apply(lambda row : fuzz.ratio(simplify_name(row[st.session_state['corpus1_Name_CN']],soft_simp_words),
+                                                    simplify_name(row['RGST_NM_TH'],soft_simp_words)),axis = 1)
+            r_keep_col = [st.session_state['corpus1_RID_CN'],'RGST_NM_TH','SNA_2008']
+            st.session_state['corpus1_df'] = st.session_state['corpus1_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left')
+
     st.session_state.corpus1_input = True
-    print(st.session_state.corpus1_input)
 
 def click_add_corpus2():
     st.session_state.add_corpus2 = True
@@ -291,11 +319,19 @@ def click_add_corpus2():
 if st.session_state.query_input == True and st.session_state.corpus1_input == False and st.session_state.app2_input == False:
     st.divider()
     st.header('Step 2: Dataset ที่ต้องการจะ Matching ด้วย',divider= 'orange')
-    corpus1_upload = st.file_uploader("Choose a file to upload",key = 'corpus1_upload')
-    if corpus1_upload is not None:
-        if st.session_state.corpus1_cache == False:
-            st.session_state.corpus1_df = read_upload_data(corpus1_upload)
-            st.session_state.corpus1_cache = True
+    
+    if st.session_state['uploaded_corpus1'] == False:
+        corpus1_upload = st.file_uploader("Choose a file to upload",key = 'corpus1_upload')
+        if corpus1_upload is not None:
+            if st.session_state.corpus1_cache == False:
+                st.session_state.corpus1_df = read_upload_data(corpus1_upload)
+                st.session_state.corpus1_cache = True
+                st.session_state['uploaded_corpus1'] = True
+
+    if not st.session_state['corpus1_use_ipi']:
+        corpus1_use_ipi_checkbox = st.checkbox('Use IPI Dataset')
+        if corpus1_use_ipi_checkbox:
+            st.button('Name Matching with IPI Dataset',key = 'corpus1_use_nm_ipi',on_click = corpus1_click_use_ipi)
     
     if st.session_state.corpus1_df is not None:
         #st.subheader('This is Your Corpus Dataset')
@@ -356,43 +392,17 @@ if st.session_state.query_input == True and st.session_state.corpus1_input == Fa
                             if st.session_state.query1_filter_choices is not None:
                                 filtered_df_query = st.session_state.query_df[st.session_state.query_df[query1_filter_option].isin(st.session_state.query1_filter_choices)]
                                 st.write(f'Now -> {filtered_df_query.shape[0]} rows , {filtered_df_query.shape[1]} columns')
-
-                adjust_corpus_checkbox = st.checkbox('Adjust on Corpus Dataset')
-                if adjust_corpus_checkbox:
-                    st.write('Adjust Corpus')
-                    corpus1_filter_box_list = [None]
-                    corpus1_filter_box_list.extend(st.session_state.corpus1_df.columns)
-                    corpus1_filter_option = st.selectbox('Which Column you want to filter?',corpus1_filter_box_list,key = 'corpus1_filter_option')
-                    if corpus1_filter_option is not None:
-                        # check type of column
-                        corpus1_type_string = str(st.session_state.corpus1_df[corpus1_filter_option].dtype)
-                        # if Integer
-                        if bool(re.search('int',corpus1_type_string)):
-                            st.session_state.corpus1_filter_choices = None
-                            st.slider(label = f'filter on {corpus1_filter_option}',value = [0,max(st.session_state.corpus1_df[corpus1_filter_option])],key = 'corpus1_filter_range')
-                            if st.session_state.corpus1_filter_range is not None:
-                                filtered_df_corpus1 = st.session_state.corpus1_df[(st.session_state.corpus1_df[corpus1_filter_option] >= st.session_state.corpus1_filter_range[0]) & (st.session_state.corpus1_df[corpus1_filter_option] <= st.session_state.corpus1_filter_range[1])]
-                                st.write(f'Now -> {filtered_df_corpus1.shape[0]} rows , {filtered_df_corpus1.shape[1]} columns')
-                        # if Float
-                        elif bool(re.search('num|float',corpus1_type_string)):
-                            st.session_state.corpus1_filter_choices = None
-                            st.slider(label = f'filter on {corpus1_filter_option}',value = [0.0,max(st.session_state.corpus1_df[corpus1_filter_option])],key = 'corpus1_filter_range')
-                            if st.session_state.corpus1_filter_range is not None:
-                                filtered_df_corpus1 = st.session_state.corpus1_df[(st.session_state.corpus1_df[corpus1_filter_option] >= st.session_state.corpus1_filter_range[0]) & (st.session_state.corpus1_df[corpus1_filter_option] <= st.session_state.corpus1_filter_range[1])]
-                                st.write(f'Now -> {filtered_df_corpus1.shape[0]} rows , {filtered_df_corpus1.shape[1]} columns')
-                        # if Object
-                        elif bool(re.search('str|object',corpus1_type_string)):
-                            # st.session_state.corpus1_filter_range = None
-                            # st.write(corpus1_filter_option)
-                            # st.write(st.session_state.corpus1_df[corpus1_filter_option].unique().tolist())
-                            # st.multiselect(label = f'filter on {corpus1_filter_option}',options = st.session_state.corpus1_df[corpus1_filter_option].unique().tolist(),default= None,key  = 'corpus1_filter_choices')
-                            st.session_state.corpus1_filter_range = None
-                            temp_list = st.session_state.corpus1_df[corpus1_filter_option].unique().tolist()
-                            #st.multiselect(label = '',options = temp_list,key = 'corpus1_filter_choice')
-                            st.multiselect(label = f'filter on {corpus1_filter_option}',options = temp_list,key = "corpus1_filter_choices")
-                            if st.session_state.corpus1_filter_choices is not None:
-                                filtered_df_corpus1 = st.session_state.corpus1_df[st.session_state.corpus1_df[corpus1_filter_option].isin(st.session_state.corpus1_filter_choices)]
-                                st.write(f'Now -> {filtered_df_corpus1.shape[0]} rows , {filtered_df_corpus1.shape[1]} columns')
+            # Merge IPI?
+            if not st.session_state['corpus1_use_ipi']:
+                corpus1_merge_ipi_box = st.checkbox('ต้องการทำ Merge IPI?')
+                if corpus1_merge_ipi_box:
+                    corpus1_ColName_box_list = [None]
+                    corpus1_ColName_box_list.extend(st.session_state.corpus1_df.columns)
+                    l_corpus1,right_corpus1 = st.columns(2)
+                    with l_corpus1:
+                        st.subheader('Please Select Necessary Column')
+                        st.selectbox('RID Columns',options = corpus1_ColName_box_list,key = 'corpus1_RID_CN')
+                        st.selectbox('NAME',options = corpus1_ColName_box_list,key = 'corpus1_Name_CN')
 
             submit_button1 = st.button('Submit',key = 'submit_c1',on_click = corpus1_submit)
 
@@ -410,7 +420,6 @@ if st.session_state.corpus1_input == True and st.session_state.app2_input == Fal
     if st.session_state.corpus1_partial_nm:
         norm_container1.write(f'Apply Partial Name Matching : True')
         left1.write("↳")
-        
         if st.session_state.query1_filter_option_out is not None:
             right1.write(f'Query Datset Adjust on Column: {st.session_state.query1_filter_option_out} ')
             left1.write("↳")
@@ -422,27 +431,20 @@ if st.session_state.corpus1_input == True and st.session_state.app2_input == Fal
                 right1.write('Condition =')
                 right1.write(f'{st.session_state.query1_filter_option_out} in {st.session_state.query1_filter_choices_out}')
         
-        if st.session_state.corpus1_filter_option_out is not None:
-            right1.write(f'Corpus Datset Adjust on Column: {st.session_state.corpus1_filter_option_out} ')
-            left1.write("↳")
-            if st.session_state.corpus1_filter_range_out is not None:
-                right1.write('Condition =')
-                right1.write(f'{st.session_state.corpus1_filter_option_out} >= {st.session_state.corpus1_filter_range_out[0]}')
-                right1.write(f'{st.session_state.corpus1_filter_option_out} <= {st.session_state.corpus1_filter_range_out[1]}')
-            if st.session_state.corpus1_filter_choices_out is not None:
-                right1.write('Condition =')
-                right1.write(f'{st.session_state.corpus1_filter_option_out} in {st.session_state.corpus1_filter_choices_out}')
     if st.session_state.add_corpus2 == False:
         col1,col2 = st.columns([1,0.2])
         with col1:
             corpus2_add = st.button('Add More to be Matched Dataset?',on_click = click_add_corpus2,key = 'corpus2_add')
         with col2:
             next_button1 = st.button('Next',on_click = click_to_NM,key = 'next_button1')
+
 #################################################################################################### 2.1 Corpus Input ####################################################################################################
 
 if 'corpus2_input' not in st.session_state:
     st.session_state.corpus2_input = False
     st.session_state.corpus2_cache  = False
+    st.session_state['uploaded_corpus2'] = False
+    st.session_state['corpus2_use_ipi'] = False
     # input corpus
     st.session_state.corpus2_df = None
     st.session_state.corpus2_namecolname = None
@@ -460,16 +462,6 @@ if 'corpus2_input' not in st.session_state:
     st.session_state.query2_filter_range_out = None
     st.session_state.query2_filter_choices_out = None
     st.session_state.query2_filter_condition = None
-    # adjust corpus
-    st.session_state.adjust_corpus2 = False
-    st.session_state.corpus2_filter_option = None
-    st.session_state.corpus2_filter_option_dtype = None
-    st.session_state.corpus2_filter_range = None
-    st.session_state.corpus2_filter_choices = None
-    st.session_state.corpus2_filter_option_out = None
-    st.session_state.corpus2_filter_range_out = None
-    st.session_state.corpus2_filter_choices_out = None
-    st.session_state.corpus2_filter_condition = None
     # add corpus
     st.session_state.add_corpus3 = False
 
@@ -478,7 +470,12 @@ def corpus2_SelectCol_click():
 
 def corpus2_SelectCol_list_click():
     st.session_state.corpus2_selected_col_list = load_in(st.session_state.corpus2_col_list_select_box)
-    st.session_state.corpus2_df = load_in(st.session_state.corpus2_df.filter(st.session_state.corpus2_selected_col_list))#.sample(50000)
+    st.session_state.corpus2_df = load_in(st.session_state.corpus2_df.filter(st.session_state.corpus2_selected_col_list))
+
+def corpus2_click_use_ipi():
+    st.session_state['corpus2_df'] = st.session_state['ipi_df'].copy()
+    st.session_state['uploaded_corpus2'] = True
+    st.session_state['corpus2_use_ipi'] = True
 
 def corpus2_submit():
     st.session_state.corpus2_partial_nm  = load_in(corpus2_partialnm_box)
@@ -489,12 +486,6 @@ def corpus2_submit():
         st.session_state.query2_filter_choices_out = load_in(st.session_state.query2_filter_choices)
     elif st.session_state.query2_filter_range is not None:
         st.session_state.query2_filter_range_out = load_in(st.session_state.query2_filter_range)
-    # adjust corpus
-    st.session_state.corpus2_filter_option_out = load_in(st.session_state.corpus2_filter_option)
-    if st.session_state.corpus2_filter_choices is not None:
-        st.session_state.corpus2_filter_choices_out = load_in(st.session_state.corpus2_filter_choices)
-    elif st.session_state.corpus2_filter_range is not None:
-        st.session_state.corpus2_filter_range_out = load_in(st.session_state.corpus2_filter_range)
     
     if st.session_state.query2_filter_option_out is not None:
         st.session_state.adjust_query2 = load_in(True)
@@ -502,27 +493,36 @@ def corpus2_submit():
             st.session_state.query2_filter_option_dtype = load_in('numeric')
         else:
             st.session_state.query2_filter_option_dtype = load_in('object')
-
-    if st.session_state.corpus2_filter_option_out is not None:
-        st.session_state.adjust_corpus2 = load_in(True)
-        if bool(re.search('num|float|int',corpus2_type_string)):
-            st.session_state.corpus2_filter_option_dtype = load_in('numeric')
-        else:
-            st.session_state.corpus2_filter_option_dtype = load_in('object')
     
     if st.session_state.query2_filter_choices_out is not None:
         st.session_state.query2_filter_condition = load_in(st.session_state.query2_filter_choices_out)
     elif st.session_state.query2_filter_range_out is not None:
         st.session_state.query2_filter_condition = load_in(st.session_state.query2_filter_range_out)
     
-    if st.session_state.corpus2_filter_choices_out is not None:
-        st.session_state.corpus2_filter_condition = load_in(st.session_state.corpus2_filter_choices_out)
-    elif st.session_state.corpus2_filter_range_out is not None:
-        st.session_state.corpus2_filter_condition = load_in(st.session_state.corpus2_filter_range_out)
-    
-    st.session_state.corpus2_file_name = load_in(re.sub('\\.csv','',corpus2_upload.name))
+    # input file_name
+    st.session_state.corpus2_file_name = 'data2'
+    # if not st.session_state['corpus2_use_ipi']:
+    #     st.session_state.corpus2_file_name = load_in(re.sub('\\.csv','',corpus2_upload.name))
+    # else:
+    #     st.session_state.corpus2_file_name = load_in('IPI_DATASET')
     st.session_state.corpus2_df = st.session_state.corpus2_df.reset_index(drop = True).reset_index()
     st.session_state.corpus2_df = load_in(st.session_state.corpus2_df.rename(columns = {'index':'corpus_index'}))
+
+    # Merge IPI Session
+    if not st.session_state['corpus2_use_ipi']:
+        if corpus2_merge_ipi_box:
+            st.session_state['corpus2_RID_CN']
+            st.session_state['corpus2_Name_CN']
+            st.session_state['corpus2_df'][st.session_state['corpus2_RID_CN']] = st.session_state['corpus2_df'][st.session_state['corpus2_RID_CN']].astype(str).str.zfill(13)
+            r_df = st.session_state['corpus2_df'].merge(st.session_state['ipi_df'].rename(columns = {'SRC_UNQ_ID':st.session_state['corpus2_RID_CN']}),
+                                                        on = st.session_state['corpus2_RID_CN'],
+                                                        how = 'left')
+            r_df['SCORE'] = r_df.apply(lambda row: fuzz.ratio(row[st.session_state['corpus2_Name_CN']],row['RGST_NM_TH']),axis = 1)
+            r_df['SIMP_SCORE'] = r_df.apply(lambda row : fuzz.ratio(simplify_name(row[st.session_state['corpus2_Name_CN']],soft_simp_words),
+                                                    simplify_name(row['RGST_NM_TH'],soft_simp_words)),axis = 1)
+            r_keep_col = [st.session_state['corpus2_RID_CN'],'RGST_NM_TH','SNA_2008']
+            st.session_state['corpus2_df'] = st.session_state['corpus2_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left')
+
     st.session_state.corpus2_input = True
     print(st.session_state.corpus2_input)
 
@@ -531,20 +531,28 @@ def click_add_corpus3():
 
 
 #################################################################################################### 2.2 Corpus Input ####################################################################################################
-if st.session_state.query_input and (st.session_state.corpus2_input == False) and st.session_state.add_corpus2 and st.session_state.app2_input == False:
+if st.session_state.query_input == True and st.session_state.corpus2_input == False and st.session_state.add_corpus2 and st.session_state.app2_input == False:
     st.divider()
-    st.header('Step 2.2: Added Input Corpus')
-    corpus2_upload = st.file_uploader("Choose a file to query",key = 'corpus2_upload')
-    if corpus2_upload is not None:
-        if st.session_state.corpus2_cache == False:
-            st.session_state.corpus2_df = read_upload_data(corpus2_upload)
-            st.session_state.corpus2_cache = True
+    st.header('Step 2: Dataset ที่ต้องการจะ Matching ด้วย',divider= 'orange')
+    
+    if st.session_state['uploaded_corpus2'] == False:
+        corpus2_upload = st.file_uploader("Choose a file to upload",key = 'corpus2_upload')
+        if corpus2_upload is not None:
+            if st.session_state.corpus2_cache == False:
+                st.session_state.corpus2_df = read_upload_data(corpus2_upload)
+                st.session_state.corpus2_cache = True
+                st.session_state['uploaded_corpus2'] = True
+
+    if not st.session_state['corpus2_use_ipi']:
+        corpus2_use_ipi_checkbox = st.checkbox('Use IPI Dataset')
+        if corpus2_use_ipi_checkbox:
+            st.button('Name Matching with IPI Dataset',key = 'corpus2_use_nm_ipi',on_click = corpus2_click_use_ipi)
     
     if st.session_state.corpus2_df is not None:
-        st.subheader('This is Your Corpus Dataset')
+        #st.subheader('This is Your Corpus Dataset')
         conditional_st_write_df(st.session_state.corpus2_df)
         st.write(f'{st.session_state.corpus2_df.shape[0]} rows , {st.session_state.corpus2_df.shape[1]} columns')
-        
+
         if st.session_state.corpus2_namecolname is None:
             #select Name Column
             corpus2_namecol_box = [None]
@@ -600,35 +608,19 @@ if st.session_state.query_input and (st.session_state.corpus2_input == False) an
                             if st.session_state.query2_filter_choices is not None:
                                 filtered_df_query = st.session_state.query_df[st.session_state.query_df[query2_filter_option].isin(st.session_state.query2_filter_choices)]
                                 st.write(f'Now -> {filtered_df_query.shape[0]} rows , {filtered_df_query.shape[1]} columns')
-
-                adjust_corpus_checkbox = st.checkbox('Adjust on Corpus Dataset')
-                if adjust_corpus_checkbox:
-                    st.write('Adjust Corpus')
-                    corpus2_filter_box_list = [None]
-                    corpus2_filter_box_list.extend(st.session_state.corpus2_df.columns)
-                    corpus2_filter_option = st.selectbox('Which Column you want to filter?',corpus2_filter_box_list,key = 'corpus2_filter_option')
-                    if corpus2_filter_option is not None:
-                        # check type of column
-                        corpus2_type_string = str(st.session_state.corpus2_df[corpus2_filter_option].dtype)
-                        # if Integer
-                        if bool(re.search('int',corpus2_type_string)):
-                            st.session_state.corpus2_filter_choices = None
-                            st.slider(label = f'filter on {corpus2_filter_option}',value = [0,max(st.session_state.corpus2_df[corpus2_filter_option])],key = 'corpus2_filter_range')
-                            if st.session_state.corpus2_filter_range is not None:
-                                filtered_df_corpus2 = st.session_state.corpus2_df[(st.session_state.corpus2_df[corpus2_filter_option] >= st.session_state.corpus2_filter_range[0]) & (st.session_state.corpus2_df[corpus2_filter_option] <= st.session_state.corpus2_filter_range[1])]
-                                st.write(f'Now -> {filtered_df_corpus2.shape[0]} rows , {filtered_df_corpus2.shape[1]} columns')
-                        # if Float
-                        elif bool(re.search('num|float',corpus2_type_string)):
-                            st.session_state.corpus2_filter_choices = None
-                            st.slider(label = f'filter on {corpus2_filter_option}',value = [0.0,max(st.session_state.corpus2_df[corpus2_filter_option])],key = 'corpus2_filter_range')
-                            if st.session_state.corpus2_filter_range is not None:
-                                filtered_df_corpus2 = st.session_state.corpus2_df[(st.session_state.corpus2_df[corpus2_filter_option] >= st.session_state.corpus2_filter_range[0]) & (st.session_state.corpus2_df[corpus2_filter_option] <= st.session_state.corpus2_filter_range[1])]
-                                st.write(f'Now -> {filtered_df_corpus2.shape[0]} rows , {filtered_df_corpus2.shape[1]} columns')
-                        # if Object
-                        elif bool(re.search('str|object',corpus2_type_string)):
-                            st.session_state.corpus2_filter_range = None
-                            st.multiselect(label = f'filter on {corpus2_filter_option}',options = st.session_state.corpus2_df[corpus2_filter_option].unique().tolist(),default= None,key  = 'corpus2_filter_choices')
-
+            
+            # Merge IPI?
+            if not st.session_state['corpus2_use_ipi']:
+                corpus2_merge_ipi_box = st.checkbox('ต้องการทำ Merge IPI?')
+                if corpus2_merge_ipi_box:
+                    corpus2_ColName_box_list = [None]
+                    corpus2_ColName_box_list.extend(st.session_state.corpus2_df.columns)
+                    l_corpus2,right_corpus2 = st.columns(2)
+                    with l_corpus2:
+                        st.subheader('Please Select Necessary Column')
+                        st.selectbox('RID Columns',options = corpus2_ColName_box_list,key = 'corpus2_RID_CN')
+                        st.selectbox('NAME',options = corpus2_ColName_box_list,key = 'corpus2_Name_CN')
+            
             submit_button2 = st.button('Submit',key = 'submit_c2',on_click = corpus2_submit)
 
 if st.session_state.corpus2_input == True and st.session_state.app2_input == False:
@@ -644,7 +636,6 @@ if st.session_state.corpus2_input == True and st.session_state.app2_input == Fal
     if st.session_state.corpus2_partial_nm:
         norm_container2.write(f'Apply Partial Name Matching : True')
         left2.write("↳")
-        
         if st.session_state.query2_filter_option_out is not None:
             right2.write(f'Query Datset Adjust on Column: {st.session_state.query2_filter_option_out} ')
             left2.write("↳")
@@ -655,17 +646,7 @@ if st.session_state.corpus2_input == True and st.session_state.app2_input == Fal
             if st.session_state.query2_filter_choices_out is not None:
                 right2.write('Condition =')
                 right2.write(f'{st.session_state.query2_filter_option_out} in {st.session_state.query2_filter_choices_out}')
-        
-        if st.session_state.corpus2_filter_option_out is not None:
-            right2.write(f'Corpus Datset Adjust on Column: {st.session_state.corpus2_filter_option_out} ')
-            left2.write("↳")
-            if st.session_state.corpus2_filter_range_out is not None:
-                right2.write('Condition =')
-                right2.write(f'{st.session_state.corpus2_filter_option_out} >= {st.session_state.corpus2_filter_range_out[0]}')
-                right2.write(f'{st.session_state.corpus2_filter_option_out} <= {st.session_state.corpus2_filter_range_out[1]}')
-            if st.session_state.corpus2_filter_choices_out is not None:
-                right2.write('Condition =')
-                right2.write(f'{st.session_state.corpus2_filter_option_out} in {st.session_state.corpus2_filter_choices_out}')
+
     if st.session_state.add_corpus3 == False:
         col1,col2 = st.columns([1,0.2])
         with col1:
@@ -677,6 +658,8 @@ if st.session_state.corpus2_input == True and st.session_state.app2_input == Fal
 if 'corpus3_input' not in st.session_state:
     st.session_state.corpus3_input = False
     st.session_state.corpus3_cache  = False
+    st.session_state['uploaded_corpus3'] = False
+    st.session_state['corpus3_use_ipi'] = False
     # input corpus
     st.session_state.corpus3_df = None
     st.session_state.corpus3_namecolname = None
@@ -694,17 +677,6 @@ if 'corpus3_input' not in st.session_state:
     st.session_state.query3_filter_range_out = None
     st.session_state.query3_filter_choices_out = None
     st.session_state.query3_filter_condition = None
-    # adjust corpus
-    st.session_state.adjust_corpus3 = False
-    st.session_state.corpus3_filter_option = None
-    st.session_state.corpus3_filter_option_dtype = None
-    st.session_state.corpus3_filter_range = None
-    st.session_state.corpus3_filter_choices = None
-    st.session_state.corpus3_filter_option_out = None
-    st.session_state.corpus3_filter_range_out = None
-    st.session_state.corpus3_filter_choices_out = None
-    st.session_state.corpus3_filter_condition = None
-
 
 def corpus3_SelectCol_click():
     st.session_state.corpus3_namecolname = load_in(st.session_state.corpus3_namecol_select_box)
@@ -713,6 +685,10 @@ def corpus3_SelectCol_list_click():
     st.session_state.corpus3_selected_col_list = load_in(st.session_state.corpus3_col_list_select_box)
     st.session_state.corpus3_df = load_in(st.session_state.corpus3_df.filter(st.session_state.corpus3_selected_col_list))
 
+def corpus3_click_use_ipi():
+    st.session_state['corpus3_df'] = st.session_state['ipi_df'].copy()
+    st.session_state['uploaded_corpus3'] = True
+    st.session_state['corpus3_use_ipi'] = True
 
 def corpus3_submit():
     st.session_state.corpus3_partial_nm  = load_in(corpus3_partialnm_box)
@@ -723,12 +699,6 @@ def corpus3_submit():
         st.session_state.query3_filter_choices_out = load_in(st.session_state.query3_filter_choices)
     elif st.session_state.query3_filter_range is not None:
         st.session_state.query3_filter_range_out = load_in(st.session_state.query3_filter_range)
-    # adjust corpus
-    st.session_state.corpus3_filter_option_out = load_in(st.session_state.corpus3_filter_option)
-    if st.session_state.corpus3_filter_choices is not None:
-        st.session_state.corpus3_filter_choices_out = load_in(st.session_state.corpus3_filter_choices)
-    elif st.session_state.corpus3_filter_range is not None:
-        st.session_state.corpus3_filter_range_out = load_in(st.session_state.corpus3_filter_range)
     
     if st.session_state.query3_filter_option_out is not None:
         st.session_state.adjust_query3 = load_in(True)
@@ -736,49 +706,62 @@ def corpus3_submit():
             st.session_state.query3_filter_option_dtype = load_in('numeric')
         else:
             st.session_state.query3_filter_option_dtype = load_in('object')
-
-    if st.session_state.corpus3_filter_option_out is not None:
-        st.session_state.adjust_corpus3 = load_in(True)
-        if bool(re.search('num|float|int',corpus3_type_string)):
-            st.session_state.corpus3_filter_option_dtype = load_in('numeric')
-        else:
-            st.session_state.corpus3_filter_option_dtype = load_in('object')
     
     if st.session_state.query3_filter_choices_out is not None:
         st.session_state.query3_filter_condition = load_in(st.session_state.query3_filter_choices_out)
     elif st.session_state.query3_filter_range_out is not None:
         st.session_state.query3_filter_condition = load_in(st.session_state.query3_filter_range_out)
     
-    if st.session_state.corpus3_filter_choices_out is not None:
-        st.session_state.corpus3_filter_condition = load_in(st.session_state.corpus3_filter_choices_out)
-    elif st.session_state.corpus3_filter_range_out is not None:
-        st.session_state.corpus3_filter_condition = load_in(st.session_state.corpus3_filter_range_out)
-    
-    st.session_state.corpus3_file_name = load_in(re.sub('\\.csv','',corpus3_upload.name))
+    # input file_name
+    st.session_state.corpus3_file_name = 'data3'
+    # if not st.session_state['corpus3_use_ipi']:
+    #     st.session_state.corpus3_file_name = load_in(re.sub('\\.csv','',corpus3_upload.name))
+    # else:
+    #     st.session_state.corpus3_file_name = load_in('IPI_DATASET')
     st.session_state.corpus3_df = st.session_state.corpus3_df.reset_index(drop = True).reset_index()
     st.session_state.corpus3_df = load_in(st.session_state.corpus3_df.rename(columns = {'index':'corpus_index'}))
+
+    # Merge IPI Session
+    if not st.session_state['corpus3_use_ipi']:
+        if corpus3_merge_ipi_box:
+            st.session_state['corpus3_RID_CN']
+            st.session_state['corpus3_Name_CN']
+            st.session_state['corpus3_df'][st.session_state['corpus3_RID_CN']] = st.session_state['corpus3_df'][st.session_state['corpus3_RID_CN']].astype(str).str.zfill(13)
+            r_df = st.session_state['corpus3_df'].merge(st.session_state['ipi_df'].rename(columns = {'SRC_UNQ_ID':st.session_state['corpus3_RID_CN']}),
+                                                        on = st.session_state['corpus3_RID_CN'],
+                                                        how = 'left')
+            r_df['SCORE'] = r_df.apply(lambda row: fuzz.ratio(row[st.session_state['corpus3_Name_CN']],row['RGST_NM_TH']),axis = 1)
+            r_df['SIMP_SCORE'] = r_df.apply(lambda row : fuzz.ratio(simplify_name(row[st.session_state['corpus3_Name_CN']],soft_simp_words),
+                                                    simplify_name(row['RGST_NM_TH'],soft_simp_words)),axis = 1)
+            r_keep_col = [st.session_state['corpus3_RID_CN'],'RGST_NM_TH','SNA_3008']
+            st.session_state['corpus3_df'] = st.session_state['corpus3_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left')
+
     st.session_state.corpus3_input = True
     print(st.session_state.corpus3_input)
 
-def click_add_corpus3():
-    st.session_state.add_corpus3 = True
-
-
 #################################################################################################### 2.3 Corpus Input ####################################################################################################
-if st.session_state.query_input and (st.session_state.corpus3_input == False) and st.session_state.add_corpus3 and st.session_state.app2_input == False:
+if st.session_state.query_input == True and st.session_state.corpus3_input == False and st.session_state.add_corpus3 and st.session_state.app2_input == False:
     st.divider()
-    st.header('Step 2.3: Added Input Corpus')
-    corpus3_upload = st.file_uploader("Choose a file to query",key = 'corpus3_upload')
-    if corpus3_upload is not None:
-        if st.session_state.corpus3_cache == False:
-            st.session_state.corpus3_df = read_upload_data(corpus3_upload)
-            st.session_state.corpus3_cache = True
+    st.header('Step 3: Dataset ที่ต้องการจะ Matching ด้วย',divider= 'orange')
+    
+    if st.session_state['uploaded_corpus3'] == False:
+        corpus3_upload = st.file_uploader("Choose a file to upload",key = 'corpus3_upload')
+        if corpus3_upload is not None:
+            if st.session_state.corpus3_cache == False:
+                st.session_state.corpus3_df = read_upload_data(corpus3_upload)
+                st.session_state.corpus3_cache = True
+                st.session_state['uploaded_corpus3'] = True
+
+    if not st.session_state['corpus3_use_ipi']:
+        corpus3_use_ipi_checkbox = st.checkbox('Use IPI Dataset')
+        if corpus3_use_ipi_checkbox:
+            st.button('Name Matching with IPI Dataset',key = 'corpus3_use_nm_ipi',on_click = corpus3_click_use_ipi)
     
     if st.session_state.corpus3_df is not None:
-        st.subheader('This is Your Corpus Dataset')
+        #st.subheader('This is Your Corpus Dataset')
         conditional_st_write_df(st.session_state.corpus3_df)
         st.write(f'{st.session_state.corpus3_df.shape[0]} rows , {st.session_state.corpus3_df.shape[1]} columns')
-        
+
         if st.session_state.corpus3_namecolname is None:
             #select Name Column
             corpus3_namecol_box = [None]
@@ -834,42 +817,26 @@ if st.session_state.query_input and (st.session_state.corpus3_input == False) an
                             if st.session_state.query3_filter_choices is not None:
                                 filtered_df_query = st.session_state.query_df[st.session_state.query_df[query3_filter_option].isin(st.session_state.query3_filter_choices)]
                                 st.write(f'Now -> {filtered_df_query.shape[0]} rows , {filtered_df_query.shape[1]} columns')
-
-                adjust_corpus_checkbox = st.checkbox('Adjust on Corpus Dataset')
-                if adjust_corpus_checkbox:
-                    st.write('Adjust Corpus')
-                    corpus3_filter_box_list = [None]
-                    corpus3_filter_box_list.extend(st.session_state.corpus3_df.columns)
-                    corpus3_filter_option = st.selectbox('Which Column you want to filter?',corpus3_filter_box_list,key = 'corpus3_filter_option')
-                    if corpus3_filter_option is not None:
-                        # check type of column
-                        corpus3_type_string = str(st.session_state.corpus3_df[corpus3_filter_option].dtype)
-                        # if Integer
-                        if bool(re.search('int',corpus3_type_string)):
-                            st.session_state.corpus3_filter_choices = None
-                            st.slider(label = f'filter on {corpus3_filter_option}',value = [0,max(st.session_state.corpus3_df[corpus3_filter_option])],key = 'corpus3_filter_range')
-                            if st.session_state.corpus3_filter_range is not None:
-                                filtered_df_corpus3 = st.session_state.corpus3_df[(st.session_state.corpus3_df[corpus3_filter_option] >= st.session_state.corpus3_filter_range[0]) & (st.session_state.corpus3_df[corpus3_filter_option] <= st.session_state.corpus3_filter_range[1])]
-                                st.write(f'Now -> {filtered_df_corpus3.shape[0]} rows , {filtered_df_corpus3.shape[1]} columns')
-                        # if Float
-                        elif bool(re.search('num|float',corpus3_type_string)):
-                            st.session_state.corpus3_filter_choices = None
-                            st.slider(label = f'filter on {corpus3_filter_option}',value = [0.0,max(st.session_state.corpus3_df[corpus3_filter_option])],key = 'corpus3_filter_range')
-                            if st.session_state.corpus3_filter_range is not None:
-                                filtered_df_corpus3 = st.session_state.corpus3_df[(st.session_state.corpus3_df[corpus3_filter_option] >= st.session_state.corpus3_filter_range[0]) & (st.session_state.corpus3_df[corpus3_filter_option] <= st.session_state.corpus3_filter_range[1])]
-                                st.write(f'Now -> {filtered_df_corpus3.shape[0]} rows , {filtered_df_corpus3.shape[1]} columns')
-                        # if Object
-                        elif bool(re.search('str|object',corpus3_type_string)):
-                            st.session_state.corpus3_filter_range = None
-                            st.multiselect(label = f'filter on {corpus3_filter_option}',options = st.session_state.corpus3_df[corpus3_filter_option].unique().tolist(),default= None,key  = 'corpus3_filter_choices')
-
+            
+            # Merge IPI?
+            if not st.session_state['corpus3_use_ipi']:
+                corpus3_merge_ipi_box = st.checkbox('ต้องการทำ Merge IPI?')
+                if corpus3_merge_ipi_box:
+                    corpus3_ColName_box_list = [None]
+                    corpus3_ColName_box_list.extend(st.session_state.corpus3_df.columns)
+                    l_corpus3,right_corpus3 = st.columns(2)
+                    with l_corpus3:
+                        st.subheader('Please Select Necessary Column')
+                        st.selectbox('RID Columns',options = corpus3_ColName_box_list,key = 'corpus3_RID_CN')
+                        st.selectbox('NAME',options = corpus3_ColName_box_list,key = 'corpus3_Name_CN')
+            
             submit_button3 = st.button('Submit',key = 'submit_c3',on_click = corpus3_submit)
-
 
 if st.session_state.corpus3_input == True and st.session_state.app2_input == False:
     st.divider()
     st.header('Step 2.3: Added Input Corpus')
     st.session_state['order']['corpus3'] = load_in(True)
+    
     conditional_st_write_df(st.session_state.corpus3_df)
     st.write(f'{st.session_state.corpus3_df.shape[0]} rows , {st.session_state.corpus3_df.shape[1]} columns')
     norm_container3 = st.container()
@@ -889,18 +856,10 @@ if st.session_state.corpus3_input == True and st.session_state.app2_input == Fal
                 right3.write('Condition =')
                 right3.write(f'{st.session_state.query3_filter_option_out} in {st.session_state.query3_filter_choices_out}')
 
-            right3.write(f'Corpus Datset Adjust on Column: {st.session_state.corpus3_filter_option_out} ')
-            left3.write("↳")
-            if st.session_state.corpus3_filter_range_out is not None:
-                right3.write('Condition =')
-                right3.write(f'{st.session_state.corpus3_filter_option_out} >= {st.session_state.corpus3_filter_range_out[0]}')
-                right3.write(f'{st.session_state.corpus3_filter_option_out} <= {st.session_state.corpus3_filter_range_out[1]}')
-            if st.session_state.corpus3_filter_choices_out is not None:
-                right3.write('Condition =')
-                right3.write(f'{st.session_state.corpus3_filter_option_out} in {st.session_state.corpus3_filter_choices_out}')
+    # Next
     col1,col2 = st.columns([1,0.2])
     with col2:
-        next_button3 = st.button('Next',on_click = click_to_NM,key = 'next_button3')
+        next_button2 = st.button('Next',on_click = click_to_NM,key = 'next_button2')
 
 #################################################################################################### 2.3 Corpus Input ####################################################################################################
 
@@ -911,79 +870,64 @@ if st.session_state.corpus3_input == True and st.session_state.app2_input == Fal
 if 'app2_double_prep' not in st.session_state:
     st.session_state['app2_double_prep'] = False
 
+
+if 'app2_textprocess' not in st.session_state:
+    st.session_state.app2_textprocess = False
+    st.session_state.app2_textprocess_regex_list = False
+    st.session_state.app2_default_regex_list = copy.deepcopy(default_regex_list)
+    st.session_state.app2_developer_regex_list = copy.deepcopy(soft_simp_words)
+    st.session_state.app2_developer_regex_listV2 = copy.deepcopy(hard_simp_words)
+    st.session_state.app2_regex_listV1 = None
+    st.session_state.app2_regex_listV2 = None
+    st.session_state['uploaded_regex'] = None
+
 def submit_textpreprocess_regex():
-    if st.session_state.app2_double_prep:
-        st.session_state.app2_regex_listV1 = load_in(regex_tags)
-        #st.session_state.app2_regex_listV2 = load_in(regex_tagsV2)
-        st.session_state.app2_textprocess_regex_list = load_in(['not_empty'])
-    else:
-        st.session_state.app2_textprocess_regex_list = load_in(regex_tags)
+    st.session_state.app2_textprocess_regex_list = load_in(regex_tags)
     st.session_state.app2_textprocess  = True
 
 
-
 if (st.session_state.app2_input == True) and (st.session_state.app2_textprocess == False) :
-    #l1,r1 = st.columns([10,2])
     st.header("1. Text Preprocess",divider= 'blue')
     st.write('ขั้นตอนการทำ Text Preprocess จะทำการลบ Keywords (Regex) ดังกล่าวออกจากชื่อผู้ถือหุ้นทั้งหมด')
     st.code('name = "บริษัท เคอรี่โลจิสติกส์ จำกัด" \nRegex = ["บริษัท","จำกัด","มหาชน"]')
     st.write('จุดประสงค์หลักคือ :orange[ต้องการลบพวก common words ออกจากชื่อบริษัท] เพื่อทำให้ Name Matching เจอได้ง่ายขึ้น')
     st.code('TextPreprocess(name) -> "เคอรี่โลจิสติกส์"')
-    # st.caption("Text Preprocess จะทำการลบ keywords (regex) ดังกล่าว ในชื่อทั้งหมดของ Dataset")
-    # st.caption('_(หากกรอก keyword ที่เป็นภาษาอังกฤษ กรุณาใช้ UPPER CASE)_')
     st.divider()
     st.subheader('กรุณากำหนด Text Preprocess Regex')
     regex_section = st.empty()
     with regex_section.container():
         container = st.container()
         container2 = st.container()
-
-        #app2_double_prep = st.checkbox('Optional Double Text Preprocess (for more specific)')
-        # if app2_double_prep:
-        #     st.session_state.app2_double_prep = True
-        # else:
-        #     st.session_state.app2_double_prep = False
-        st.radio(label = '',options = ['Suggested set of Keywords','Suggested set of Keywords (II.)','Customize your own Keywords'],
-                                        captions = ['เป็นคำ Common Words ของบริษัททำให้สามารถ Name Matching เจอง่ายขึ้น',
-                                                    "เป็นคำ Common Words ของบริษัทที่จะ More Specific Business ทำให้สามารถ Name Matching เจอง่ายขึ้น",
-                                                    'ปรับแต่ง Keywords เองทั้งหมด'], 
+        st.radio(label = '',options = ['Suggested set of Keywords',
+                                    'Suggested set of Keywords (II.)',
+                                    'Customize your own Keywords',
+                                    'Upload'],
+                            captions = ['เป็นคำ Common Words ของบริษัททำให้สามารถ Name Matching เจอง่ายขึ้น',
+                                        "เป็นคำ Common Words ของบริษัทที่จะ More Specific Business ทำให้สามารถ Name Matching เจอง่ายขึ้น",
+                                        'ปรับแต่ง Keywords เองทั้งหมด',
+                                        ''], 
                                         index = 0,key = 'user_textprep_regex_choices',label_visibility= 'collapsed')
         
         if st.session_state['user_textprep_regex_choices'] == "Suggested set of Keywords":
             regex_tags = st_tags(label = '',value = st.session_state.app2_developer_regex_list,text = 'soft_simplify',maxtags= -1)
         elif st.session_state['user_textprep_regex_choices'] == "Suggested set of Keywords (II.)":
             regex_tags = st_tags(label = 'Text Preprocess II.',value = st.session_state.app2_developer_regex_listV2,text = 'hard_simplify',maxtags= -1)
-        if st.session_state['user_textprep_regex_choices'] == "Customize your own Keywords":
+        elif st.session_state['user_textprep_regex_choices'] == "Customize your own Keywords":
             regex_tags = st_tags(label = '',value = st.session_state.app2_default_regex_list,text = 'customize',maxtags = -1)
-       
-        #agree = st.checkbox('Suggested set of keywords')
-
-        # if agree:
-        #     st.session_state.app2_choices = 'developer'
-        # else:
-        #     st.session_state.app2_choices = 'default'            
-       
-        # with container: # to put it to top of checkbox
-        #     if st.session_state.app2_choices == 'default':
-        #         regex_tags = st_tags(label = '',value = st.session_state.app2_default_regex_list,text = 'customize',maxtags = -1)
-        #     elif st.session_state.app2_choices == 'developer':
-        #         regex_tags = st_tags(label = '',value = st.session_state.app2_developer_regex_list,text = 'soft_simplify',maxtags= -1)
-
-        # if st.session_state.app2_double_prep:
-        #     with container2: # to put it to top of checkbox
-        #         if st.session_state.app2_choices == 'default':
-        #             regex_tagsV2 = st_tags(label = 'Text Preprocess II.',value = ['บริษัท','จำกัด','มหาชน','INC'],text = 'regex',maxtags = -1)
-        #         elif st.session_state.app2_choices == 'developer':
-        #             regex_tagsV2 = st_tags(label = 'Text Preprocess II.',value = st.session_state.app2_developer_regex_listV2,text = 'hard_simplify',maxtags= -1)
+        elif st.session_state['user_textprep_regex_choices'] == "Upload":
+            regex_upload = st.file_uploader("Choose a file to upload",key = 'corpus3_upload')
+            if regex_upload is not None:
+                regex_df = read_upload_data(regex_upload)
+                st.session_state['uploaded_regex'] = regex_df[regex_df.columns[0]].values.tolist()
             
-        ### submit to next-step        
+            if st.session_state['uploaded_regex'] is not None:
+                regex_tags = st_tags(label = '',value = st.session_state['uploaded_regex'],text = 'customize',maxtags = -1)
+
+
+    ### submit to next-step        
     l1,r1 = st.columns([12,5])       
     r1.button("กดเพื่อเริ่ม Name Matching",key = 'regex_customize_submit_button',on_click=submit_textpreprocess_regex)
 
-def back_click1():
-    st.session_state.app2_input = False
-if (st.session_state.app2_input == True) and (st.session_state.app2_textprocess == False) :
-    l1.button('Back',key = 'back_click1',on_click=back_click1)
 
 #################################################################################################### 3. Text-Preprocess ####################################################################################################
 
@@ -991,8 +935,7 @@ if (st.session_state.app2_input == True) and (st.session_state.app2_textprocess 
 
 @st.cache_data
 def adjust_dataset(query_df,corpus_df,
-                   adjust_query,query_filter,query_filter_dtype,query_filter_condition,
-                   adjust_corpus,corpus_filter,corpus_filter_dtype,corpus_filter_condition):
+                   adjust_query,query_filter,query_filter_dtype,query_filter_condition):
     final_query_df = query_df.copy()
     final_corpus_df = corpus_df.copy()
     # if adjust query dataset
@@ -1002,13 +945,6 @@ def adjust_dataset(query_df,corpus_df,
         elif query_filter_dtype == 'numeric':
             final_query_df = final_query_df[final_query_df[query_filter] >= query_filter_condition[0]]
             final_query_df = final_query_df[final_query_df[query_filter] <= query_filter_condition[1]]
-    # if adjust corpus dataset
-    if adjust_corpus:
-        if corpus_filter_dtype == 'object':
-            final_corpus_df = final_corpus_df[final_corpus_df[corpus_filter].isin(corpus_filter_condition)]
-        elif corpus_filter_dtype == 'numeric':
-            final_corpus_df = final_corpus_df[final_corpus_df[corpus_filter] >= corpus_filter_condition[0]]
-            final_corpus_df = final_corpus_df[final_corpus_df[corpus_filter] <= corpus_filter_condition[1]]
 
     # return processed dataset
     return final_query_df,final_corpus_df
@@ -1040,9 +976,7 @@ if st.session_state.app2_textprocess and st.session_state.app2_preprocessNM == F
             st.session_state['final_query_df'],st.session_state['final_corpus_df'] = adjust_dataset(st.session_state['query_df'],
                             st.session_state[f'corpus{c}_df'],
                             st.session_state[f'adjust_query{c}'],st.session_state[f'query{c}_filter_option_out'],
-                            st.session_state[f'query{c}_filter_option_dtype'],st.session_state[f'query{c}_filter_condition'],
-                            st.session_state[f'adjust_corpus{c}'],st.session_state[f'corpus{c}_filter_option_out'],
-                            st.session_state[f'corpus{c}_filter_option_dtype'],st.session_state[f'corpus{c}_filter_condition'])
+                            st.session_state[f'query{c}_filter_option_dtype'],st.session_state[f'query{c}_filter_condition'])
 
             new_col_name = []
             for colname in st.session_state[f'corpus{c}_df'].columns.values:
@@ -1082,7 +1016,6 @@ if st.session_state.app2_textprocess and st.session_state.app2_preprocessNM == F
                 print('this is matched double df')
                 print(matched_df)
                 
-            
             else:
                 matched_df = name_matching(st.session_state['final_query_df'],st.session_state['final_query_colname'],
                                     st.session_state['final_corpus_df'],st.session_state['final_corpus_colname'],
@@ -1232,16 +1165,16 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
     with st.expander('Candidate Matched Name'):
         if st.session_state.read_df1:
             st.write(f"From file: {st.session_state[f'corpus{1}_file_name']}")
-            st.write(dataframe_explorer(st.session_state[f'matched{1}_df']))
+            st.write(st.session_state[f'matched{1}_df'])
             st.write(f"{st.session_state[f'matched{1}_df'].shape[0]} rows , {st.session_state[f'matched{1}_df'].shape[1]} columns")
 
         elif st.session_state.read_df2:
             st.write(f"From file: {st.session_state[f'corpus{2}_file_name']}")
-            st.write(dataframe_explorer(st.session_state[f'matched{2}_df']))
+            st.write(st.session_state[f'matched{2}_df'])
             st.write(f"{st.session_state[f'matched{2}_df'].shape[0]} rows , {st.session_state[f'matched{2}_df'].shape[1]} columns")
         elif st.session_state.read_df3:
             st.write(f"From file: {st.session_state[f'corpus{3}_file_name']}")
-            st.write(dataframe_explorer(st.session_state[f'matched{3}_df']))
+            st.write(st.session_state[f'matched{3}_df'])
             st.write(f"{st.session_state[f'matched{3}_df'].shape[0]} rows , {st.session_state[f'matched{3}_df'].shape[1]} columns")
 
     if sum(st.session_state.order.values()) > 1:
@@ -1323,59 +1256,11 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด', icon="✅")
         st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')
         st.caption('หมายเหตุ: ผลสามารถเป็นได้ทั้ง False Positive/Negative ไม่ใช่เป็นการ Confirm Matched')
-        st.write('จำนวนประเภททั้งหมดใน Dataset')
-        if 'Class' in st.session_state['query_df']:
-            st.write(pd.DataFrame(st.session_state['query_df']['Class'].value_counts()))
-        elif 'Classified_Class' in st.session_state['query_df']:
-            st.write(pd.DataFrame(st.session_state['query_df']['Classified_Class'].value_counts()))
-        
         st.write(st.session_state['query_matched_results'])
     if 't_end' not in st.session_state:
         st.session_state.t_end = time.time()
         st.write(st.session_state.t_end - st.session_state.t_zero)
         print(st.session_state.t_end - st.session_state.t_zero)
-
-################## Download Results ##################
-# if 'app2_download_file' not in st.session_state:
-#     st.session_state.app2_download_file  = False
-
-# def click_download():
-#     st.session_state.app2_download_file = True
-
-# def click_fin_download():
-#     st.session_state.app2_download_file = False
-
-# @st.cache_data
-# def convert_df(df):
-#     # IMPORTANT: Cache the conversion to prevent computation on every rerun
-#     return df.to_csv().encode('utf-8')
-
-# if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is None:
-#     #st.divider()
-#     if len(st.session_state['query_matched_results']) > 0:
-#         download_but = st.button('Download',on_click = click_download)
-
-# if st.session_state.app2_download_file and st.session_state['app2_output'] is None:
-#     prompt = False
-#     submitted = False
-#     csv = convert_df(st.session_state['query_matched_results'])
-#     with st.form('chat_input_form'):
-#         # Create two columns; adjust the ratio to your liking
-#         col1, col2 = st.columns([3,1]) 
-#         # Use the first column for text input
-#         with col1:
-#             prompt = st.text_input(label = '',value='',placeholder='please write your file_name',label_visibility='collapsed')
-#         # Use the second column for the submit button
-#         with col2:
-#             submitted = st.form_submit_button('Submit')
-        
-#         if prompt and submitted:
-#             # Do something with the inputted text here
-#             st.write(f"Your file_name is: {prompt}.csv")
-
-# if st.session_state.app2_download_file:
-#     if prompt and submitted:
-#         st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
 
 #################################################################### Tidy Results ####################################################################
 

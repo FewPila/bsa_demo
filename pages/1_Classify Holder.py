@@ -288,7 +288,7 @@ if st.session_state.app1_regex:
 
     ### submit to start classify process
 
-    left,right = st.columns([10,1])
+    left,right = st.columns([10,1.5])
     with right:
         start_classify = st.button('Next',key = 'start_classify',on_click= click_startClassify)
 
@@ -330,20 +330,25 @@ if st.session_state.app1_nameseer:
         classified_result = pd.concat([classified_person_th,classified_firm_th,classified_person_eng,classified_firm_eng]).reset_index(drop = True)
         output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
                                                                                            'Classified_Class']),how = 'left')
-        #refer count
-        class_values = ['person_th','person_eng','firm_th','firm_eng','Unknown']
-        values = [0,0,0,0,0]
-        refer_c = pd.DataFrame({'Classified_Class':class_values,'Count':values})
+        # #refer count
+        # class_values = ['person_th','person_eng','firm_th','firm_eng','Unknown']
+        # values = [0,0,0,0,0]
+        # refer_c = pd.DataFrame({'Classified_Class':class_values,'Count':values})
 
-        classifier_results = output_classified['Classified_Class'].value_counts().reset_index()
-        classifier_results.columns = ['Classified_Class','Count']
+        # classifier_results = output_classified['Classified_Class'].value_counts().reset_index()
+        # classifier_results.columns = ['Classified_Class','Count']
 
-        result_c = refer_c.merge(classifier_results,
-                    on=['Classified_Class'],
-                    how='left',
-                    suffixes=('_x', None)).ffill(axis=1).drop(columns = 'Count_x')
+        # result_c = refer_c.merge(classifier_results,
+        #             on=['Classified_Class'],
+        #             how='left',
+        #             suffixes=('_x', None)).ffill(axis=1).drop(columns = 'Count_x')
+        # result_c['Count'] = result_c['Count'].astype(int)
+        # result_c = result_c.sort_values('Count',ascending = False).query('Count > 0').reset_index(drop = True)
+        result_c = output_classified['Classified_Class'].value_counts().reset_index()
+        result_c.columns = ['Classified_Class','Count']
         result_c['Count'] = result_c['Count'].astype(int)
         result_c = result_c.sort_values('Count',ascending = False).query('Count > 0').reset_index(drop = True)
+        
 
     else: # if Regex cannot Perfectly Classfify 
         st.subheader("User สามารถปรับ Threshold Score ของบุคคล/บริษัท ได้ตามความเหมาะสม")
@@ -437,17 +442,21 @@ if st.session_state.app1_nameseer:
                                                                                             'Classified_Class']),how = 'left')
             
             #refer count
-            class_values = ['person_th','person_eng','firm_th','firm_eng','Unknown']
-            values = [0,0,0,0,0]
-            refer_c = pd.DataFrame({'Classified_Class':class_values,'Count':values})
+            # class_values = ['person_th','person_eng','firm_th','firm_eng','Unknown']
+            # values = [0,0,0,0,0]
+            # refer_c = pd.DataFrame({'Classified_Class':class_values,'Count':values})
 
-            classifier_results = output_classified['Classified_Class'].value_counts().reset_index()
-            classifier_results.columns = ['Classified_Class','Count']
+            # classifier_results = output_classified['Classified_Class'].value_counts().reset_index()
+            # classifier_results.columns = ['Classified_Class','Count']
 
-            result_c = refer_c.merge(classifier_results,
-                        on=['Classified_Class'],
-                        how='left',
-                        suffixes=('_x', None)).ffill(axis=1).drop(columns='Count_x')
+            # result_c = refer_c.merge(classifier_results,
+            #             on=['Classified_Class'],
+            #             how='left',
+            #             suffixes=('_x', None)).ffill(axis=1).drop(columns='Count_x')
+            # result_c['Count'] = result_c['Count'].astype(int)
+            # result_c = result_c.sort_values('Count',ascending = False).query('Count > 0').reset_index(drop = True)
+            result_c = output_classified['Classified_Class'].value_counts().reset_index()
+            result_c.columns = ['Classified_Class','Count']
             result_c['Count'] = result_c['Count'].astype(int)
             result_c = result_c.sort_values('Count',ascending = False).query('Count > 0').reset_index(drop = True)
         
@@ -485,19 +494,22 @@ if st.session_state.app1_nameseer:
                                     rest_name_th]).filter([st.session_state.app1_name_column,'Classified_Class','Classified_By']).reset_index(drop = True)
             output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
                                                                                             'Classified_Class','Classified_By']),how = 'left')
+            output_classified['Classified_Class'] = output_classified['Classified_Class'].fillna('Unknown') 
             
-            #refer count
-            class_values = ['person_th','person_eng','firm_th','firm_eng','Unknown']
-            values = [0,0,0,0,0]
-            refer_c = pd.DataFrame({'Classified_Class':class_values,'Count':values})
+            # #refer count
+            # class_values = ['person_th','person_eng','firm_th','firm_eng','Unknown']
+            # values = [0,0,0,0,0]
+            # refer_c = pd.DataFrame({'Classified_Class':class_values,'Count':values})
 
-            classifier_results = output_classified['Classified_Class'].value_counts().reset_index()
-            classifier_results.columns = ['Classified_Class','Count']
+            # classifier_results = output_classified['Classified_Class'].value_counts().reset_index()
+            # classifier_results.columns = ['Classified_Class','Count']
 
-            result_c = refer_c.merge(classifier_results,
-                        on=['Classified_Class'],
-                        how='left',
-                        suffixes=('_x', None)).ffill(axis=1).drop(columns = 'Count_x')
+            # result_c = refer_c.merge(classifier_results,
+            #             on=['Classified_Class'],
+            #             how='left',
+            #             suffixes=('_x', None)).ffill(axis=1).drop(columns = 'Count_x')
+            result_c = output_classified['Classified_Class'].value_counts().reset_index()
+            result_c.columns = ['Classified_Class','Count']
             result_c['Count'] = result_c['Count'].astype(int)
             result_c = result_c.sort_values('Count',ascending = False).query('Count > 0').reset_index(drop = True)
 
