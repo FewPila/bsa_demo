@@ -533,7 +533,7 @@ def click_add_corpus3():
 #################################################################################################### 2.2 Corpus Input ####################################################################################################
 if st.session_state.query_input == True and st.session_state.corpus2_input == False and st.session_state.add_corpus2 and st.session_state.app2_input == False:
     st.divider()
-    st.header('Step 2: Dataset ที่ต้องการจะ Matching ด้วย',divider= 'orange')
+    st.header('Step 2.2: เพิ่ม Dataset ที่ต้องการจะ Matching',divider= 'orange')
     
     if st.session_state['uploaded_corpus2'] == False:
         corpus2_upload = st.file_uploader("Choose a file to upload",key = 'corpus2_upload')
@@ -559,14 +559,14 @@ if st.session_state.query_input == True and st.session_state.corpus2_input == Fa
             corpus2_namecol_box.extend(st.session_state.corpus2_df.columns)
             corpus2_namecol_option = st.selectbox('Which is Names Column ?',corpus2_namecol_box,key = 'corpus2_namecol_select_box')
             if st.session_state['corpus2_namecol_select_box'] is not None:
-                corpus2_selected_namecol = st.button('next',on_click = corpus2_SelectCol_click)
+                corpus2_selected_namecol = st.button('Next',on_click = corpus2_SelectCol_click)
         
         if st.session_state.corpus2_namecolname is not None and st.session_state.corpus2_selected_col_list is None:
             #select Name Column
             corpus2_columnsFromDf = st.session_state['corpus2_df'].columns.values
             st.multiselect(label = 'Please Select Column to Keep',options = corpus2_columnsFromDf,default = corpus2_columnsFromDf,key = 'corpus2_col_list_select_box')
             #st_tags(value = corpus2_columnsFromDf ,suggestions = corpus2_columnsFromDf ,label = '', text = '',key = 'corpus2_col_list_select_box')
-            corpus2_selected_col_list_button = st.button('next',on_click = corpus2_SelectCol_list_click,key = 's_col_button')
+            corpus2_selected_col_list_button = st.button('Next',on_click = corpus2_SelectCol_list_click,key = 's_col_button')
 
         if st.session_state.corpus2_namecolname is not None and st.session_state.corpus2_selected_col_list is not None:
             pm_images = Image.open('material/images/app2_pm.jpg')
@@ -625,7 +625,7 @@ if st.session_state.query_input == True and st.session_state.corpus2_input == Fa
 
 if st.session_state.corpus2_input == True and st.session_state.app2_input == False:
     st.divider()
-    st.header('Step 2.2: Added Input Corpus')
+    st.header('Step 2.2: เพิ่ม Dataset ที่ต้องการจะ Matching',divider= 'orange')
     st.session_state['order']['corpus2'] = load_in(True)
     
     conditional_st_write_df(st.session_state.corpus2_df)
@@ -742,7 +742,7 @@ def corpus3_submit():
 #################################################################################################### 2.3 Corpus Input ####################################################################################################
 if st.session_state.query_input == True and st.session_state.corpus3_input == False and st.session_state.add_corpus3 and st.session_state.app2_input == False:
     st.divider()
-    st.header('Step 3: Dataset ที่ต้องการจะ Matching ด้วย',divider= 'orange')
+    st.header('Step 2.3: เพิ่ม Dataset ที่ต้องการจะ Matching',divider= 'orange')
     
     if st.session_state['uploaded_corpus3'] == False:
         corpus3_upload = st.file_uploader("Choose a file to upload",key = 'corpus3_upload')
@@ -768,14 +768,14 @@ if st.session_state.query_input == True and st.session_state.corpus3_input == Fa
             corpus3_namecol_box.extend(st.session_state.corpus3_df.columns)
             corpus3_namecol_option = st.selectbox('Which is Names Column ?',corpus3_namecol_box,key = 'corpus3_namecol_select_box')
             if st.session_state['corpus3_namecol_select_box'] is not None:
-                corpus3_selected_namecol = st.button('next',on_click = corpus3_SelectCol_click)
+                corpus3_selected_namecol = st.button('Next',on_click = corpus3_SelectCol_click)
         
         if st.session_state.corpus3_namecolname is not None and st.session_state.corpus3_selected_col_list is None:
             #select Name Column
             corpus3_columnsFromDf = st.session_state['corpus3_df'].columns.values
             st.multiselect(label = 'Please Select Column to Keep',options = corpus3_columnsFromDf,default = corpus3_columnsFromDf,key = 'corpus3_col_list_select_box')
             #st_tags(value = corpus3_columnsFromDf ,suggestions = corpus3_columnsFromDf ,label = '', text = '',key = 'corpus3_col_list_select_box')
-            corpus3_selected_col_list_button = st.button('next',on_click = corpus3_SelectCol_list_click,key = 's_col_button')
+            corpus3_selected_col_list_button = st.button('Next',on_click = corpus3_SelectCol_list_click,key = 's_col_button')
 
         if st.session_state.corpus3_namecolname is not None and st.session_state.corpus3_selected_col_list is not None:
             pm_images = Image.open('material/images/app2_pm.jpg')
@@ -834,7 +834,7 @@ if st.session_state.query_input == True and st.session_state.corpus3_input == Fa
 
 if st.session_state.corpus3_input == True and st.session_state.app2_input == False:
     st.divider()
-    st.header('Step 2.3: Added Input Corpus')
+    st.header('Step 2.3: เพิ่ม Dataset ที่ต้องการจะ Matching',divider= 'orange')
     st.session_state['order']['corpus3'] = load_in(True)
     
     conditional_st_write_df(st.session_state.corpus3_df)
