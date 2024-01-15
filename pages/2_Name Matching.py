@@ -304,10 +304,10 @@ def corpus1_submit():
             r_df = st.session_state['corpus1_df'].merge(st.session_state['ipi_df'].rename(columns = {'SRC_UNQ_ID':st.session_state['corpus1_RID_CN']}),
                                                         on = st.session_state['corpus1_RID_CN'],
                                                         how = 'left')
-            r_df['SCORE'] = r_df.apply(lambda row: fuzz.ratio(row[st.session_state['corpus1_Name_CN']],row['RGST_NM_TH']),axis = 1)
+            r_df['SCORE'] = r_df.apply(lambda row: fuzz.ratio(row[st.session_state['corpus1_Name_CN']],row['RGST_BSN_NM_THAI']),axis = 1)
             r_df['SIMP_SCORE'] = r_df.apply(lambda row : fuzz.ratio(simplify_name(row[st.session_state['corpus1_Name_CN']],soft_simp_words),
-                                                    simplify_name(row['RGST_NM_TH'],soft_simp_words)),axis = 1)
-            r_keep_col = [st.session_state['corpus1_RID_CN'],'RGST_NM_TH','SNA_2008']
+                                                    simplify_name(row['RGST_BSN_NM_THAI'],soft_simp_words)),axis = 1)
+            r_keep_col = [st.session_state['corpus1_RID_CN'],'RGST_BSN_NM_THAI','SNA 2008']
             st.session_state['corpus1_df'] = st.session_state['corpus1_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left')
 
     st.session_state.corpus1_input = True
@@ -520,7 +520,7 @@ def corpus2_submit():
             r_df['SCORE'] = r_df.apply(lambda row: fuzz.ratio(row[st.session_state['corpus2_Name_CN']],row['RGST_NM_TH']),axis = 1)
             r_df['SIMP_SCORE'] = r_df.apply(lambda row : fuzz.ratio(simplify_name(row[st.session_state['corpus2_Name_CN']],soft_simp_words),
                                                     simplify_name(row['RGST_NM_TH'],soft_simp_words)),axis = 1)
-            r_keep_col = [st.session_state['corpus2_RID_CN'],'RGST_NM_TH','SNA_2008']
+            r_keep_col = [st.session_state['corpus2_RID_CN'],'RGST_NM_TH','SNA 2008']
             st.session_state['corpus2_df'] = st.session_state['corpus2_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left')
 
     st.session_state.corpus2_input = True
@@ -733,7 +733,7 @@ def corpus3_submit():
             r_df['SCORE'] = r_df.apply(lambda row: fuzz.ratio(row[st.session_state['corpus3_Name_CN']],row['RGST_NM_TH']),axis = 1)
             r_df['SIMP_SCORE'] = r_df.apply(lambda row : fuzz.ratio(simplify_name(row[st.session_state['corpus3_Name_CN']],soft_simp_words),
                                                     simplify_name(row['RGST_NM_TH'],soft_simp_words)),axis = 1)
-            r_keep_col = [st.session_state['corpus3_RID_CN'],'RGST_NM_TH','SNA_3008']
+            r_keep_col = [st.session_state['corpus3_RID_CN'],'RGST_NM_TH','SNA 2008']
             st.session_state['corpus3_df'] = st.session_state['corpus3_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left')
 
     st.session_state.corpus3_input = True
