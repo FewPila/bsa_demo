@@ -308,7 +308,7 @@ def corpus1_submit():
             r_df['SIMP_SCORE'] = r_df.apply(lambda row : fuzz.ratio(simplify_name(row[st.session_state['corpus1_Name_CN']],soft_simp_words),
                                                     simplify_name(row['RGST_BSN_NM_THAI'],soft_simp_words)),axis = 1)
             r_keep_col = [st.session_state['corpus1_RID_CN'],'RGST_BSN_NM_THAI','SNA 2008']
-            st.session_state['corpus1_df'] = st.session_state['corpus1_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left')
+            st.session_state['corpus1_df'] = st.session_state['corpus1_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left').drop_duplicates([st.session_state['corpus1_RID_CN'],st.session_state['corpus1_Name_CN']]).reset_index(drop = True)
 
     st.session_state.corpus1_input = True
 
@@ -521,7 +521,7 @@ def corpus2_submit():
             r_df['SIMP_SCORE'] = r_df.apply(lambda row : fuzz.ratio(simplify_name(row[st.session_state['corpus2_Name_CN']],soft_simp_words),
                                                     simplify_name(row['RGST_NM_TH'],soft_simp_words)),axis = 1)
             r_keep_col = [st.session_state['corpus2_RID_CN'],'RGST_NM_TH','SNA 2008']
-            st.session_state['corpus2_df'] = st.session_state['corpus2_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left')
+            st.session_state['corpus2_df'] = st.session_state['corpus2_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left').drop_duplicates([st.session_state['corpus2_RID_CN'],st.session_state['corpus2_Name_CN']]).reset_index(drop = True)
 
     st.session_state.corpus2_input = True
     print(st.session_state.corpus2_input)
@@ -734,7 +734,7 @@ def corpus3_submit():
             r_df['SIMP_SCORE'] = r_df.apply(lambda row : fuzz.ratio(simplify_name(row[st.session_state['corpus3_Name_CN']],soft_simp_words),
                                                     simplify_name(row['RGST_NM_TH'],soft_simp_words)),axis = 1)
             r_keep_col = [st.session_state['corpus3_RID_CN'],'RGST_NM_TH','SNA 2008']
-            st.session_state['corpus3_df'] = st.session_state['corpus3_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left')
+            st.session_state['corpus3_df'] = st.session_state['corpus3_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left').drop_duplicates([st.session_state['corpus3_RID_CN'],st.session_state['corpus3_Name_CN']]).reset_index(drop = True)
 
     st.session_state.corpus3_input = True
     print(st.session_state.corpus3_input)
