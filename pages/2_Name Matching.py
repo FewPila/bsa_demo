@@ -12,6 +12,7 @@ import time
 from PIL import Image
 from utils.nm_utils import *
 from streamlit_extras.switch_page_button import switch_page
+stqdm.pandas()
 
 st.title('App 2. การทำ Name Matching')
 st.write('เชื่อมข้อมูลที่เกี่ยวข้องกันระหว่าง 2 Dataset เพื่อเอาข้อมูลที่ต้องการโดยใช้ "ชื่อ" เป็นตัวเชื่อม')
