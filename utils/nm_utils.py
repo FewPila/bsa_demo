@@ -4,12 +4,13 @@ import numpy as np
 import copy
 import os
 import re
-from tqdm import tqdm
+#from tqdm import tqdm
 import time
 from rapidfuzz import fuzz
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from stqdm import stqdm
+stqdm.pandas()
 
 def anti_join(df1,df2):
     outer = df1.merge(df2, how='outer', indicator=True)
