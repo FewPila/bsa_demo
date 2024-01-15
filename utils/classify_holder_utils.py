@@ -185,10 +185,10 @@ def preprocess_byRegex(names_df,names_namecolname,ord_all_options,firm_all_optio
         ### classified eng
         classified_person_eng = pd.concat([person_eng.filter([names_namecolname]),
                                     person_eng2.filter([names_namecolname])]).reset_index(drop = True)
-        classified_person_eng['Class'] = 'person_eng'
+        classified_person_eng['Classified_Class'] = 'person_eng'
 
         classified_firm_eng = firm_eng.filter([names_namecolname]).reset_index(drop = True)
-        classified_firm_eng['Class'] = 'firm_eng'
+        classified_firm_eng['Classified_Class'] = 'firm_eng'
         prep_eng_names.empty()
 
         if len(thai_names)>0:
