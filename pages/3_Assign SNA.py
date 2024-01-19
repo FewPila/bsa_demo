@@ -1209,7 +1209,7 @@ if st.session_state['app3_rule_based_prioritize']:
             for rank in range(1,4+1):
                 if check_target_allowance(type_ = st.session_state[f'rank{rank}']['type'],target_=target):
                     st.session_state[f'apply_order{target}_rank{rank}']['function'] = find_func(st.session_state[f'rank{rank}']['type'],st.session_state[f'assign_sna_target{target}]']['Class'])
-                    st.session_state[f'apply_order{target}_rank{rank}']['input_column'] = find_input(st.session_state[f'rank{rank}']['type'],dummy_sna= 'HLDR_SNA')
+                    st.session_state[f'apply_order{target}_rank{rank}']['input_column'] = find_input(st.session_state[f'rank{rank}']['type'])
                     st.session_state[f'apply_order{target}_rank{rank}']['action'] = find_action(st.session_state[f'rank{rank}']['type'],target)
                     st.session_state[f'apply_order{target}_rank{rank}']['condition'] = find_condition(type_ = st.session_state[f'rank{rank}']['type'],
                                                                                                 option_= st.session_state[f'rank{rank}']['option'],
@@ -1258,9 +1258,10 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                 cn = 'FIRM_FINAL_SNA'
                             elif i == 2:
                                 cn = 'FIRM_FINAL_SNA10'
+                            st.write(np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist())
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                             st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
-                                                                                            np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist,
+                                                                                            np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
                                                                                             st.session_state[f'apply_order{target}_rank{rank}']['action'],
                                                                                             condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
                                                                                             axis = 1)
@@ -1270,9 +1271,10 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                 cn = 'HLDR_FINAL_SNA'
                             elif i == 2:
                                 cn = 'HLDR_FINAL_SNA10'
+                            st.write(np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist())
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                                                     st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
-                                                                                                                    np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist,
+                                                                                                                    np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
                                                                                                                     st.session_state[f'apply_order{target}_rank{rank}']['action'],
                                                                                                                     condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
                                                                                                                     axis = 1)
@@ -1335,9 +1337,10 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                 cn = 'HLDR_FINAL_SNA'
                             elif i == 2:
                                 cn = 'HLDR_FINAL_SNA10'
+                            st.write(np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist())
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                                                     st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
-                                                                                                                    np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist,
+                                                                                                                    np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
                                                                                                                     st.session_state[f'apply_order{target}_rank{rank}']['action'],
                                                                                                                     condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
                                                                                                                     axis = 1)
