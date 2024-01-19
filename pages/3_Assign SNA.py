@@ -322,6 +322,7 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                             isics_df['SNA10'] = isics_df['SNA10'].ffill()
                             isics_df['SNA10'] = isics_df['SNA10'].str.replace('isic1_','') 
                             st.session_state['rule_based1_isic_action'] = isics_df
+                            st.session_state['rule_based1_isic_action']['SNA'] = None
                         else:
                             st.session_state['rule_based1_isic_action'] = load_in(st.session_state['isic1_dataset'])
                     else:
@@ -338,6 +339,7 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                             keywords_df['SNA10'] = keywords_df['SNA10'].ffill()
                             keywords_df['SNA10'] = keywords_df['SNA10'].str.replace('keywords1_','') 
                             st.session_state['rule_based1_keywords_action'] = keywords_df
+                            st.session_state['rule_based1_keywords_action']['SNA'] = None
                         else:
                             st.session_state['rule_based1_keywords_action'] =load_in(st.session_state['keywords1_dataset'])
                     else:
@@ -550,7 +552,7 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                         rule_based2_left_nat_v,rule_based2_right_nat_v = st.columns([20,10])
                         
                         rule_based2_left_nat_v.subheader(f':grey[กรณีบริษัทเป็นสัญชาติไทย จะมีค่า SNA :]')
-                        rule_based2_right_nat_v.selectbox(label = '',options = rule_based2_nat_v_choices,index = 1,key = 'rule_based2_first_nat_v',label_visibility = 'collapsed')
+                        rule_based2_right_nat_v.selectbox(label = '',options = rule_based2_nat_v_choices,index = 2,key = 'rule_based2_first_nat_v',label_visibility = 'collapsed')
                         rule_based2_left_nat_v.subheader(f':grey[กรณีบริษัทเป็นต่างชาติจะมีค่า SNA :]')
                         rule_based2_right_nat_v.selectbox(label = '',options = rule_based2_nat_v_choices,index = 1,key = 'rule_based2_second_nat_v',label_visibility = 'collapsed')
                         st.divider()
@@ -569,6 +571,7 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                             isics_df['SNA10'] = isics_df['SNA10'].ffill()
                             isics_df['SNA10'] = isics_df['SNA10'].str.replace('isic2_','') 
                             st.session_state['rule_based2_isic_action'] = isics_df
+                            st.session_state['rule_based2_isic_action']['SNA'] = None
                         else:
                             st.session_state['rule_based2_isic_action'] = load_in(st.session_state['isic2_dataset'])
                     else:
@@ -585,6 +588,7 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                             keywords_df['SNA10'] = keywords_df['SNA10'].ffill()
                             keywords_df['SNA10'] = keywords_df['SNA10'].str.replace('keywords2_','') 
                             st.session_state['rule_based2_keywords_action'] = keywords_df
+                            st.session_state['rule_based2_keywords_action']['SNA'] = None
                         else:
                             st.session_state['rule_based2_keywords_action'] =load_in(st.session_state['keywords2_dataset'])
                     else:
@@ -801,7 +805,7 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                         rule_based3_left_nat_v,rule_based3_right_nat_v = st.columns([20,10])
                         
                         rule_based3_left_nat_v.subheader(f':grey[กรณีบุคคลเป็นสัญชาติไทย จะมีค่า SNA :]')
-                        rule_based3_right_nat_v.selectbox(label = '',options = rule_based3_nat_v_choices,index = 1,key = 'rule_based3_first_nat_v',label_visibility = 'collapsed')
+                        rule_based3_right_nat_v.selectbox(label = '',options = rule_based3_nat_v_choices,index = 3,key = 'rule_based3_first_nat_v',label_visibility = 'collapsed')
                         rule_based3_left_nat_v.subheader(f':grey[กรณีบุคคลเป็นต่างชาติจะมีค่า SNA :]')
                         rule_based3_right_nat_v.selectbox(label = '',options = rule_based3_nat_v_choices,index = 1,key = 'rule_based3_second_nat_v',label_visibility = 'collapsed')
                         st.divider()
@@ -820,6 +824,7 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                             isics_df['SNA10'] = isics_df['SNA10'].ffill()
                             isics_df['SNA10'] = isics_df['SNA10'].str.replace('isic3_','') 
                             st.session_state['rule_based3_isic_action'] = isics_df
+                            st.session_state['rule_based3_isic_action']['SNA'] = None
                         else:
                             st.session_state['rule_based3_isic_action'] = load_in(st.session_state['isic3_dataset'])
                     else:
@@ -836,6 +841,7 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                             keywords_df['target_sna30'] = keywords_df['target_sna30'].ffill()
                             keywords_df['target_sna30'] = keywords_df['target_sna30'].str.replace('keywords3_','') 
                             st.session_state['rule_based3_keywords_action'] = keywords_df
+                            st.session_state['rule_based3_keywords_action']["SNA"] = None
                         else:
                             st.session_state['rule_based3_keywords_action'] =load_in(st.session_state['keywords3_dataset'])
                     else:
@@ -1038,7 +1044,7 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
         st.session_state['rule_based3'] = False
         st.session_state['app3_rule_based'] = False
 
-    l2,r2 = st.columns([10,1])
+    l2,r2 = st.columns([10,1.5])
     with r2:
         next_bt2 = st.button('Next',on_click= submit_prioritize)
     with l2:
@@ -1109,6 +1115,13 @@ if st.session_state['app3_rule_based_prioritize']:
             action = st.session_state['global_input']['sna_action']
         elif type_ == 'nat':
             action = None
+        
+        if action is not None:
+            cn = action.columns.values
+            if len(cn) > 2 :
+                action = action.groupby(['SNA10','SNA'],dropna = False)['Rule'].apply('|'.join).reset_index()
+            else:
+                action = action.groupby(cn[0],dropna = False)[cn[1]].apply('|'.join).reset_index()
         # # check action
         # if action is not None:
         #     cn = action.columns.values
@@ -1245,7 +1258,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                 filtered_df =  st.session_state['data'][st.session_state['data']['Class'].str.contains(st.session_state[f'assign_sna_target{target}]']['Class'])].drop_duplicates(Target_Name)
             
             block1 = st.empty()
-            block1.info(f"Class : {st.session_state[f'assign_sna_target{target}]']['Class']}")
+            block1.info(f"{target}/4 | Class : {st.session_state[f'assign_sna_target{target}]']['Class']}")
             for rank in range(1,4+1):
                 if len(st.session_state[f'apply_order{target}_rank{rank}']) > 0:
                     block2 = st.empty()
@@ -1258,8 +1271,6 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                 cn = 'FIRM_FINAL_SNA'
                             elif i == 2:
                                 cn = 'FIRM_FINAL_SNA10'
-                            st.write(np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist())
-                            st.write(st.session_state[f'apply_order{target}_rank{rank}']['action'])
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                             st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
                                                                                             np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
@@ -1272,8 +1283,6 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                 cn = 'HLDR_FINAL_SNA'
                             elif i == 2:
                                 cn = 'HLDR_FINAL_SNA10'
-                            st.write(np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist())
-                            st.write(st.session_state[f'apply_order{target}_rank{rank}']['action'])
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                                                     st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
                                                                                                                     np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
@@ -1286,12 +1295,13 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             block1.empty()
 
             # Re-Join to Main
-            if target == 4:            
-                st.session_state['data'] = st.session_state['data'].merge(filtered_df.filter([Target_Name,'FINAL_FIRM_SNA']),on = Target_Name,how = 'left',suffixes= ['_left','_right'])
+            if target == 4:
+                
+                st.session_state['data'] = st.session_state['data'].merge(filtered_df.filter([Target_Name,'FIRM_FINAL_SNA']),on = Target_Name,how = 'left',suffixes= ['_left','_right'])
                 st.session_state['data']['FIRM_FINAL_SNA'] = st.session_state['data']['FIRM_FINAL_SNA_left'].fillna(st.session_state['data']['FIRM_FINAL_SNA_right'])
                 st.session_state['data'] = st.session_state['data'].drop(['FIRM_FINAL_SNA_left','FIRM_FINAL_SNA_right'],axis = 1)
                 
-                st.session_state['data'] = st.session_state['data'].merge(filtered_df.filter([Target_Name,'FINAL_FIRM_SNA10']),on = Target_Name,how = 'left',suffixes= ['_left','_right'])
+                st.session_state['data'] = st.session_state['data'].merge(filtered_df.filter([Target_Name,'FIRM_FINAL_SNA10']),on = Target_Name,how = 'left',suffixes= ['_left','_right'])
                 st.session_state['data']['FIRM_FINAL_SNA10'] = st.session_state['data']['FIRM_FINAL_SNA10_left'].fillna(st.session_state['data']['FIRM_FINAL_SNA10_right'])
                 st.session_state['data'] = st.session_state['data'].drop(['FIRM_FINAL_SNA10_left','FIRM_FINAL_SNA10_right'],axis = 1)
             else:
@@ -1305,10 +1315,25 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
 
         # Finshed Loop
         # Process Tidy SNA
+        tidy_sna_block = st.empty()
+        tidy_sna_block.info('Final Step : Tidy SNA')
+        tidy_sna_block_mini = st.empty()
+        tidy_sna_block_mini.info('1/4')
         st.session_state['data']['FIRM_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['FIRM_FINAL_SNA'],row['FIRM_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
+        tidy_sna_block_mini.empty()
+        tidy_sna_block_mini = st.empty()
+        tidy_sna_block_mini.info('2/4')
         st.session_state['data']['FIRM_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['FIRM_FINAL_SNA'],row['FIRM_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
+        tidy_sna_block_mini.empty()
+        tidy_sna_block_mini = st.empty()
+        tidy_sna_block_mini.info('3/4')
         st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
+        tidy_sna_block_mini.empty()
+        tidy_sna_block_mini = st.empty()
+        tidy_sna_block_mini.info('4/4')
         st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
+        tidy_sna_block_mini.empty()
+        tidy_sna_block.empty()
         # Finished
         st.session_state['app3_finalize_output'] = load_in(st.session_state['data'])        
     ###### Apply Rule Based on Holders Only
@@ -1322,7 +1347,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             filtered_df =  st.session_state['data'][st.session_state['data']['Class'].str.contains(st.session_state[f'assign_sna_target{target}]']['Class'])].drop_duplicates(Target_Name)
 
             block1 = st.empty()
-            block1.info(f"Class : {st.session_state[f'assign_sna_target{target}]']['Class']}")
+            block1.info(f"{target}/4 | Class : {st.session_state[f'assign_sna_target{target}]']['Class']}")
             # Process Operation
             for rank in range(1,4+1):
                 if len(st.session_state[f'apply_order{target}_rank{rank}']) > 0:
@@ -1339,8 +1364,6 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                 cn = 'HLDR_FINAL_SNA'
                             elif i == 2:
                                 cn = 'HLDR_FINAL_SNA10'
-                            st.write(np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist())
-                            st.write(st.session_state[f'apply_order{target}_rank{rank}']['action'])
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                                                     st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
                                                                                                                     np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
@@ -1352,16 +1375,24 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             # process completed
             block1.empty()
             # Re-Join to Main
+            tidy_sna_block = st.empty()
+            tidy_sna_block.info('Final Step : Tidy SNA')
+            tidy_sna_block_mini = st.empty()
+            tidy_sna_block_mini.info('1/2')
             st.session_state['data'] = st.session_state['data'].merge(filtered_df.filter([Target_Name,'HLDR_FINAL_SNA']),on = Target_Name,how = 'left',suffixes= ['_left','_right'])
             st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data']['HLDR_FINAL_SNA_left'].fillna(st.session_state['data']['HLDR_FINAL_SNA_right'])
             st.session_state['data'] = st.session_state['data'].drop(['HLDR_FINAL_SNA_left','HLDR_FINAL_SNA_right'],axis = 1)
-
+            tidy_sna_block_mini.empty()
+            tidy_sna_block_mini = st.empty()
+            tidy_sna_block_mini.info('2/2')
             st.session_state['data'] = st.session_state['data'].merge(filtered_df.filter([Target_Name,'HLDR_FINAL_SNA10']),on = Target_Name,how = 'left',suffixes= ['_left','_right'])
             st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data']['HLDR_FINAL_SNA10_left'].fillna(st.session_state['data']['HLDR_FINAL_SNA10_right'])
             st.session_state['data'] = st.session_state['data'].drop(['HLDR_FINAL_SNA10_left','HLDR_FINAL_SNA10_right'],axis = 1)
-        
+            tidy_sna_block_mini.empty()
+            tidy_sna_block.empty()
         # Finshed Loop
         # Process Tidy SNA
+        st.info('Final Step : Tidy SNA')
         st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
         st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
         # Finished
