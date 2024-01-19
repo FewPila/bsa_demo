@@ -12,7 +12,6 @@ import time
 from PIL import Image
 from utils.nm_utils import *
 from streamlit_extras.switch_page_button import switch_page
-stqdm.pandas()
 
 st.title('App 2. การทำ Name Matching')
 st.write('เชื่อมข้อมูลที่เกี่ยวข้องกันระหว่าง 2 Dataset เพื่อเอาข้อมูลที่ต้องการโดยใช้ "ชื่อ" เป็นตัวเชื่อม')
@@ -309,7 +308,7 @@ def corpus1_submit():
             r_df['SIMP_SCORE'] = r_df.apply(lambda row : fuzz.ratio(simplify_name(row[st.session_state['corpus1_Name_CN']],soft_simp_words),
                                                     simplify_name(row['RGST_BSN_NM_THAI'],soft_simp_words)),axis = 1)
             r_keep_col = [st.session_state['corpus1_RID_CN'],'RGST_BSN_NM_THAI','SNA 2008']
-            st.session_state['corpus1_df'] = st.session_state['corpus1_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left').drop_duplicates([st.session_state['corpus1_RID_CN'],st.session_state['corpus1_Name_CN']]).reset_index(drop = True)
+            st.session_state['corpus1_df'] = st.session_state['corpus1_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left')
 
     st.session_state.corpus1_input = True
 
@@ -319,7 +318,7 @@ def click_add_corpus2():
 #################################################################################################### 2.1 Corpus Input ####################################################################################################
 if st.session_state.query_input == True and st.session_state.corpus1_input == False and st.session_state.app2_input == False:
     st.divider()
-    st.header('Step 2: Dataset ที่ต้องการจะ Matching ด้วย',divider= 'orange')
+    st.header('Step 2.1: Dataset ที่ต้องการจะ Matching ด้วย',divider= 'orange')
     
     if st.session_state['uploaded_corpus1'] == False:
         corpus1_upload = st.file_uploader("Choose a file to upload",key = 'corpus1_upload')
@@ -409,7 +408,7 @@ if st.session_state.query_input == True and st.session_state.corpus1_input == Fa
 
 if st.session_state.corpus1_input == True and st.session_state.app2_input == False:
     st.divider()
-    st.header('Step 2: Dataset ที่ต้องการจะ Matching ด้วย',divider= 'orange')
+    st.header('Step 2.1: Dataset ที่ต้องการจะ Matching ด้วย',divider= 'orange')
     st.session_state['order']['corpus1'] = load_in(True)
     
     #conditional_st_write_df(st.session_state.corpus1_df.filter(st.session_state.corpus1_selected_col_list))
@@ -518,11 +517,11 @@ def corpus2_submit():
             r_df = st.session_state['corpus2_df'].merge(st.session_state['ipi_df'].rename(columns = {'SRC_UNQ_ID':st.session_state['corpus2_RID_CN']}),
                                                         on = st.session_state['corpus2_RID_CN'],
                                                         how = 'left')
-            r_df['SCORE'] = r_df.apply(lambda row: fuzz.ratio(row[st.session_state['corpus2_Name_CN']],row['RGST_NM_TH']),axis = 1)
+            r_df['SCORE'] = r_df.apply(lambda row: fuzz.ratio(row[st.session_state['corpus2_Name_CN']],row['RGST_BSN_NM_THAI']),axis = 1)
             r_df['SIMP_SCORE'] = r_df.apply(lambda row : fuzz.ratio(simplify_name(row[st.session_state['corpus2_Name_CN']],soft_simp_words),
-                                                    simplify_name(row['RGST_NM_TH'],soft_simp_words)),axis = 1)
-            r_keep_col = [st.session_state['corpus2_RID_CN'],'RGST_NM_TH','SNA 2008']
-            st.session_state['corpus2_df'] = st.session_state['corpus2_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left').drop_duplicates([st.session_state['corpus2_RID_CN'],st.session_state['corpus2_Name_CN']]).reset_index(drop = True)
+                                                    simplify_name(row['RGST_BSN_NM_THAI'],soft_simp_words)),axis = 1)
+            r_keep_col = [st.session_state['corpus2_RID_CN'],'RGST_BSN_NM_THAI','SNA 2008']
+            st.session_state['corpus2_df'] = st.session_state['corpus2_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left')
 
     st.session_state.corpus2_input = True
     print(st.session_state.corpus2_input)
@@ -626,7 +625,7 @@ if st.session_state.query_input == True and st.session_state.corpus2_input == Fa
 
 if st.session_state.corpus2_input == True and st.session_state.app2_input == False:
     st.divider()
-    st.header('Step 2.2: เพิ่ม Dataset ที่ต้องการจะ Matching',divider= 'orange')
+    st.header('Step 2.2: เพิ่ม Dataset ที่ต้องการจะ Matching')
     st.session_state['order']['corpus2'] = load_in(True)
     
     conditional_st_write_df(st.session_state.corpus2_df)
@@ -731,11 +730,11 @@ def corpus3_submit():
             r_df = st.session_state['corpus3_df'].merge(st.session_state['ipi_df'].rename(columns = {'SRC_UNQ_ID':st.session_state['corpus3_RID_CN']}),
                                                         on = st.session_state['corpus3_RID_CN'],
                                                         how = 'left')
-            r_df['SCORE'] = r_df.apply(lambda row: fuzz.ratio(row[st.session_state['corpus3_Name_CN']],row['RGST_NM_TH']),axis = 1)
+            r_df['SCORE'] = r_df.apply(lambda row: fuzz.ratio(row[st.session_state['corpus3_Name_CN']],row['RGST_BSN_NM_THAI']),axis = 1)
             r_df['SIMP_SCORE'] = r_df.apply(lambda row : fuzz.ratio(simplify_name(row[st.session_state['corpus3_Name_CN']],soft_simp_words),
-                                                    simplify_name(row['RGST_NM_TH'],soft_simp_words)),axis = 1)
-            r_keep_col = [st.session_state['corpus3_RID_CN'],'RGST_NM_TH','SNA 2008']
-            st.session_state['corpus3_df'] = st.session_state['corpus3_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left').drop_duplicates([st.session_state['corpus3_RID_CN'],st.session_state['corpus3_Name_CN']]).reset_index(drop = True)
+                                                    simplify_name(row['RGST_BSN_NM_THAI'],soft_simp_words)),axis = 1)
+            r_keep_col = [st.session_state['corpus3_RID_CN'],'RGST_BSN_NM_THAI','SNA 2008']
+            st.session_state['corpus3_df'] = st.session_state['corpus3_df'].merge(r_df.query('SIMP_SCORE >= 60.1 & SCORE >= 26').filter(r_keep_col),how = 'left')
 
     st.session_state.corpus3_input = True
     print(st.session_state.corpus3_input)
@@ -769,14 +768,14 @@ if st.session_state.query_input == True and st.session_state.corpus3_input == Fa
             corpus3_namecol_box.extend(st.session_state.corpus3_df.columns)
             corpus3_namecol_option = st.selectbox('Which is Names Column ?',corpus3_namecol_box,key = 'corpus3_namecol_select_box')
             if st.session_state['corpus3_namecol_select_box'] is not None:
-                corpus3_selected_namecol = st.button('Next',on_click = corpus3_SelectCol_click)
+                corpus3_selected_namecol = st.button('next',on_click = corpus3_SelectCol_click)
         
         if st.session_state.corpus3_namecolname is not None and st.session_state.corpus3_selected_col_list is None:
             #select Name Column
             corpus3_columnsFromDf = st.session_state['corpus3_df'].columns.values
             st.multiselect(label = 'Please Select Column to Keep',options = corpus3_columnsFromDf,default = corpus3_columnsFromDf,key = 'corpus3_col_list_select_box')
             #st_tags(value = corpus3_columnsFromDf ,suggestions = corpus3_columnsFromDf ,label = '', text = '',key = 'corpus3_col_list_select_box')
-            corpus3_selected_col_list_button = st.button('Next',on_click = corpus3_SelectCol_list_click,key = 's_col_button')
+            corpus3_selected_col_list_button = st.button('next',on_click = corpus3_SelectCol_list_click,key = 's_col_button')
 
         if st.session_state.corpus3_namecolname is not None and st.session_state.corpus3_selected_col_list is not None:
             pm_images = Image.open('material/images/app2_pm.jpg')
@@ -835,7 +834,7 @@ if st.session_state.query_input == True and st.session_state.corpus3_input == Fa
 
 if st.session_state.corpus3_input == True and st.session_state.app2_input == False:
     st.divider()
-    st.header('Step 2.3: เพิ่ม Dataset ที่ต้องการจะ Matching',divider= 'orange')
+    st.header('Step 2.3: เพิ่ม Dataset ที่ต้องการจะ Matching')
     st.session_state['order']['corpus3'] = load_in(True)
     
     conditional_st_write_df(st.session_state.corpus3_df)
@@ -870,7 +869,6 @@ if st.session_state.corpus3_input == True and st.session_state.app2_input == Fal
 
 if 'app2_double_prep' not in st.session_state:
     st.session_state['app2_double_prep'] = False
-
 
 if 'app2_textprocess' not in st.session_state:
     st.session_state.app2_textprocess = False
