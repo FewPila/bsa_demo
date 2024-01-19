@@ -1063,24 +1063,24 @@ if st.session_state['app3_rule_based_prioritize']:
 
     def find_input(type_,dummy_sna = 'FINAL_SNA'):
         if type_ == "isic":
-            input_ = [dummy_sna,st.session_state['global_input']['nat'],st.session_state['global_input']['isic4']]
+            input_ = [st.session_state['global_input']['nat'],st.session_state['global_input']['isic4']]
         elif type_ == "keywords":
-            input_ = [dummy_sna,st.session_state['global_input']['nat'],st.session_state['global_input']['hldr_name']]
+            input_ = [st.session_state['global_input']['nat'],st.session_state['global_input']['hldr_name']]
         elif type_ == 'matchedsna':
-            input_ = [dummy_sna,st.session_state['global_input']['nat'],st.session_state['global_input']['sna']]
+            input_ = [st.session_state['global_input']['nat'],st.session_state['global_input']['sna']]
         elif type_ == 'nat':
-            input_ = [dummy_sna,st.session_state['global_input']['nat'],st.session_state['global_input']['isic4']]
+            input_ = [st.session_state['global_input']['nat'],st.session_state['global_input']['isic4']]
         return input_
     
-    def find_input_firm(type_,dummy_sna = 'FINAL_SNA'):
+    def find_input_firm(type_):
         if type_ == "isic":
-            input_ = [dummy_sna,st.session_state['global_input_firm']['nat'],st.session_state['global_input_firm']['isic4']]
+            input_ = [st.session_state['global_input_firm']['nat'],st.session_state['global_input_firm']['isic4']]
         elif type_ == "keywords":
-            input_ = [dummy_sna,st.session_state['global_input_firm']['nat'],st.session_state['global_input_firm']['hldr_name']]
+            input_ = [st.session_state['global_input_firm']['nat'],st.session_state['global_input_firm']['hldr_name']]
         elif type_ == 'matchedsna':
-            input_ = [dummy_sna,st.session_state['global_input_firm']['nat'],st.session_state['global_input_firm']['sna']]
+            input_ = [st.session_state['global_input_firm']['nat'],st.session_state['global_input_firm']['sna']]
         elif type_ == 'nat':
-            input_ = [dummy_sna,st.session_state['global_input_firm']['nat'],st.session_state['global_input_firm']['isic4']]
+            input_ = [st.session_state['global_input_firm']['nat'],st.session_state['global_input_firm']['isic4']]
         return input_
    
     def find_func(type_,target_class):
@@ -1175,7 +1175,7 @@ if st.session_state['app3_rule_based_prioritize']:
                 for rank in range(1,4+1):
                     if check_target_allowance(type_ = st.session_state[f'rank{rank}']['type'],target_=target):
                         st.session_state[f'apply_order{target}_rank{rank}']['function'] = find_func(st.session_state[f'rank{rank}']['type'],st.session_state[f'assign_sna_target{target}]']['Class'])
-                        st.session_state[f'apply_order{target}_rank{rank}']['input_column'] = find_input_firm(st.session_state[f'rank{rank}']['type'],dummy_sna= 'FIRM_SMA')
+                        st.session_state[f'apply_order{target}_rank{rank}']['input_column'] = find_input_firm(st.session_state[f'rank{rank}']['type'])
                         st.session_state[f'apply_order{target}_rank{rank}']['action'] = find_action(st.session_state[f'rank{rank}']['type'],target)
                         st.session_state[f'apply_order{target}_rank{rank}']['condition'] = find_condition(type_ = st.session_state[f'rank{rank}']['type'],
                                                                                                     option_= st.session_state[f'rank{rank}']['option'],
@@ -1184,7 +1184,7 @@ if st.session_state['app3_rule_based_prioritize']:
                 for rank in range(1,4+1):
                     if check_target_allowance(type_ = st.session_state[f'rank{rank}']['type'],target_=target):
                         st.session_state[f'apply_order{target}_rank{rank}']['function'] = find_func(st.session_state[f'rank{rank}']['type'],st.session_state[f'assign_sna_target{target}]']['Class'])
-                        st.session_state[f'apply_order{target}_rank{rank}']['input_column'] = find_input(st.session_state[f'rank{rank}']['type'],dummy_sna= 'HLDR_SNA')
+                        st.session_state[f'apply_order{target}_rank{rank}']['input_column'] = find_input(st.session_state[f'rank{rank}']['type'])
                         st.session_state[f'apply_order{target}_rank{rank}']['action'] = find_action(st.session_state[f'rank{rank}']['type'],target)
                         st.session_state[f'apply_order{target}_rank{rank}']['condition'] = find_condition(type_ = st.session_state[f'rank{rank}']['type'],
                                                                                                     option_= st.session_state[f'rank{rank}']['option'],
@@ -1260,7 +1260,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                 cn = 'FIRM_FINAL_SNA10'
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                             st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
-                                                                                            st.session_state[f'apply_order{target}_rank{rank}']['input_column'],
+                                                                                            np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist,
                                                                                             st.session_state[f'apply_order{target}_rank{rank}']['action'],
                                                                                             condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
                                                                                             axis = 1)
@@ -1272,7 +1272,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                 cn = 'HLDR_FINAL_SNA10'
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                                                     st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
-                                                                                                                    st.session_state[f'apply_order{target}_rank{rank}']['input_column'],
+                                                                                                                    np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist,
                                                                                                                     st.session_state[f'apply_order{target}_rank{rank}']['action'],
                                                                                                                     condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
                                                                                                                     axis = 1)
@@ -1337,7 +1337,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                 cn = 'HLDR_FINAL_SNA10'
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                                                     st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
-                                                                                                                    st.session_state[f'apply_order{target}_rank{rank}']['input_column'],
+                                                                                                                    np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist,
                                                                                                                     st.session_state[f'apply_order{target}_rank{rank}']['action'],
                                                                                                                     condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
                                                                                                                     axis = 1)
