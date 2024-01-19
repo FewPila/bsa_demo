@@ -1109,14 +1109,14 @@ if st.session_state['app3_rule_based_prioritize']:
             action = st.session_state['global_input']['sna_action']
         elif type_ == 'nat':
             action = None
-        # check action
-        if action is not None:
-            cn = action.columns.values
-            if action[cn[0]].value_counts().max() > 1:
-                if len(cn) == 2:
-                    action = action.groupby(cn[0])[cn[1]].apply('|'.join).reset_index()
-                else:
-                    action = action.groupby([cn[0],cn[1]])[cn[2]].apply('|'.join).reset_index()
+        # # check action
+        # if action is not None:
+        #     cn = action.columns.values
+        #     if action[cn[0]].value_counts().max() > 1:
+        #         if len(cn) == 2:
+        #             action = action.groupby(cn[0])[cn[1]].apply('|'.join).reset_index()
+        #         else:
+        #             action = action.groupby([cn[0],cn[1]])[cn[2]].apply('|'.join).reset_index()
         return action
 
     def find_condition(type_,option_,condition_):
