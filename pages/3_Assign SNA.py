@@ -1259,6 +1259,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                             elif i == 2:
                                 cn = 'FIRM_FINAL_SNA10'
                             st.write(np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist())
+                            st.write(st.session_state[f'apply_order{target}_rank{rank}']['action'])
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                             st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
                                                                                             np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
@@ -1272,6 +1273,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                             elif i == 2:
                                 cn = 'HLDR_FINAL_SNA10'
                             st.write(np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist())
+                            st.write(st.session_state[f'apply_order{target}_rank{rank}']['action'])
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                                                     st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
                                                                                                                     np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
@@ -1338,6 +1340,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                             elif i == 2:
                                 cn = 'HLDR_FINAL_SNA10'
                             st.write(np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist())
+                            st.write(st.session_state[f'apply_order{target}_rank{rank}']['action'])
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                                                     st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
                                                                                                                     np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
