@@ -1375,16 +1375,11 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             # process completed
             block1.empty()
             # Re-Join to Main
-            tidy_sna_block = st.empty()
-            tidy_sna_block.info('Final Step : Tidy SNA')
-            tidy_sna_block_mini = st.empty()
-            tidy_sna_block_mini.info('1/2')
+
             st.session_state['data'] = st.session_state['data'].merge(filtered_df.filter([Target_Name,'HLDR_FINAL_SNA']),on = Target_Name,how = 'left',suffixes= ['_left','_right'])
             st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data']['HLDR_FINAL_SNA_left'].fillna(st.session_state['data']['HLDR_FINAL_SNA_right'])
             st.session_state['data'] = st.session_state['data'].drop(['HLDR_FINAL_SNA_left','HLDR_FINAL_SNA_right'],axis = 1)
-            tidy_sna_block_mini.empty()
-            tidy_sna_block_mini = st.empty()
-            tidy_sna_block_mini.info('2/2')
+
             st.session_state['data'] = st.session_state['data'].merge(filtered_df.filter([Target_Name,'HLDR_FINAL_SNA10']),on = Target_Name,how = 'left',suffixes= ['_left','_right'])
             st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data']['HLDR_FINAL_SNA10_left'].fillna(st.session_state['data']['HLDR_FINAL_SNA10_right'])
             st.session_state['data'] = st.session_state['data'].drop(['HLDR_FINAL_SNA10_left','HLDR_FINAL_SNA10_right'],axis = 1)
@@ -1392,9 +1387,19 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             tidy_sna_block.empty()
         # Finshed Loop
         # Process Tidy SNA
-        st.info('Final Step : Tidy SNA')
+        tidy_sna_block = st.empty()
+        tidy_sna_block.info('Final Step : Tidy SNA')
+        # Tidy SNA
+        tidy_sna_block_mini = st.empty()
+        tidy_sna_block_mini.info('1/2')
         st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
+        tidy_sna_block_mini.empty()
+        # Tidy SNA10
+        tidy_sna_block_mini = st.empty()
+        tidy_sna_block_mini.info('2/2')
         st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
+        tidy_sna_block_mini.empty()
+        tidy_sna_block.empty()
         # Finished
         st.session_state['app3_finalize_output'] = load_in(st.session_state['data'])
             
