@@ -1383,8 +1383,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             st.session_state['data'] = st.session_state['data'].merge(filtered_df.filter([Target_Name,'HLDR_FINAL_SNA10']),on = Target_Name,how = 'left',suffixes= ['_left','_right'])
             st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data']['HLDR_FINAL_SNA10_left'].fillna(st.session_state['data']['HLDR_FINAL_SNA10_right'])
             st.session_state['data'] = st.session_state['data'].drop(['HLDR_FINAL_SNA10_left','HLDR_FINAL_SNA10_right'],axis = 1)
-            tidy_sna_block_mini.empty()
-            tidy_sna_block.empty()
+
         # Finshed Loop
         # Process Tidy SNA
         tidy_sna_block = st.empty()
