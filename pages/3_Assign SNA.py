@@ -1052,7 +1052,7 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
 
 ############################################################## Assign SNA ##############################################################
 from utils.app3 import *
-if t_start not in st.session_state:
+if 't_start' not in st.session_state:
     st.session_state['t_start'] = time.time()
     
 if st.session_state['app3_rule_based_prioritize']:
