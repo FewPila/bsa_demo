@@ -1052,8 +1052,10 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
 
 ############################################################## Assign SNA ##############################################################
 from utils.app3 import *
+if t_start not in st.session_state:
+    st.session_state['t_start'] = time.time()
+    
 if st.session_state['app3_rule_based_prioritize']:
-
     def check_target_allowance(type_,target_):
         if target_ == 4: # if firm info
             target_ = 1 # use firm-th
@@ -1417,6 +1419,11 @@ if st.session_state['app3_finalize_output'] is not None:
     matched_percent = np.round(cv['Counts'].sum()/total_cv['Counts'].sum() * 100,2)
     st.success(f"สามารถ Assign SNA ได้ :green[{matched_percent}%] จากทั้งหมด", icon="✅")
     st.write(cv)
+
+    # Took Time
+    t_end = time.time()
+    took_time = np.round((t_end - st.session_state['t_start'] )/60,2)
+    st.write(f'ใช้เวลาในการรันทั้งหมด {took_time} นาที')
     
 ############################## download    
     if 'app3_download_file' not in st.session_state:
