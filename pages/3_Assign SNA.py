@@ -13,6 +13,71 @@ from PIL import Image
 from utils.nm_utils import *
 from streamlit_extras.switch_page_button import switch_page
 stqdm.pandas()
+#################################################################### App 3 Session ######################################################################
+if 'isic_df_left' not in st.session_state:
+    st.session_state['isic_df_left'] = pd.read_excel('data/isic_case.xlsx',sheet_name= 'left')
+    st.session_state['isic_df_right'] = pd.read_excel('data/isic_case.xlsx',sheet_name= 'right')
+
+if 'keywords_df_left' not in st.session_state:
+    st.session_state['keywords_df_left'] = pd.read_excel('data/keywords.xlsx',sheet_name= 'left')
+    st.session_state['keywords_df_right'] = pd.read_excel('data/keywords.xlsx',sheet_name= 'right')
+
+if 'nat_df_left' not in st.session_state:
+    st.session_state['nat_df_left'] = pd.read_excel('data/nat.xlsx',sheet_name= 'left')
+    st.session_state['nat_df_right'] = pd.read_excel('data/nat.xlsx',sheet_name= 'right')
+
+if 'matchedsna_df_left' not in st.session_state:
+    st.session_state['matchedsna_df_left'] = pd.read_excel('data/matched_sna.xlsx',sheet_name= 'left')
+    st.session_state['matchedsna_df_right'] = pd.read_excel('data/matched_sna.xlsx',sheet_name= 'right')
+
+st.title('App 3. Assign SNA ให้กับผู้ถือหุ้น')
+st.write("ซึ่งการจะหา SNA ให้กับผู้ถือหุ้นสามารถทำได้หลายวิธี อาทิ")
+st.write("เชื่อมโยงกับถังข้อมูลที่มี SNA อยู่แล้ว (เช่นถัง IPI) ผ่านการทำ :red[Name Matching]")
+st.write('หรือใช้ข้อมูล :green["Field" ที่มีความสามารถในการคัดแยก SNA] และกำหนดออกมาเป็น :orange[Rule Based] เช่น')
+st.code('1. "รหัส Isic4" เช่น รหัส "ขึ้นต้นด้วย K" มีโอกาสสูงที่ผู้ถือหุ้นจะเป็น -> ตัวกลางทางการเงิน OFC\
+        \n2. "คีย์เวิร์ด" ที่ระบุชัดเจนว่าเป็น Sector ไหน เช่น คำว่า "ธนาคาร" มีโอกาสที่จะเป็น -> OFC\
+        \n3. "สัญชาติของผู้ถือหุ้น" เช่น หากเป็นผู้ถือหุ้น "ต่างชาติ" ก็มีโอกาสที่จะเป็น -> ROW')
+
+st.subheader('การทำงานของ App 3. Assign SNA จะมีอยู่ 2 ขั้นตอนคือ')
+st.write("***:orange[1.กำหนด Rule Based]***")
+st.code('"Rule Based" จะเป็นการใช้ประโยชน์จาก "Field" เข้ามาคัดแยก SNA โดยกำหนดรูปแบบตามที่เรากำหนด \nโดยจะแยกการ Apply ตามประเภทของผู้ถือหุ้น 1."Firm TH", 2."Firm ENG", 3."Person"  \nรายละเอียดของแต่ละ Rule สามารถดูได้ด้านล่าง')
+img = Image.open('material/images/arrow1.png')
+with st.expander('คำอธิบายเพิ่มเติมเกี่ยวกับการกำหนด Rule Based'):
+    st.write(':grey[Class จะมีทั้งหมด 3 Class ซึ่งแต่ละ Class จะมี Rule Based ของตัวเองไม่ซ้ำกัน]')
+    st.write("1.:blue[Firm TH]  >>  หมายถึง ชื่อผู้ถือหุ้นที่เป็นธุรกิจที่มีชื่อ:blue[ภาษาไทย]")
+    st.write("2.:orange[Firm ENG]  >>  หมายถึง ชื่อผู้ถือหุ้นที่เป็นธุรกิจที่มีชื่อ:orange[ภาษาอังกฤษ]")
+    st.write("3.:green[Person]  >>  หมายถึง ชื่อผู้ถือหุ้นที่เป็น:green[บุคคลธรรมดา] ที่มีชื่อภาษาไทย หรือ ภาษาอังกฤษ")
+    st.divider()
+    st.subheader('Rule Based จะมีทั้งหมด 4 ประเภท')
+    st.write('***:red[1. Rule Based : Isic]***')
+    st.write(':red[*ปกติ Isic จะไม่มีในข้อมูลผู้ถือหุ้นฉะนั้น Field Isic4 ที่เราใช้ คือ Isic4 ได้มาจากการ Name Matching]')
+    st.code("#ISIC4 CODE\nBOT = ['K6411'] \nOFC = ['K649250','K651100','K']")
+    isic_col1,isic_col2,isic_col3 = st.columns([14,8,20])
+    isic_col1.write(st.session_state['isic_df_left'])
+    isic_col2.image(img)
+    isic_col3.write(st.session_state['isic_df_right'])
+    st.write('***:red[2. Rule Based : Keywords]***')
+    st.code("#Keywords\nOFC = ['ทรัสต์','ประกันภัย','กองทุน'] \nODC = ['สหกรณ์ออมทรัพย์','ธนาคาร'] \nPNFC = ['องค์การสะพานปลา','องค์การสวนยาง']")
+    kw_col1,kw_col2,kw_col3 = st.columns([14,8,20])
+    kw_col1.write(st.session_state['keywords_df_left'])
+    kw_col2.image(img)
+    kw_col3.write(st.session_state['keywords_df_right'])
+    st.write('***:red[3. Rule Based : Nationalities]***')
+    st.code('#Nationalities \nif nationality == "TH":\n   return "ONFC" \nelse: \n   return "ROW"')
+    nat_col1,nat_col2,nat_col3 = st.columns([14,8,20])
+    nat_col1.write(st.session_state['nat_df_left'])
+    nat_col2.image(img)
+    nat_col3.write(st.session_state['nat_df_right'])
+    st.write('***:red[4. Rule Based : Matched SNA]***')
+    st.write('จะเป็นการใช้ค่า SNA จากที่ Name Matching มาจากได้จาก Process ก่อนหน้า')
+    msna_col1,msna_col2,msna_col3 = st.columns([22,6,16])
+    msna_col1.dataframe(st.session_state['matchedsna_df_left'],hide_index= True,use_container_width= True)
+    msna_col2.image(img)
+    msna_col3.dataframe(st.session_state['matchedsna_df_right'],hide_index= True,use_container_width=True)
+
+st.write("***:orange[2.กำหนดลำดับของการ Apply Rule Based]***")
+st.code('ใช้กำหนดลำดับความสำคัญของ "Rule Based" ว่าจะ Apply Rule ไหนก่อน')
+st.divider()
 
 if 'app3_rule_based' not in st.session_state:
     st.session_state['app3_input'] = False
@@ -52,6 +117,16 @@ if 'keywords1_upload' not in st.session_state:
     st.session_state['keywords2_dataset'] = None
     st.session_state['keywords3_dataset'] = None
 
+if 'rid1_upload' not in st.session_state:
+    st.session_state['rid1_upload'] = False
+    st.session_state['rid2_upload'] = False
+    st.session_state['rid3_upload'] = False
+
+    st.session_state['rid1_dataset'] = None
+    st.session_state['rid2_dataset'] = None
+    st.session_state['rid3_dataset'] = None
+
+
 def submit_isic1_upload():
     st.session_state['isic1_dataset'] = load_in(dataframe)
     st.session_state['isic1_upload'] = True
@@ -59,6 +134,11 @@ def submit_isic1_upload():
 def submit_keywords1_upload():
     st.session_state['keywords1_dataset'] = load_in(dataframe)
     st.session_state['keywords1_upload'] = True
+
+def submit_rid1_upload():
+    st.session_state['rid1_dataset'] = load_in(dataframe_rid)
+    st.session_state['rid1_upload'] = True
+
 
 def get_upload():
     st.session_state['upload_data'] = True
@@ -158,10 +238,12 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                     st.session_state['isic1_checkbox_bool'] = True
                     st.session_state['keywords1_checkbox_bool'] = True
                     st.session_state['nat1_checkbox_bool'] = True
+                    st.session_state['rid1_checkbox_bool'] = False
                 else:
                     st.session_state['isic1_checkbox_bool'] = False
                     st.session_state['keywords1_checkbox_bool'] = False
                     st.session_state['nat1_checkbox_bool'] = False
+                    st.session_state['rid1_checkbox_bool'] = False
 
                 with check_box_container1:
                     st.divider()
@@ -169,6 +251,7 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                     isic1_checkbox = st.checkbox('Rule based : isic',key = 'isic1_checkbox',value =  st.session_state['isic1_checkbox_bool'])
                     keywords1_checkbox = st.checkbox('Rule based : keywords',key = 'keywords1_checkbox',value = st.session_state['keywords1_checkbox_bool'])
                     nat1_checkbox = st.checkbox('Rule based : nationalities',key = 'nat1_checkbox',value = st.session_state['nat1_checkbox_bool'])
+                    rid1_checkbox = st.checkbox('Rule based : RID',key = 'rid1_checkbox',value = st.session_state['rid1_checkbox_bool'])
 
                 if 'isic_catalog1' not in st.session_state:
                     st.session_state.isic_catalog1 = pd.read_excel("data/app3_demo_info.xlsx",sheet_name= 'isics')
@@ -307,7 +390,20 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                         rule_based1_left_nat_v.subheader(f':grey[กรณีบริษัทเป็นต่างชาติจะมีค่า SNA :]')
                         rule_based1_right_nat_v.selectbox(label = '',options = rule_based1_nat_v_choices,index = 1,key = 'rule_based1_second_nat_v',label_visibility = 'collapsed')
                         st.divider()
-
+                
+                ############################################################## Rule-based RID ##############################################################
+                if bool(re.search('DEFAULT',str(st.session_state['rule_based1_radio']).upper())) and st.session_state['rid1_checkbox']: 
+                    st.header('IIII. RID Rule-based',divider= 'blue')
+                    if st.session_state['rid1_upload'] == False:
+                        uploaded_file = st.file_uploader("Choose a file")
+                        if uploaded_file is not None:
+                            dataframe_rid = pd.read_csv(uploaded_file)
+                            st.write(dataframe_rid)
+                            st.write(f'{dataframe_rid.shape[0]} rows , {dataframe_rid.shape[1]} columns')
+                            submit_upload_rid1 = st.button('Submit',key = 'submit_upload_rid1',on_click = submit_rid1_upload)
+                    
+                    elif st.session_state['rid1_upload']:
+                        st.write(st.session_state['rid1_dataset'])
                 ############################################################## Submit rule-based
                 # submit rules
                 def submit_rule_based1():
@@ -352,11 +448,19 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                     else:
                         st.session_state['rule_based1_nat_else_th'] = None
                         st.session_state['rule_based1_nat_else_nonth'] = None
+                    
+                    ### Collect RID's action
+                    if st.session_state['rid1_checkbox']:
+                        if st.session_state['rid1_upload']:
+                            st.session_state['rule_based1_rid_action'] = load_in(st.session_state['rid1_dataset'])
+                    else:
+                        st.session_state['rule_based1_rid_action'] = None
 
                     # submit rules-based
                     st.session_state['isic1_checkbox_out'] = load_in(st.session_state['isic1_checkbox'])
                     st.session_state['keywords1_checkbox_out'] = load_in(st.session_state['keywords1_checkbox'])
                     st.session_state['nat1_checkbox_out'] = load_in(st.session_state['nat1_checkbox'])
+                    st.session_state['rid1_checkbox_out'] = load_in(st.session_state['rid1_checkbox'])
                     st.session_state['rule_based1'] = True
                     st.session_state['target_rule_based1_out'] = load_in(st.session_state['target_rule_based1'])
                     st.session_state['page2'] = True
@@ -369,13 +473,21 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
     ############################################################## Submitted Rule-Based 1 ##############################################################
     if st.session_state['rule_based1']:
         st.header(f"Rule-based สำหรับ :blue[{st.session_state['target_rule_based1_out']}]",divider = 'blue')
+
         if st.session_state['rule_based1_isic_action'] is not None:
             st.write('Isic Rule Based:')
             st.write(st.session_state['rule_based1_isic_action'])
+
         if st.session_state['rule_based1_keywords_action'] is not None:
             st.write('Keywords Rule Based:')
             st.write(st.session_state['rule_based1_keywords_action'])
+
         st.write('Nationality Rule Based:',st.session_state['rule_based1_nat_else_th'], st.session_state['rule_based1_nat_else_nonth'])
+
+        if st.session_state['rule_based1_rid_action'] is not None:
+            st.write('RID Rule Based:')
+            st.write(st.session_state['rule_based1_rid_action'])
+
         st.write('Submitted')
     ############################################################## 1.FIRM_TH ##############################################################
 
@@ -389,6 +501,10 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
         st.session_state['keywords2_dataset'] = load_in(dataframe)
         st.session_state['keywords2_upload'] = True
     
+    def submit_rid2_upload():
+        st.session_state['rid2_dataset'] = load_in(dataframe_rid)
+        st.session_state['rid2_upload'] = True
+        
     ### Start Page2
     if st.session_state['page2']:
         rule_based_container2 = st.container()
@@ -408,10 +524,12 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                     st.session_state['isic2_checkbox_bool'] = True
                     st.session_state['keywords2_checkbox_bool'] = True
                     st.session_state['nat2_checkbox_bool'] = True
+                    st.session_state['rid2_checkbox_bool'] = False
                 else:
                     st.session_state['isic2_checkbox_bool'] = False
                     st.session_state['keywords2_checkbox_bool'] = False
                     st.session_state['nat2_checkbox_bool'] = False
+                    st.session_state['rid2_checkbox_bool'] = False
 
                 with check_box_container2:
                     st.divider()
@@ -419,6 +537,7 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                     isic2_checkbox = st.checkbox('Rule based : isic',key = 'isic2_checkbox',value =  st.session_state['isic2_checkbox_bool'])
                     keywords2_checkbox = st.checkbox('Rule based : keywords',key = 'keywords2_checkbox',value = st.session_state['keywords2_checkbox_bool'])
                     nat2_checkbox = st.checkbox('Rule based : nationalities',key = 'nat2_checkbox',value = st.session_state['nat2_checkbox_bool'])
+                    rid2_checkbox = st.checkbox('Rule based : RID',key = 'rid2_checkbox',value = st.session_state['rid2_checkbox_bool'])
 
                 if 'isic_catalog2' not in st.session_state:
                     st.session_state.isic_catalog2 = pd.read_excel("data/app3_demo_info.xlsx",sheet_name= 'isics')
@@ -557,6 +676,19 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                         rule_based2_right_nat_v.selectbox(label = '',options = rule_based2_nat_v_choices,index = 1,key = 'rule_based2_second_nat_v',label_visibility = 'collapsed')
                         st.divider()
 
+                ############################################################## Rule-based RID ##############################################################
+                if bool(re.search('DEFAULT',str(st.session_state['rule_based2_radio']).upper())) and st.session_state['rid2_checkbox']: 
+                    st.header('IIII. RID Rule-based',divider= 'blue')
+                    if st.session_state['rid2_upload'] == False:
+                        uploaded_file = st.file_uploader("Choose a file")
+                        if uploaded_file is not None:
+                            dataframe_rid = pd.read_csv(uploaded_file)
+                            st.write(dataframe_rid)
+                            st.write(f'{dataframe_rid.shape[0]} rows , {dataframe_rid.shape[1]} columns')
+                            submit_upload_rid1 = st.button('Submit',key = 'submit_upload_rid2',on_click = submit_rid2_upload)
+                    
+                    elif st.session_state['rid2_upload']:
+                        st.write(st.session_state['rid2_dataset'])
                 ############################################################## Submit rule-based
                 # submit rules
                 def submit_rule_based2():
@@ -602,10 +734,18 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                         st.session_state['rule_based2_nat_else_th'] = None
                         st.session_state['rule_based2_nat_else_nonth'] = None
 
+                    ### Collect RID's action
+                    if st.session_state['rid2_checkbox']:
+                        if st.session_state['rid2_upload']:
+                            st.session_state['rule_based2_rid_action'] = load_in(st.session_state['rid2_dataset'])
+                    else:
+                        st.session_state['rule_based2_rid_action'] = None
+
                     # submit rules-based
                     st.session_state['isic2_checkbox_out'] = load_in(st.session_state['isic2_checkbox'])
                     st.session_state['keywords2_checkbox_out'] = load_in(st.session_state['keywords2_checkbox'])
                     st.session_state['nat2_checkbox_out'] = load_in(st.session_state['nat2_checkbox'])
+                    st.session_state['rid2_checkbox_out'] = load_in(st.session_state['rid2_checkbox'])
                     
                     st.session_state['target_rule_based2_out'] = load_in(st.session_state['target_rule_based2'])
                     st.session_state['page2'] = False
@@ -899,144 +1039,296 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
 
 ############################################################## Prioritize SNA ##############################################################
 if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_prioritize'] == False:
-    ################################################# Select Necessary Column #################################################
+
+    ################################# Ranking SNA #################################
     st.header('2. กำหนดลำดับการ Apply Rule Based',divider = 'blue')
     
-    st.subheader('โปรดเลือกลำดับการให้ SNA แก่ผู้ถือหุ้น')
-    choices = [None,'สัญชาติผู้ถือหุ้น','Isic','Keywords','Matched SNA']
-    first_container = st.container()
-    st.radio(label = '',label_visibility = 'collapsed',options = ['default','customize'],index = 0,key = 'apply_radio')
-    if st.session_state['apply_radio'] == 'default':
+    # If RID Rule-based !!
+    if st.session_state['rid1_checkbox_out'] or st.session_state['rid2_checkbox_out']:
+        st.subheader('โปรดเลือกลำดับการให้ SNA แก่ผู้ถือหุ้น')
+        choices = [None,'สัญชาติผู้ถือหุ้น','Isic','Keywords','Matched SNA','RID']
+        first_container = st.container()
+        st.session_state['global_prioritize_option_rank1_default'] = 2
+        st.session_state['global_prioritize_option_rank2_default'] = 3
+        st.session_state['global_prioritize_option_rank3_default'] = 4
+        st.session_state['global_prioritize_option_rank4_default'] = 5
+        st.session_state['global_prioritize_option_rank5_default'] = 1
+
+        def findout(selectbox_option,desired_key):
+            if selectbox_option is not None:
+                st.session_state[f'{desired_key}'] = {}
+                if bool(re.search('NAT|สัญชาติ',selectbox_option.upper())):
+                    options = ['Apply เฉพาะสัญชาติไทย','Apply เฉพาะสัญชาติไทย และต้องมีรหัส Isic']
+                    st.radio(label = '',label_visibility= 'collapsed',options=options,key = f'{desired_key}_condition',horizontal=True)
+                    st.session_state[f'{desired_key}']['type'] = 'nat'
+                    st.session_state[f'{desired_key}']['option'] = options
+                elif bool(re.search('ISIC|ไอซิก',selectbox_option.upper())):
+                    options = ['Apply เฉพาะสัญชาติไทย','Apply กับทุกสัญชาติ']
+                    st.radio(label = '',label_visibility= 'collapsed',options=options,key = f'{desired_key}_condition',horizontal=True)
+                    st.session_state[f'{desired_key}']['type'] = 'isic'
+                    st.session_state[f'{desired_key}']['option'] = options
+                elif bool(re.search('KEYWORD|คียเว',selectbox_option.upper())):
+                    options = ['Apply เฉพาะสัญชาติไทย','Apply กับทุกสัญชาติ']
+                    st.radio(label = '',label_visibility= 'collapsed',options=options,key = f'{desired_key}_condition',horizontal=True)
+                    st.session_state[f'{desired_key}']['type'] = 'keywords'
+                    st.session_state[f'{desired_key}']['option'] = options
+                elif bool(re.search('MATCHED|SNA',selectbox_option.upper())):
+                    options = ['Apply เฉพาะสัญชาติไทย','Apply กับทุกสัญชาติ']
+                    st.radio(label = '',label_visibility= 'collapsed',options=options,key = f'{desired_key}_condition',horizontal=True)
+                    st.session_state[f'{desired_key}']['type'] = 'matchedsna'
+                    st.session_state[f'{desired_key}']['option'] = options
+                elif bool(re.search('RID',selectbox_option.upper())):
+                    options = ['Apply เฉพาะสัญชาติไทย','Apply กับทุกสัญชาติ']
+                    st.radio(label = '',label_visibility = 'collapsed',options=options,key = f'{desired_key}_condition',horizontal=True)
+                    st.session_state[f'{desired_key}']['type'] = 'rid'
+                    st.session_state[f'{desired_key}']['option'] = options
+
+        with first_container:
+            left1,right1,out1 = st.columns([11,7,10])
+            left2,right2,out2 = st.columns([11,7,10])
+            left3,right3,out3 = st.columns([11,7,10])
+            left4,right4,out4 = st.columns([11,7,10])
+            left5,right5,out5 = st.columns([11,7,10])
+            
+            right1.selectbox(label = '',options = choices,index = st.session_state['global_prioritize_option_rank1_default'],
+                            key = 'global_prioritize_option_rank1',label_visibility = 'collapsed')
+            left1.subheader(f':gray[1.Rule: {st.session_state["global_prioritize_option_rank1"]}]')
+            with out1:
+                findout(st.session_state['global_prioritize_option_rank1'],desired_key = 'rank1')
+
+            right2.selectbox(label = '',options = choices,index = st.session_state['global_prioritize_option_rank2_default'],
+                            key = 'global_prioritize_option_rank2',label_visibility = 'collapsed')
+            left2.subheader(f':gray[2.Rule: {st.session_state["global_prioritize_option_rank2"]}]')
+            with out2:
+                findout(st.session_state['global_prioritize_option_rank2'],desired_key = 'rank2')
+            
+            right3.selectbox(label = '',options = choices,index = st.session_state['global_prioritize_option_rank3_default'],
+                            key = 'global_prioritize_option_rank3',label_visibility = 'collapsed')
+            left3.subheader(f':gray[3.Rule: {st.session_state["global_prioritize_option_rank3"]}]')
+            with out3:
+                findout(st.session_state['global_prioritize_option_rank3'],desired_key = 'rank3')
+
+            right4.selectbox(label = '',options = choices,index = st.session_state['global_prioritize_option_rank4_default'],
+                            key = 'global_prioritize_option_rank4',label_visibility = 'collapsed')
+            left4.subheader(f':gray[4.Rule: {st.session_state["global_prioritize_option_rank4"]}]')
+            with out4:
+                findout(st.session_state['global_prioritize_option_rank4'],desired_key = 'rank4')
+            
+            right5.selectbox(label = '',options = choices,index = st.session_state['global_prioritize_option_rank5_default'],
+                            key = 'global_prioritize_option_rank5',label_visibility = 'collapsed')
+            left5.subheader(f':gray[4.Rule: {st.session_state["global_prioritize_option_rank5"]}]')
+            with out5:
+                findout(st.session_state['global_prioritize_option_rank5'],desired_key = 'rank5')
+        st.divider()
+
+        # Select Necessary Columns
+        st.subheader('โปรดเลือกคอลัมน์')
+        choices = [None]
+        choices.extend(st.session_state['data'].columns.values)
+        #choices = [None,'SNA','NAT','NAME','ISIC'] # df input_column
+
+        left,right,out = st.columns([10,10,10])
+        left.subheader(f':gray[SNA :]')
+        right.selectbox(label = '',options = choices,index = 0,key = 'input_sna',label_visibility = 'collapsed')
+        left.subheader(f':gray[สัญชาติผู้ถือหุ้น :]')
+        right.selectbox(label = '',options = choices,index = 0,key = 'input_nat',label_visibility = 'collapsed')
+        left.subheader(f':gray[ชื่อผู้ถือหุ้น :]')
+        right.selectbox(label = '',options = choices,index = 0,key = 'input_hldrname',label_visibility = 'collapsed')
+        left.subheader(f':gray[รหัส isic4 :]')
+        right.selectbox(label = '',options = choices,index = 0,key = 'input_isic',label_visibility = 'collapsed')
+        left.subheader(f':gray[รหัส RID :]')
+        right.selectbox(label = '',options = choices,index = 0,key = 'input_rid',label_visibility = 'collapsed')
+        
+        cal_eq = st.checkbox('Calculate Equity?')
+        if cal_eq:
+            left.subheader(f':gray[จำนวนหุ้น :]')
+            right.selectbox(label = '',options = choices,index = 0,key = 'input_share',label_visibility = 'collapsed')
+
+        apply_firm_checkbox = st.checkbox('Apply Rule Based กับข้อมูลบริษัทที่ลงทุน',key = 'apply_rulebased_on_firm')
+        if st.session_state['apply_rulebased_on_firm']:
+            left_firm,right_firm,out_firm = st.columns([10,10,10])
+            left_firm.subheader(f':gray[SNA บริษัท:]')
+            right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_sna',label_visibility = 'collapsed')
+            left_firm.subheader(f':gray[สัญชาติบริษัท :]')
+            right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_nat',label_visibility = 'collapsed')
+            left_firm.subheader(f':gray[ชื่อบริษัท :]')
+            right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_hldrname',label_visibility = 'collapsed')
+            left_firm.subheader(f':gray[รหัส Isic บริษัท :]')
+            right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_isic',label_visibility = 'collapsed')
+            left_firm.subheader(f':gray[รหัส RID บริษัท :]')
+            right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_rid',label_visibility = 'collapsed')
+
+        st.divider()
+
+        def submit_prioritize():
+            # input column (draft)
+            st.session_state['global_input'] = {}
+            st.session_state['global_input']['nat'] = st.session_state['input_nat']
+            st.session_state['global_input']['isic4'] = st.session_state['input_isic']
+            st.session_state['global_input']['hldr_name'] = st.session_state['input_hldrname']
+            st.session_state['global_input']['sna'] = st.session_state['input_sna']
+            st.session_state['global_input']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
+            st.session_state['global_input']['rid'] = st.session_state['input_rid']
+
+            if cal_eq:
+                st.session_state['global_input']['share'] = st.session_state['input_share']
+            else:
+                st.session_state['global_input']['share'] = None
+            
+            # ranking
+            st.session_state['rank1']['condition'] = st.session_state['rank1_condition'] # get value from findout function
+            st.session_state['rank2']['condition'] = st.session_state['rank2_condition']
+            st.session_state['rank3']['condition'] = st.session_state['rank3_condition']
+            st.session_state['rank4']['condition'] = st.session_state['rank4_condition']
+            st.session_state['rank5']['condition'] = st.session_state['rank5_condition']
+
+            for rank in range(1,5+1):
+                st.session_state[f'rank{rank}']['rank'] = rank
+            
+            if st.session_state['apply_rulebased_on_firm']:
+                st.session_state['global_input_firm'] = {}
+                st.session_state['global_input_firm']['nat'] = st.session_state['input_firm_nat']
+                st.session_state['global_input_firm']['isic4'] = st.session_state['input_firm_isic']
+                st.session_state['global_input_firm']['hldr_name'] = st.session_state['input_firm_hldrname']
+                st.session_state['global_input_firm']['sna'] = st.session_state['input_firm_sna']
+                st.session_state['global_input_firm']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
+                st.session_state['global_input_firm']['rid'] = st.session_state['input_firm_rid']
+                st.session_state['apply_rulebased_on_firm'] = load_in(st.session_state['apply_rulebased_on_firm'])
+
+            st.session_state['app3_rule_based_prioritize'] = True
+    else:
+        # If NOT APPLY RID Rule-based !!
+        st.subheader('โปรดเลือกลำดับการให้ SNA แก่ผู้ถือหุ้น')
+        choices = [None,'สัญชาติผู้ถือหุ้น','Isic','Keywords','Matched SNA']
+        first_container = st.container()
         st.session_state['global_prioritize_option_rank1_default'] = 2
         st.session_state['global_prioritize_option_rank2_default'] = 3
         st.session_state['global_prioritize_option_rank3_default'] = 4
         st.session_state['global_prioritize_option_rank4_default'] = 1
-    else:
-        st.session_state['global_prioritize_option_rank1_default'] = 0
-        st.session_state['global_prioritize_option_rank2_default'] = 0
-        st.session_state['global_prioritize_option_rank3_default'] = 0
-        st.session_state['global_prioritize_option_rank4_default'] = 0
 
-    def findout(selectbox_option,desired_key):
-        if selectbox_option is not None:
-            st.session_state[f'{desired_key}'] = {}
-            if bool(re.search('NAT|สัญชาติ',selectbox_option.upper())):
-                options = ['Apply เฉพาะสัญชาติไทย','Apply เฉพาะสัญชาติไทย และต้องมีรหัส Isic']
-                st.radio(label = '',label_visibility= 'collapsed',options=options,key = f'{desired_key}_condition',horizontal=True)
-                st.session_state[f'{desired_key}']['type'] = 'nat'
-                st.session_state[f'{desired_key}']['option'] = options
-            elif bool(re.search('ISIC|ไอซิก',selectbox_option.upper())):
-                options = ['Apply เฉพาะสัญชาติไทย','Apply กับทุกสัญชาติ']
-                st.radio(label = '',label_visibility= 'collapsed',options=options,key = f'{desired_key}_condition',horizontal=True)
-                st.session_state[f'{desired_key}']['type'] = 'isic'
-                st.session_state[f'{desired_key}']['option'] = options
-            elif bool(re.search('KEYWORD|คียเว',selectbox_option.upper())):
-                options = ['Apply เฉพาะสัญชาติไทย','Apply กับทุกสัญชาติ']
-                st.radio(label = '',label_visibility= 'collapsed',options=options,key = f'{desired_key}_condition',horizontal=True)
-                st.session_state[f'{desired_key}']['type'] = 'keywords'
-                st.session_state[f'{desired_key}']['option'] = options
-            elif bool(re.search('MATCHED|SNA',selectbox_option.upper())):
-                options = ['Apply เฉพาะสัญชาติไทย','Apply กับทุกสัญชาติ']
-                st.radio(label = '',label_visibility= 'collapsed',options=options,key = f'{desired_key}_condition',horizontal=True)
-                st.session_state[f'{desired_key}']['type'] = 'matchedsna'
-                st.session_state[f'{desired_key}']['option'] = options
 
-    with first_container:
-        left1,right1,out1 = st.columns([11,7,10])
-        left2,right2,out2 = st.columns([11,7,10])
-        left3,right3,out3 = st.columns([11,7,10])
-        left4,right4,out4 = st.columns([11,7,10])
+        def findout(selectbox_option,desired_key):
+            if selectbox_option is not None:
+                st.session_state[f'{desired_key}'] = {}
+                if bool(re.search('NAT|สัญชาติ',selectbox_option.upper())):
+                    options = ['Apply เฉพาะสัญชาติไทย','Apply เฉพาะสัญชาติไทย และต้องมีรหัส Isic']
+                    st.radio(label = '',label_visibility= 'collapsed',options=options,key = f'{desired_key}_condition',horizontal=True)
+                    st.session_state[f'{desired_key}']['type'] = 'nat'
+                    st.session_state[f'{desired_key}']['option'] = options
+                elif bool(re.search('ISIC|ไอซิก',selectbox_option.upper())):
+                    options = ['Apply เฉพาะสัญชาติไทย','Apply กับทุกสัญชาติ']
+                    st.radio(label = '',label_visibility= 'collapsed',options=options,key = f'{desired_key}_condition',horizontal=True)
+                    st.session_state[f'{desired_key}']['type'] = 'isic'
+                    st.session_state[f'{desired_key}']['option'] = options
+                elif bool(re.search('KEYWORD|คียเว',selectbox_option.upper())):
+                    options = ['Apply เฉพาะสัญชาติไทย','Apply กับทุกสัญชาติ']
+                    st.radio(label = '',label_visibility= 'collapsed',options=options,key = f'{desired_key}_condition',horizontal=True)
+                    st.session_state[f'{desired_key}']['type'] = 'keywords'
+                    st.session_state[f'{desired_key}']['option'] = options
+                elif bool(re.search('MATCHED|SNA',selectbox_option.upper())):
+                    options = ['Apply เฉพาะสัญชาติไทย','Apply กับทุกสัญชาติ']
+                    st.radio(label = '',label_visibility= 'collapsed',options=options,key = f'{desired_key}_condition',horizontal=True)
+                    st.session_state[f'{desired_key}']['type'] = 'matchedsna'
+                    st.session_state[f'{desired_key}']['option'] = options
 
-        right1.selectbox(label = '',options = choices,index = st.session_state['global_prioritize_option_rank1_default'],
-                        key = 'global_prioritize_option_rank1',label_visibility = 'collapsed')
-        left1.subheader(f':gray[1.Rule: {st.session_state["global_prioritize_option_rank1"]}]')
-        with out1:
-            findout(st.session_state['global_prioritize_option_rank1'],desired_key = 'rank1')
 
-        right2.selectbox(label = '',options = choices,index = st.session_state['global_prioritize_option_rank2_default'],
-                        key = 'global_prioritize_option_rank2',label_visibility = 'collapsed')
-        left2.subheader(f':gray[2.Rule: {st.session_state["global_prioritize_option_rank2"]}]')
-        with out2:
-            findout(st.session_state['global_prioritize_option_rank2'],desired_key = 'rank2')
-        
-        right3.selectbox(label = '',options = choices,index = st.session_state['global_prioritize_option_rank3_default'],
-                        key = 'global_prioritize_option_rank3',label_visibility = 'collapsed')
-        left3.subheader(f':gray[3.Rule: {st.session_state["global_prioritize_option_rank3"]}]')
-        with out3:
-            findout(st.session_state['global_prioritize_option_rank3'],desired_key = 'rank3')
+        with first_container:
+            left1,right1,out1 = st.columns([11,7,10])
+            left2,right2,out2 = st.columns([11,7,10])
+            left3,right3,out3 = st.columns([11,7,10])
+            left4,right4,out4 = st.columns([11,7,10])
+            
+            right1.selectbox(label = '',options = choices,index = st.session_state['global_prioritize_option_rank1_default'],
+                            key = 'global_prioritize_option_rank1',label_visibility = 'collapsed')
+            left1.subheader(f':gray[1.Rule: {st.session_state["global_prioritize_option_rank1"]}]')
+            with out1:
+                findout(st.session_state['global_prioritize_option_rank1'],desired_key = 'rank1')
 
-        right4.selectbox(label = '',options = choices,index = st.session_state['global_prioritize_option_rank4_default'],
-                        key = 'global_prioritize_option_rank4',label_visibility = 'collapsed')
-        left4.subheader(f':gray[4.Rule: {st.session_state["global_prioritize_option_rank4"]}]')
-        with out4:
-            findout(st.session_state['global_prioritize_option_rank4'],desired_key = 'rank4')
-    st.divider()
+            right2.selectbox(label = '',options = choices,index = st.session_state['global_prioritize_option_rank2_default'],
+                            key = 'global_prioritize_option_rank2',label_visibility = 'collapsed')
+            left2.subheader(f':gray[2.Rule: {st.session_state["global_prioritize_option_rank2"]}]')
+            with out2:
+                findout(st.session_state['global_prioritize_option_rank2'],desired_key = 'rank2')
+            
+            right3.selectbox(label = '',options = choices,index = st.session_state['global_prioritize_option_rank3_default'],
+                            key = 'global_prioritize_option_rank3',label_visibility = 'collapsed')
+            left3.subheader(f':gray[3.Rule: {st.session_state["global_prioritize_option_rank3"]}]')
+            with out3:
+                findout(st.session_state['global_prioritize_option_rank3'],desired_key = 'rank3')
 
-        # Select Necessary Columns
-    st.subheader('โปรดเลือกคอลัมน์')
-    choices = [None]
-    choices.extend(st.session_state['data'].columns.values)
-    #choices = [None,'SNA','NAT','NAME','ISIC'] # df input_column
+            right4.selectbox(label = '',options = choices,index = st.session_state['global_prioritize_option_rank4_default'],
+                            key = 'global_prioritize_option_rank4',label_visibility = 'collapsed')
+            left4.subheader(f':gray[4.Rule: {st.session_state["global_prioritize_option_rank4"]}]')
+            with out4:
+                findout(st.session_state['global_prioritize_option_rank4'],desired_key = 'rank4')
+        st.divider()
 
-    left,right,out = st.columns([10,10,10])
-    left.subheader(f':gray[SNA :]')
-    right.selectbox(label = '',options = choices,index = 0,key = 'input_sna',label_visibility = 'collapsed')
-    left.subheader(f':gray[สัญชาติผู้ถือหุ้น :]')
-    right.selectbox(label = '',options = choices,index = 0,key = 'input_nat',label_visibility = 'collapsed')
-    left.subheader(f':gray[ชื่อผู้ถือหุ้น :]')
-    right.selectbox(label = '',options = choices,index = 0,key = 'input_hldrname',label_visibility = 'collapsed')
-    left.subheader(f':gray[รหัส isic4 :]')
-    right.selectbox(label = '',options = choices,index = 0,key = 'input_isic',label_visibility = 'collapsed')
-    cal_eq = st.checkbox('Calculate Equity?')
-    if cal_eq:
-        left.subheader(f':gray[จำนวนหุ้น :]')
-        right.selectbox(label = '',options = choices,index = 0,key = 'input_share',label_visibility = 'collapsed')
+            # Select Necessary Columns
+        st.subheader('โปรดเลือกคอลัมน์')
+        choices = [None]
+        choices.extend(st.session_state['data'].columns.values)
+        #choices = [None,'SNA','NAT','NAME','ISIC'] # df input_column
 
-    apply_firm_checkbox = st.checkbox('Apply Rule Based กับข้อมูลบริษัทที่ลงทุน',key = 'apply_rulebased_on_firm')
-    if st.session_state['apply_rulebased_on_firm']:
-        left_firm,right_firm,out_firm = st.columns([10,10,10])
-        left_firm.subheader(f':gray[SNA บริษัท:]')
-        right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_sna',label_visibility = 'collapsed')
-        left_firm.subheader(f':gray[สัญชาติบริษัท :]')
-        right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_nat',label_visibility = 'collapsed')
-        left_firm.subheader(f':gray[ชื่อบริษัท :]')
-        right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_hldrname',label_visibility = 'collapsed')
-        left_firm.subheader(f':gray[รหัส Isic บริษัท :]')
-        right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_isic',label_visibility = 'collapsed')
-
-    st.divider()
-
-    def submit_prioritize():
-        # input column (draft)
-        st.session_state['global_input'] = {}
-        st.session_state['global_input']['nat'] = st.session_state['input_nat']
-        st.session_state['global_input']['isic4'] = st.session_state['input_isic']
-        st.session_state['global_input']['hldr_name'] = st.session_state['input_hldrname']
-        st.session_state['global_input']['sna'] = st.session_state['input_sna']
-        st.session_state['global_input']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
+        left,right,out = st.columns([10,10,10])
+        left.subheader(f':gray[SNA :]')
+        right.selectbox(label = '',options = choices,index = 0,key = 'input_sna',label_visibility = 'collapsed')
+        left.subheader(f':gray[สัญชาติผู้ถือหุ้น :]')
+        right.selectbox(label = '',options = choices,index = 0,key = 'input_nat',label_visibility = 'collapsed')
+        left.subheader(f':gray[ชื่อผู้ถือหุ้น :]')
+        right.selectbox(label = '',options = choices,index = 0,key = 'input_hldrname',label_visibility = 'collapsed')
+        left.subheader(f':gray[รหัส isic4 :]')
+        right.selectbox(label = '',options = choices,index = 0,key = 'input_isic',label_visibility = 'collapsed')
+        cal_eq = st.checkbox('Calculate Equity?')
         if cal_eq:
-            st.session_state['global_input']['share'] = st.session_state['input_share']
-        else:
-            st.session_state['global_input']['share'] = None
-        
-        # ranking
-        st.session_state['rank1']['condition'] = st.session_state['rank1_condition'] # get value from findout function
-        st.session_state['rank2']['condition'] = st.session_state['rank2_condition']
-        st.session_state['rank3']['condition'] = st.session_state['rank3_condition']
-        st.session_state['rank4']['condition'] = st.session_state['rank4_condition']
-        for rank in range(1,4+1):
-            st.session_state[f'rank{rank}']['rank'] = rank
-        
-        if st.session_state['apply_rulebased_on_firm']:
-            st.session_state['global_input_firm'] = {}
-            st.session_state['global_input_firm']['nat'] = st.session_state['input_firm_nat']
-            st.session_state['global_input_firm']['isic4'] = st.session_state['input_firm_isic']
-            st.session_state['global_input_firm']['hldr_name'] = st.session_state['input_firm_hldrname']
-            st.session_state['global_input_firm']['sna'] = st.session_state['input_firm_sna']
-            st.session_state['global_input_firm']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
-            st.session_state['apply_rulebased_on_firm'] = load_in(st.session_state['apply_rulebased_on_firm'])
+            left.subheader(f':gray[จำนวนหุ้น :]')
+            right.selectbox(label = '',options = choices,index = 0,key = 'input_share',label_visibility = 'collapsed')
 
-        st.session_state['app3_rule_based_prioritize'] = True
+        apply_firm_checkbox = st.checkbox('Apply Rule Based กับข้อมูลบริษัทที่ลงทุน',key = 'apply_rulebased_on_firm')
+        if st.session_state['apply_rulebased_on_firm']:
+            st.subheader('โปรดเลือกข้อมูลคอลัมน์ ของบริษัทที่ไปลงทุน')
+            left_firm,right_firm,out_firm = st.columns([10,10,10])
+            left_firm.subheader(f':gray[SNA บริษัท:]')
+            right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_sna',label_visibility = 'collapsed')
+            left_firm.subheader(f':gray[สัญชาติบริษัท :]')
+            right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_nat',label_visibility = 'collapsed')
+            left_firm.subheader(f':gray[ชื่อบริษัท :]')
+            right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_hldrname',label_visibility = 'collapsed')
+            left_firm.subheader(f':gray[รหัส Isic บริษัท :]')
+            right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_isic',label_visibility = 'collapsed')
+
+        st.divider()
+
+        def submit_prioritize():
+            # input column (draft)
+            st.session_state['global_input'] = {}
+            st.session_state['global_input']['nat'] = st.session_state['input_nat']
+            st.session_state['global_input']['isic4'] = st.session_state['input_isic']
+            st.session_state['global_input']['hldr_name'] = st.session_state['input_hldrname']
+            st.session_state['global_input']['sna'] = st.session_state['input_sna']
+            st.session_state['global_input']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
+            if cal_eq:
+                st.session_state['global_input']['share'] = st.session_state['input_share']
+            else:
+                st.session_state['global_input']['share'] = None
+            
+            # ranking
+            st.session_state['rank1']['condition'] = st.session_state['rank1_condition'] # get value from findout function
+            st.session_state['rank2']['condition'] = st.session_state['rank2_condition']
+            st.session_state['rank3']['condition'] = st.session_state['rank3_condition']
+            st.session_state['rank4']['condition'] = st.session_state['rank4_condition']
+            for rank in range(1,4+1):
+                st.session_state[f'rank{rank}']['rank'] = rank
+            
+            if st.session_state['apply_rulebased_on_firm']:
+                st.session_state['global_input_firm'] = {}
+                st.session_state['global_input_firm']['nat'] = st.session_state['input_firm_nat']
+                st.session_state['global_input_firm']['isic4'] = st.session_state['input_firm_isic']
+                st.session_state['global_input_firm']['hldr_name'] = st.session_state['input_firm_hldrname']
+                st.session_state['global_input_firm']['sna'] = st.session_state['input_firm_sna']
+                st.session_state['global_input_firm']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
+                st.session_state['apply_rulebased_on_firm'] = load_in(st.session_state['apply_rulebased_on_firm'])
+
+            st.session_state['app3_rule_based_prioritize'] = True
 
     def back_click2():
         st.session_state['rule_based1'] = False
@@ -1046,9 +1338,9 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
 
     l2,r2 = st.columns([10,1.5])
     with r2:
-        next_bt2 = st.button('Next',on_click= submit_prioritize)
+        next_bt2 = st.button('Next',on_click = submit_prioritize)
     with l2:
-        back_bt2 = st.button('Back',on_click=back_click2)
+        back_bt2 = st.button('Back',on_click = back_click2)
 
 ############################################################## Assign SNA ##############################################################
 from utils.app3 import *
@@ -1067,9 +1359,14 @@ if st.session_state['app3_rule_based_prioritize']:
             allowance = True
         elif type_ == 'nat':
             allowance = st.session_state[f'nat{target_}_checkbox_out']
+        elif type_ == 'rid':
+            if target_ != 3:
+                allowance = st.session_state[f'rid{target_}_checkbox_out']
+            else:
+                allowance = False
         return allowance
 
-    def find_input(type_,dummy_sna = 'FINAL_SNA'):
+    def find_input(type_):
         if type_ == "isic":
             input_ = [st.session_state['global_input']['nat'],st.session_state['global_input']['isic4']]
         elif type_ == "keywords":
@@ -1078,6 +1375,8 @@ if st.session_state['app3_rule_based_prioritize']:
             input_ = [st.session_state['global_input']['nat'],st.session_state['global_input']['sna']]
         elif type_ == 'nat':
             input_ = [st.session_state['global_input']['nat'],st.session_state['global_input']['isic4']]
+        elif type_ == 'rid':
+            input_ = [st.session_state['global_input']['nat'],st.session_state['global_input']['rid']]
         return input_
     
     def find_input_firm(type_):
@@ -1089,6 +1388,8 @@ if st.session_state['app3_rule_based_prioritize']:
             input_ = [st.session_state['global_input_firm']['nat'],st.session_state['global_input_firm']['sna']]
         elif type_ == 'nat':
             input_ = [st.session_state['global_input_firm']['nat'],st.session_state['global_input_firm']['isic4']]
+        elif type_ == 'rid':
+            input_ = [st.session_state['global_input_firm']['nat'],st.session_state['global_input_firm']['rid']]
         return input_
    
     def find_func(type_,target_class):
@@ -1103,6 +1404,8 @@ if st.session_state['app3_rule_based_prioritize']:
                 func_ = assign_byNationalitiesOrd
             else:
                 func_ = assign_byNationalities
+        elif type_ == "rid":
+            func_ = assign_byRid
         return func_
 
     def find_action(type_,target_):
@@ -1117,6 +1420,8 @@ if st.session_state['app3_rule_based_prioritize']:
             action = st.session_state['global_input']['sna_action']
         elif type_ == 'nat':
             action = None
+        elif type_ == "rid":
+            action = st.session_state[f'rule_based{target_}_rid_action']
         
         if action is not None:
             cn = action.columns.values
@@ -1156,6 +1461,11 @@ if st.session_state['app3_rule_based_prioritize']:
                 condition = 1
             else:
                 condition = 2
+        elif type_ == "rid":
+            if idx == 0:
+                condition = True
+            else:
+                condition = False
         return condition
 
     if 'tidy_sna10_sna' not in st.session_state:
@@ -1169,6 +1479,12 @@ if st.session_state['app3_rule_based_prioritize']:
         
     ###### ***Apply Rule Based on Firm information Too
     if st.session_state['apply_rulebased_on_firm']:
+        # define max_rank
+        if st.session_state['rid1_checkbox_out'] or st.session_state['rid2_checkbox_out']:
+            max_rank = 5
+        else:
+            max_rank = 4
+
         # If Apply on Firm information
         for target in range(1,4+1):
             st.session_state[f'assign_sna_target{target}]'] = {}
@@ -1181,13 +1497,10 @@ if st.session_state['app3_rule_based_prioritize']:
             elif target == 4:
                 st.session_state[f'assign_sna_target{target}]']['Class'] = 'firm_info'
 
-            st.session_state[f'apply_order{target}_rank1'] = {}
-            st.session_state[f'apply_order{target}_rank2'] = {}
-            st.session_state[f'apply_order{target}_rank3'] = {}
-            st.session_state[f'apply_order{target}_rank4'] = {}
-
+            # If apply Firm
             if target == 4:
-                for rank in range(1,4+1):
+                for rank in range(1,max_rank+1):
+                    st.session_state[f'apply_order{target}_rank{rank}'] = {}
                     if check_target_allowance(type_ = st.session_state[f'rank{rank}']['type'],target_=target):
                         st.session_state[f'apply_order{target}_rank{rank}']['function'] = find_func(st.session_state[f'rank{rank}']['type'],st.session_state[f'assign_sna_target{target}]']['Class'])
                         st.session_state[f'apply_order{target}_rank{rank}']['input_column'] = find_input_firm(st.session_state[f'rank{rank}']['type'])
@@ -1196,7 +1509,8 @@ if st.session_state['app3_rule_based_prioritize']:
                                                                                                     option_= st.session_state[f'rank{rank}']['option'],
                                                                                                     condition_= st.session_state[f'rank{rank}']['condition'])
             else:
-                for rank in range(1,4+1):
+                for rank in range(1,max_rank+1):
+                    st.session_state[f'apply_order{target}_rank{rank}'] = {}
                     if check_target_allowance(type_ = st.session_state[f'rank{rank}']['type'],target_=target):
                         st.session_state[f'apply_order{target}_rank{rank}']['function'] = find_func(st.session_state[f'rank{rank}']['type'],st.session_state[f'assign_sna_target{target}]']['Class'])
                         st.session_state[f'apply_order{target}_rank{rank}']['input_column'] = find_input(st.session_state[f'rank{rank}']['type'])
@@ -1206,6 +1520,12 @@ if st.session_state['app3_rule_based_prioritize']:
                                                                                                     condition_= st.session_state[f'rank{rank}']['condition'])
     ###### Apply Rule Based on Holders Only
     else:
+        # define max_rank
+        if st.session_state['rid1_checkbox_out'] or st.session_state['rid2_checkbox_out']:
+            max_rank = 5
+        else:
+            max_rank = 4
+
         # Apply only Holder Information
         for target in range(1,3+1):
             st.session_state[f'assign_sna_target{target}]'] = {}
@@ -1216,12 +1536,8 @@ if st.session_state['app3_rule_based_prioritize']:
             elif target == 3:
                 st.session_state[f'assign_sna_target{target}]']['Class'] = 'person'
 
-            st.session_state[f'apply_order{target}_rank1'] = {}
-            st.session_state[f'apply_order{target}_rank2'] = {}
-            st.session_state[f'apply_order{target}_rank3'] = {}
-            st.session_state[f'apply_order{target}_rank4'] = {}
-
-            for rank in range(1,4+1):
+            for rank in range(1,max_rank+1):
+                st.session_state[f'apply_order{target}_rank{rank}'] = {}
                 if check_target_allowance(type_ = st.session_state[f'rank{rank}']['type'],target_=target):
                     st.session_state[f'apply_order{target}_rank{rank}']['function'] = find_func(st.session_state[f'rank{rank}']['type'],st.session_state[f'assign_sna_target{target}]']['Class'])
                     st.session_state[f'apply_order{target}_rank{rank}']['input_column'] = find_input(st.session_state[f'rank{rank}']['type'])
@@ -1242,6 +1558,12 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
 
     ###### ***Apply Rule Based on Firm information Too
     if st.session_state['apply_rulebased_on_firm']:
+        # define max_rank
+        if st.session_state['rid1_checkbox_out'] or st.session_state['rid2_checkbox_out']:
+            max_rank = 5
+        else:
+            max_rank = 4
+            
         # HLDER
         st.session_state['data']['HLDR_FINAL_SNA'] = np.nan
         st.session_state['data']['HLDR_FINAL_SNA10'] = np.nan
@@ -1261,7 +1583,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             
             block1 = st.empty()
             block1.info(f"{target}/4 | Class : {st.session_state[f'assign_sna_target{target}]']['Class']}")
-            for rank in range(1,4+1):
+            for rank in range(1,max_rank+1):
                 if len(st.session_state[f'apply_order{target}_rank{rank}']) > 0:
                     block2 = st.empty()
                     block2.info(f"{st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__}")
@@ -1270,26 +1592,37 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                     if target == 4:
                         for i in range(1,2+1):
                             if i == 1:
+                                sna_class_info_block = st.empty()
+                                sna_class_info_block.info('1/2')
                                 cn = 'FIRM_FINAL_SNA'
                             elif i == 2:
+                                sna_class_info_block = st.empty()
+                                sna_class_info_block.info('2/2')
                                 cn = 'FIRM_FINAL_SNA10'
+                            
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                             st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
                                                                                             np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
                                                                                             st.session_state[f'apply_order{target}_rank{rank}']['action'],
                                                                                             condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
                                                                                             axis = 1)
+                            sna_class_info_block.empty()
+
                     # skip matchedsna for person case
                     elif bool(re.search('PERSON|ORD',st.session_state[f'assign_sna_target{target}]']['Class'].upper())) and bool(re.search('MATCHEDSNA',st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__.upper())):
                         block2.empty()
                         continue
-                        
-                    # normal case
+
+                    # process normal case
                     else:
                         for i in range(1,2+1):
                             if i == 1:
+                                sna_class_info_block = st.empty()
+                                sna_class_info_block.info('1/2')
                                 cn = 'HLDR_FINAL_SNA'
                             elif i == 2:
+                                sna_class_info_block = st.empty()
+                                sna_class_info_block.info('2/2')
                                 cn = 'HLDR_FINAL_SNA10'
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                                                     st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
@@ -1297,6 +1630,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                                                                                                     st.session_state[f'apply_order{target}_rank{rank}']['action'],
                                                                                                                     condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
                                                                                                                     axis = 1)
+                            sna_class_info_block.empty()
                     # end of each rule
                     block2.empty()
             # process completed
@@ -1346,6 +1680,11 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
         st.session_state['app3_finalize_output'] = load_in(st.session_state['data'])        
     ###### Apply Rule Based on Holders Only
     else:
+        if st.session_state['rid1_checkbox_out'] or st.session_state['rid2_checkbox_out']:
+            max_rank = 5
+        else:
+            max_rank = 4
+
         st.session_state['data']['HLDR_FINAL_SNA'] = np.nan
         st.session_state['data']['HLDR_FINAL_SNA10'] = np.nan
         # 1.firm-th 2.firm_eng 3. person
@@ -1357,7 +1696,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             block1 = st.empty()
             block1.info(f"{target}/4 | Class : {st.session_state[f'assign_sna_target{target}]']['Class']}")
             # Process Operation
-            for rank in range(1,4+1):
+            for rank in range(1,max_rank+1):
                 if len(st.session_state[f'apply_order{target}_rank{rank}']) > 0:
                     block2 = st.empty()
                     block2.info(f"{st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__}")
@@ -1369,8 +1708,12 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                     else:
                         for i in range(1,2+1):
                             if i == 1:
+                                sna_class_info_block = st.empty()
+                                sna_class_info_block.info('1/2')
                                 cn = 'HLDR_FINAL_SNA'
                             elif i == 2:
+                                sna_class_info_block = st.empty()
+                                sna_class_info_block.info('2/2')
                                 cn = 'HLDR_FINAL_SNA10'
                             filtered_df[cn] = filtered_df.progress_apply(lambda row: \
                                                     st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
@@ -1378,6 +1721,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                                                                                                     st.session_state[f'apply_order{target}_rank{rank}']['action'],
                                                                                                                     condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
                                                                                                                     axis = 1)
+                            sna_class_info_block.empty()
                     # end of each rule
                     block2.empty()
             # process completed
