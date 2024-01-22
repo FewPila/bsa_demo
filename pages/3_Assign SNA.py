@@ -1590,7 +1590,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             for rank in range(1,max_rank+1):
                 if len(st.session_state[f'apply_order{target}_rank{rank}']) > 0:
                     block2 = st.empty()
-                    block2.info(f"{st.session_state[f'{rank}/{max_rank} : apply_order{target}_rank{rank}']['function'].__name__}")
+                    block2.info(f"{rank}/{max_rank} : {st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__}")
                     # If Class is Firm
                     if target == 4:
                         for i in range(1,2+1):
@@ -1737,7 +1737,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             for rank in range(1,max_rank+1):
                 if len(st.session_state[f'apply_order{target}_rank{rank}']) > 0:
                     block2 = st.empty()
-                    block2.info(f"{st.session_state[f'{rank}/{max_rank} : apply_order{target}_rank{rank}']['function'].__name__}")
+                    block2.info(f"{rank}/{max_rank} : {st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__}")
                     
                     # skip matchedsna for person case
                     if bool(re.search('PERSON|ORD',st.session_state[f'assign_sna_target{target}]']['Class'].upper())) and bool(re.search('MATCHEDSNA',st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__.upper())):
