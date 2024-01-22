@@ -1405,7 +1405,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
         st.session_state['app3_finalize_output'] = load_in(st.session_state['data'])
             
 if st.session_state['app3_finalize_output'] is not None:
-    st.write(st.session_state['app3_finalize_output'])
+    conditional_st_write_df(st.session_state['app3_finalize_output'])
     st.write(st.session_state['app3_finalize_output'].shape)
     st.session_state['app3_rule_based_process'] = False
 
