@@ -1681,8 +1681,8 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
         # tidy_sna_block.empty()
         # Finished
         
-        Finshed Loop
-        Process Tidy SNA
+        #Finshed Loop
+        #Process Tidy SNA
         tidy_sna_block = st.empty()
         tidy_sna_block.info('Final Step : Tidy SNA')
         tidy_sna_block.info('Please Wait')
