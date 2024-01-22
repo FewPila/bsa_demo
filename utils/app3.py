@@ -5,6 +5,60 @@ import re
 import time
 import streamlit as st
 
+def assign_byRid(*args,condition = True):
+    
+    def get_sna_rid(sna,rid,rid_action,sna_type):
+        sna_name = 'SNA10' #init
+        
+        if bool(re.search("FINAL_SNA",sna_type)):
+            sna_name = 'SNA'
+        elif bool(re.search("FINAL_SNA10",sna_type)):
+            sna_name = 'SNA10'
+        
+        # if have isic
+        if not pd.isna(rid):
+            # if rid match
+            for idx,row in rid_action.iterrows():
+                if bool(re.search(row.Rule,str(rid))):
+                    return str(row[sna_name])
+            # if don't match
+            return sna
+        # if don't have rid
+        else: 
+            return sna
+        
+    sna = args[0][args[1][0]]
+    sna_type = args[1][0]
+    nat = args[0][args[1][1]]
+    rid = args[0][args[1][2]]
+    rid_action = args[2]
+
+    # assign if non-assigned-sna
+    if pd.isna(sna):
+        # assign only when nat
+        if condition == True:
+            if not pd.isna(nat):
+                # if th
+                th_search = bool(re.search('TH|Thai|ไทย',str(nat)))
+                if th_search:
+                    out =  get_sna_rid(sna,rid,rid_action,sna_type) # apply function
+                # if non-th
+                else:
+                    out = sna
+            # if non-nationalities       
+            else:
+                out = sna
+
+        # assign whatever condition
+        else:
+            out = get_sna_rid(sna,rid,rid_action,sna_type) # apply function
+
+    # if snaed
+    else:
+        out = sna
+
+    return out
+    
 def assign_byIsic(*args,condition = True):
     
     def get_sna_isic(sna,isic,isic_action,sna_type):
