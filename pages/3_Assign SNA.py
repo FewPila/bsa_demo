@@ -1590,8 +1590,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             for rank in range(1,max_rank+1):
                 if len(st.session_state[f'apply_order{target}_rank{rank}']) > 0:
                     block2 = st.empty()
-                    block2.info(f"{st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__}")
-                    
+                    block2.info(f"{st.session_state[f'{rank}/{max_rank} : apply_order{target}_rank{rank}']['function'].__name__}")
                     # If Class is Firm
                     if target == 4:
                         for i in range(1,2+1):
@@ -1682,38 +1681,38 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
         # tidy_sna_block.empty()
         # Finished
         
-        # Finshed Loop
-        # Process Tidy SNA
-        # tidy_sna_block = st.empty()
-        # tidy_sna_block.info('Final Step : Tidy SNA')
-        # # Tidy SNA
-        # tidy_sna_block_mini1 = st.empty()
-        # tidy_sna_block_mini1.info('1/2')
-        # st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
-        # tidy_sna_block_mini1.empty()
-        # # Tidy SNA10
-        # tidy_sna_block_mini2 = st.empty()
-        # tidy_sna_block_mini2.info('2/2')
-        # st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
-        # tidy_sna_block_mini2.empty()
-        # tidy_sna_block.empty()
-        
+        Finshed Loop
+        Process Tidy SNA
         tidy_sna_block = st.empty()
         tidy_sna_block.info('Final Step : Tidy SNA')
-        for i in range(1,2+1):
-            tidy_sna_block_mini = st.empty()
-            tidy_sna_block_mini.info(f"{i}/2")
-            main_sna = 'HLDR'
-            if i == 1:
-                target_final_sna = 'HLDR_FINAL_SNA'
-                target_action = 'tidy_sna10_sna'
-            elif i == 2:
-                target_final_sna = 'HLDR_FINAL_SNA10'
-                target_action = 'tidy_sna_sna10'
-            st.session_state['data'][target_final_sna] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row[f'{main_sna}_FINAL_SNA'],row[f'{main_sna}_FINAL_SNA10'],st.session_state[target_action]),axis = 1)
-            tidy_sna_block_mini.empty()
-            time.sleep(0.5)
+        # Tidy SNA
+        tidy_sna_block_mini1 = st.empty()
+        tidy_sna_block_mini1.info('1/2')
+        st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
+        tidy_sna_block_mini1.empty()
+        # Tidy SNA10
+        tidy_sna_block_mini2 = st.empty()
+        tidy_sna_block_mini2.info('2/2')
+        st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
+        tidy_sna_block_mini2.empty()
         tidy_sna_block.empty()
+        
+        # tidy_sna_block = st.empty()
+        # tidy_sna_block.info('Final Step : Tidy SNA')
+        # for i in range(1,2+1):
+        #     tidy_sna_block_mini = st.empty()
+        #     tidy_sna_block_mini.info(f"{i}/2")
+        #     main_sna = 'HLDR'
+        #     if i == 1:
+        #         target_final_sna = 'HLDR_FINAL_SNA'
+        #         target_action = 'tidy_sna10_sna'
+        #     elif i == 2:
+        #         target_final_sna = 'HLDR_FINAL_SNA10'
+        #         target_action = 'tidy_sna_sna10'
+        #     st.session_state['data'][target_final_sna] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row[f'{main_sna}_FINAL_SNA'],row[f'{main_sna}_FINAL_SNA10'],st.session_state[target_action]),axis = 1)
+        #     tidy_sna_block_mini.empty()
+        #     time.sleep(0.5)
+        # tidy_sna_block.empty()
         
         st.session_state['app3_finalize_output'] = load_in(st.session_state['data'])        
     ###### Apply Rule Based on Holders Only
@@ -1737,7 +1736,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             for rank in range(1,max_rank+1):
                 if len(st.session_state[f'apply_order{target}_rank{rank}']) > 0:
                     block2 = st.empty()
-                    block2.info(f"{st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__}")
+                    block2.info(f"{st.session_state[f'{rank}/{max_rank} : apply_order{target}_rank{rank}']['function'].__name__}")
                     
                     # skip matchedsna for person case
                     if bool(re.search('PERSON|ORD',st.session_state[f'assign_sna_target{target}]']['Class'].upper())) and bool(re.search('MATCHEDSNA',st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__.upper())):
@@ -1776,33 +1775,33 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
 
         # Finshed Loop
         # Process Tidy SNA
-        tidy_sna_block = st.empty()
-        tidy_sna_block.info('Final Step : Tidy SNA')
-        for i in range(1,2+1):
-            tidy_sna_block_mini = st.empty()
-            tidy_sna_block_mini.info(f"{i}/2")
-            main_sna = 'HLDR'
-            if i == 1:
-                target_final_sna = 'HLDR_FINAL_SNA'
-                target_action = 'tidy_sna10_sna'
-            elif i == 2:
-                target_final_sna = 'HLDR_FINAL_SNA10'
-                target_action = 'tidy_sna_sna10'
-            st.session_state['data'][target_final_sna] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row[f'{main_sna}_FINAL_SNA'],row[f'{main_sna}_FINAL_SNA10'],st.session_state[target_action]),axis = 1)
-            tidy_sna_block_mini.empty()
-            time.sleep(0.5)
-        tidy_sna_block.empty()
-        # # Tidy SNA
-        # tidy_sna_block_mini1 = st.empty()
-        # tidy_sna_block_mini1.info('1/2')
-        # st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
-        # tidy_sna_block_mini1.empty()
-        # # Tidy SNA10
-        # tidy_sna_block_mini2 = st.empty()
-        # tidy_sna_block_mini2.info('2/2')
-        # st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
-        # tidy_sna_block_mini2.empty()
+        # tidy_sna_block = st.empty()
+        # tidy_sna_block.info('Final Step : Tidy SNA')
+        # for i in range(1,2+1):
+        #     tidy_sna_block_mini = st.empty()
+        #     tidy_sna_block_mini.info(f"{i}/2")
+        #     main_sna = 'HLDR'
+        #     if i == 1:
+        #         target_final_sna = 'HLDR_FINAL_SNA'
+        #         target_action = 'tidy_sna10_sna'
+        #     elif i == 2:
+        #         target_final_sna = 'HLDR_FINAL_SNA10'
+        #         target_action = 'tidy_sna_sna10'
+        #     st.session_state['data'][target_final_sna] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row[f'{main_sna}_FINAL_SNA'],row[f'{main_sna}_FINAL_SNA10'],st.session_state[target_action]),axis = 1)
+        #     tidy_sna_block_mini.empty()
+        #     time.sleep(0.5)
         # tidy_sna_block.empty()
+        # Tidy SNA
+        tidy_sna_block_mini1 = st.empty()
+        tidy_sna_block_mini1.info('1/2')
+        st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
+        tidy_sna_block_mini1.empty()
+        # Tidy SNA10
+        tidy_sna_block_mini2 = st.empty()
+        tidy_sna_block_mini2.info('2/2')
+        st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
+        tidy_sna_block_mini2.empty()
+        tidy_sna_block.empty()
         # Finished
         st.session_state['app3_finalize_output'] = load_in(st.session_state['data'])
             
