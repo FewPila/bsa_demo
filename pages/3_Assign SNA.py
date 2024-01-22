@@ -1257,7 +1257,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                 filtered_df =  st.session_state['data'].copy().drop_duplicates(Target_Name) # use whole data
             else:
                 Target_Name = st.session_state['global_input']['hldr_name']
-                filtered_df =  st.session_state['data'][st.session_state['data']['Class'].str.contains(st.session_state[f'assign_sna_target{target}]']['Class'])].drop_duplicates(Target_Name)
+                filtered_df =  st.session_state['data'][st.session_state['data']['Classified_Class'].str.contains(st.session_state[f'assign_sna_target{target}]']['Class'])].drop_duplicates(Target_Name)
             
             block1 = st.empty()
             block1.info(f"{target}/4 | Class : {st.session_state[f'assign_sna_target{target}]']['Class']}")
@@ -1346,7 +1346,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
         total_df = pd.DataFrame()
         for target in range(1,3+1):
             Target_Name = st.session_state['global_input']['hldr_name']
-            filtered_df =  st.session_state['data'][st.session_state['data']['Class'].str.contains(st.session_state[f'assign_sna_target{target}]']['Class'])].drop_duplicates(Target_Name)
+            filtered_df =  st.session_state['data'][st.session_state['data']['Classified_Class'].str.contains(st.session_state[f'assign_sna_target{target}]']['Class'])].drop_duplicates(Target_Name)
 
             block1 = st.empty()
             block1.info(f"{target}/4 | Class : {st.session_state[f'assign_sna_target{target}]']['Class']}")
