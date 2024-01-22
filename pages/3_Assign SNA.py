@@ -1657,26 +1657,43 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
 
         # Finshed Loop
         # Process Tidy SNA
+        # tidy_sna_block = st.empty()
+        # tidy_sna_block.info('Final Step : Tidy SNA')
+        # tidy_sna_block_mini1 = st.empty()
+        # tidy_sna_block_mini1.info('1/4')
+        # st.session_state['data']['FIRM_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['FIRM_FINAL_SNA'],row['FIRM_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
+        # tidy_sna_block_mini1.empty()
+        # tidy_sna_block_mini2 = st.empty()
+        # tidy_sna_block_mini2.info('2/4')
+        # st.session_state['data']['FIRM_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['FIRM_FINAL_SNA'],row['FIRM_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
+        # tidy_sna_block_mini2.empty()
+        # tidy_sna_block_mini3 = st.empty()
+        # tidy_sna_block_mini3.info('3/4')
+        # st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
+        # tidy_sna_block_mini3.empty()
+        # tidy_sna_block_mini4 = st.empty()
+        # tidy_sna_block_mini4.info('4/4')
+        # st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
+        # tidy_sna_block_mini4.empty()
+        # tidy_sna_block.empty()
+        # Finished
+        
+        # Finshed Loop
+        # Process Tidy SNA
         tidy_sna_block = st.empty()
         tidy_sna_block.info('Final Step : Tidy SNA')
+        # Tidy SNA
         tidy_sna_block_mini1 = st.empty()
-        tidy_sna_block_mini1.info('1/4')
-        st.session_state['data']['FIRM_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['FIRM_FINAL_SNA'],row['FIRM_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
-        tidy_sna_block_mini1.empty()
-        tidy_sna_block_mini2 = st.empty()
-        tidy_sna_block_mini2.info('2/4')
-        st.session_state['data']['FIRM_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['FIRM_FINAL_SNA'],row['FIRM_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
-        tidy_sna_block_mini2.empty()
-        tidy_sna_block_mini3 = st.empty()
-        tidy_sna_block_mini3.info('3/4')
+        tidy_sna_block_mini1.info('1/2')
         st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
-        tidy_sna_block_mini3.empty()
-        tidy_sna_block_mini4 = st.empty()
-        tidy_sna_block_mini4.info('4/4')
+        tidy_sna_block_mini1.empty()
+        # Tidy SNA10
+        tidy_sna_block_mini2 = st.empty()
+        tidy_sna_block_mini2.info('2/2')
         st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
-        tidy_sna_block_mini4.empty()
+        tidy_sna_block_mini2.empty()
         tidy_sna_block.empty()
-        # Finished
+        
         st.session_state['app3_finalize_output'] = load_in(st.session_state['data'])        
     ###### Apply Rule Based on Holders Only
     else:
