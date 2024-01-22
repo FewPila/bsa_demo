@@ -1193,7 +1193,7 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
                 st.session_state['global_input_firm']['sna'] = st.session_state['input_firm_sna']
                 st.session_state['global_input_firm']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
                 st.session_state['global_input_firm']['rid'] = st.session_state['input_firm_rid']
-                st.session_state['apply_rulebased_on_firm'] = load_in(st.session_state['apply_rulebased_on_firm'])
+                st.session_state['apply_rulebased_on_firm_out'] = load_in(st.session_state['apply_rulebased_on_firm'])
 
             st.session_state['app3_rule_based_prioritize'] = True
     else:
@@ -1326,7 +1326,7 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
                 st.session_state['global_input_firm']['hldr_name'] = st.session_state['input_firm_hldrname']
                 st.session_state['global_input_firm']['sna'] = st.session_state['input_firm_sna']
                 st.session_state['global_input_firm']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
-                st.session_state['apply_rulebased_on_firm'] = load_in(st.session_state['apply_rulebased_on_firm'])
+                st.session_state['apply_rulebased_on_firm_out'] = load_in(st.session_state['apply_rulebased_on_firm'])
 
             st.session_state['app3_rule_based_prioritize'] = True
 
@@ -1478,7 +1478,7 @@ if st.session_state['app3_rule_based_prioritize']:
         st.session_state['tidy_sna_sna10']['value'] = st.session_state['tidy_sna_sna10']['value'].astype(str)
         
     ###### ***Apply Rule Based on Firm information Too
-    if st.session_state['apply_rulebased_on_firm']:
+    if st.session_state['apply_rulebased_on_firm_out']:
         # define max_rank
         if st.session_state['rid1_checkbox_out'] or st.session_state['rid2_checkbox_out']:
             max_rank = 5
@@ -1557,7 +1557,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
     time.sleep(0.5)
 
     ###### ***Apply Rule Based on Firm information Too
-    if st.session_state['apply_rulebased_on_firm']:
+    if st.session_state['apply_rulebased_on_firm_out']:
         # define max_rank
         if st.session_state['rid1_checkbox_out'] or st.session_state['rid2_checkbox_out']:
             max_rank = 5
