@@ -10,8 +10,98 @@ from streamlit_extras.dataframe_explorer import dataframe_explorer
 import copy
 import time
 from PIL import Image
-from utils.nm_utils import *
+#from utils.nm_utils import *
 from streamlit_extras.switch_page_button import switch_page
+import requests
+
+default_regex_list = ['\\s','\\.','\\(.*\\)','-',',','[',']']
+
+soft_simp_words = ['CO', 'COMPANY', 'CORPORATION', 'CO\\.', 'CO\\s', 'ENTERPRISE',
+    'ENTERPRISES', 'INC', 'INTERNATIONAL', 'LIMITED', 'LLC', 'LTD',
+    'NOMINEE', 'NOMINEES', 'PLC', 'PTE', 'PUBLIC', 'THAILAND', 'THE',
+    '^.?บจ\\.?', '^.?หส\\.?', '^บ', '^บ\\s', '^บจ', '^หจ', '^หส',
+    'กิจการ', 'กิจการร่วมค้า', 'คอร์ปอร์เรชั่น', 'คอร์ปอเรชั่น',
+    'คอร์ปอเรชั้น', 'คอร์ปอเรท', 'คอร์เปอร์เรชั่น', 'คอร์เปอเรชั่น',
+    'คัมปะนี', 'คัมพะนี', 'คัมพานี', 'จำกัด', 'จีเอ็มบีเอช', 'ทีม',
+    'นอมินี', 'บ\\.', 'บจก', 'บมจ', 'บริษัท', 'บริษํท', 'บลจ',
+    'ประเทศไทย', 'พีทีวาย', 'พีทีอี', 'พีแอลซี', 'มหาชน', 'ลิมิเด็ด',
+    'ลิมิเต็ด', 'ศูนย์บริหาร', 'หจ\\.?', 'หจก', 'หจก\\.?', 'หส\\.',
+    'หุ้น', 'ห้างหุ้นส่วนสามัญ', 'อิงค์', 'อิงส์', 'อินเตอร์เนชันแนล',
+    'อินเตอร์เนชั่นแนล', 'อุตสาหกรรม', 'เทศบาล', 'เอ็นเตอร์ไพรส์',
+    'เอ็นเตอร์ไพรส์เซส', 'เอ็นเตอร์ไพร์ส', 'แอลซี', 'แอลทีดี',
+    'แอลเอซี', 'แอลแอลซี', 'โฮลดิง', 'โฮลดิ้ง']
+
+hard_simp_words = ['(กรุงเทพ)', '(ประเทศไทย)', '(มหาชน)', '(เอเชีย)', '(ไทย)',
+    '(ไทยแลนด์)', 'BANK', 'BHD', 'CO.', 'COPO', 'CORP', 'CO\\.','FUND', 'GLOBAL', 'GPH', 'LC', 'LIMITED',
+    'LLC', 'LTD', 'NOMINEES','PTE', 'SDN', 'SECURITIES', 'SINGAPORE', 'กฎหมาย', 'กราฟฟิค','กรีน', 'กรุ๊ป', 
+    'กลาส', 'กลุ่ม', 'กอ.*ท.?น', 'กองทุน', 'กอล์ฟ','การก่อสร้าง', 'การค้า', 'การช่าง', 'การบัญชี', 'การพิมพ์',
+    'การาจ', 'การเกษตร', 'การโยธา', 'การไฟฟ้า', 'การ์ด', 'การ์เด้น','การ์เด้นท์', 'การ์เมนท์', 'การ์เม้นท์', 'กู๊ด', 'ก่อสร้าง',
+    'ขนส่ง', 'ครอป', 'คราฟท์', 'ครีเอชั่น', 'ครีเอท', 'ครีเอทีฟ','คลับ', 'คลาวด์', 'คลินิก', 'คลีน', 'คลีนนิ่ง', 'ควอลิตี้','คอน.*ซัล',
+    'คอนกรีต', 'คอนซัลติ้ง', 'คอนซัลท์', 'คอนซัลแตนท์','คอนซัลแทนซี่', 'คอนซัลแทนต์', 'คอนซัลแทนท์', 'คอนซัลแทนส์',
+    'คอนวีเนี่ยนสโตร์', 'คอนสตรัค', 'คอนสตรัคชั่น', 'คอนสตรั๊คชั่น','คอนสทรัคชั่น', 'คอนเทนเนอร์', 'คอนเนคชั่น', 'คอนเน็คชั่น',
+    'คอนแทรคเตอร์', 'คอนโด', 'คอนโดมิเนียม', 'คอนโทรล', 'คอฟฟี่','คอม.*นี', 'คอมปะ', 'คอมปะนี', 'คอมปา', 'คอมพิวเตอร์',
+    'คอมมิวนิเคชั่น', 'คอมมูนิเคชั่น', 'คอมเพล็กซ์', 'คอมเมอร์เชียล','คอมเมิร์ซ', 'คอมโพ', 'คอร์ป', 'คอร์ปอร์เรชั่น', 'คอร์ปอเรชั่น',
+    'คอร์ปอเรชั้น', 'คอร์ปอเรท', 'คอร์เปอร์เรชั่น', 'คอร์เปอเรชั่น','คอลเลคชั่น', 'คอสเมติก', 'คอสเมติกส์', 'คัมปะนี', 'คัมพานี',
+    'คัมพานีแมเนจ', 'คัลเลอร์', 'คาร์', 'คาร์เร้นท์', 'คาร์โก้','คาเฟ่', 'คิทเช่น', 'ค้าวัสดุ', 'ค้าไม้', 'จัดหางาน', 'จำกัด',
+    'จิวเวลรี่', 'จิเอ็มบีเอช', 'จี เอ็ม บี เอชนอมีนี', 'จีเอ็มบีเอช','ชิปปิ้ง', 'ช็อป', 'ซอฟต์แวร์', 'ซอฟท์แวร์', 'ซัคเซส', 'ซัพพลาย',
+    'ซัพพลายส์', 'ซัพพลายเออร์', 'ซัพพอร์ต', 'ซัพพอร์ท', 'ซาวด์','ซิตี้', 'ซิลเวอร์', 'ซิสเต.*ม', 'ซิสเต็ม', 'ซิสเต็มส์', 'ซิสเทม',
+    'ซิสเท็ม', 'ซิสเท็มส์', 'ซีฟู้ด', 'ซีวิล', 'ซีสเต็ม','ซีเคียวริตี้', 'ซึ่งจดทะเบียนแล้ว', 'ซุปเปอร์', 'ซุปเปอร์โปร',
+    'ดอท', 'ดาต้า', 'ดิจิตอล', 'ดิจิทัล', 'ดิสทริบิวชั่น','ดิสทริบิวเตอร์', 'ดิเวลลอปเม้นท์', 'ดีซายน์', 'ดีเวลลอป',
+    'ดีเวลลอปเมนท์', 'ดีเวลลอปเม้นท์', 'ดีเวลล็อปเม้นท์','ดีเวลอปเมนท์', 'ดีเวลอปเม้นท์', 'ดีไซน์', 'ทนายความ', 'ทรัพย์ทวี',
+    'ทรานสปอ', 'ทรานสปอร์ต', 'ทรานสปอร์ท', 'ทรานส์', 'ทราฟฟิค','ทราเวล', 'ทราเวิล', 'ทะเบียน', 'ทัวร์', 'ทาวเวอร์', 'ทิสโก้',
+    'ทีม', 'ทูลลิ่ง', 'ทูลส', 'ทูลส์', 'ธุรกิจ', 'นอมีนี','นำคนต่างด้าวมาทำงานในประเทศ', 'นิตติ้ง', 'นิปปอน', 'บจ',
+    'บจ\\.บริษัท', 'บจก', 'บมจ', 'บมจ\\.บริษัท', 'บรรจุภัณฑ์','บริการ', 'บริษัท', 'บริษํท', 'บลจ', 'บางกอก', 'บาร์', 'บิซิเนส',
+    'บิลดิ้ง', 'บิลเดอร์', 'บิวดิ้ง', 'บิวตี้', 'บิวเดอร์', 'บิสซิเนส','บิสสิเนส', 'บิสิเนส', 'บี.วี', 'บี\\.วี', 'บี\\.วีกลุ่ม', 'บีช',
+    'บีเอชดี', 'บ้าน', 'ปักกิ่ง', 'ปาร์ค', 'ปาล์ม', 'ปิโตรเลียม','ปิโตรเลี่ยม', 'พรอพเพอร์ตี้', 'พริ้นติ้ง', 'พริ้นท์', 'พรีซิชั่น',
+    'พร็อพ', 'พร็อพเพอร์ตี้', 'พร็อพเพอร์ตี้ส์', 'พร๊อพเพอร์ตี้','พลัส', 'พลาซ่า', 'พลาสติก', 'พัฒนา', 'พัฒนาอิสลาม', 'พับลิชชิ่ง',
+    'พาณิชย์', 'พาราวู้ด', 'พาราไดซ์', 'พาร์ค', 'พาร์ท', 'พาร์ทเนอ','พาร์ทเนอร์', 'พาร์ทเนอร์ส', 'พาวเวอร์', 'พีทีวาย', 'พีทีอี',
+    'พีแอลซี', 'ฟรุ๊ต', 'ฟอร์เวิร์ด', 'ฟาร์ม', 'ฟาร์มา', 'ฟิตเนส','ฟิล์ม', 'ฟูดส์', 'ฟู้ด', 'ฟู้ดส์', 'ฟู๊ด', 'ฟู๊ดส์', 'มอเตอ',
+    'มอเตอร์', 'มันนี่', 'มัลติมีเดีย', 'มา.*เกต', 'มาร์ท', 'มาร์เก็ต','มาร์เก็ตติ้ง', 'มาสเตอร์', 'มิวสิค', 'มิสเตอร์', 'มีเดีย',
+    'มุลนิธิ', 'มุลนิธิจีเอ็มบีเอช', 'มูลนิธิ', 'ยูนิเวอร์แซล','ยูเนี่ยน', 'ยูไนเต็ด', 'รักษาความปลอดภัย', 'รับเบอร์',
+    'รีซอร์สเซส', 'รีสอร์ท', 'รีเทล', 'รีเสิร์ช', 'รีไซเคิล', 'ร้าน','ลอนดรี้', 'ลอว์', 'ลิงค์', 'ลิซซิ่ง', 'ลิฟวิ่ง', 'ลิมิเด็ด',
+    'ลิมิเต็ด', 'ลิสซิ่ง', 'ลีดเดอร์', 'ลีฟวิ่ง', 'ลีสซิ่ง', 'วอเตอร์','วัสดุก่อสร้าง', 'วัสดุภัณฑ์', 'วิชั่น', 'วิลล่า', 'วิลล่าส์',
+    'วิลเลจ', 'วิศวกรรม', 'วู้ด', 'วู๊ด', 'ส\\.', 'สกิน', 'สตีล','สตูดิโอ', 'สถาปนิก', 'สปอร์ต', 'สปา', 'สมาคม', 'สมาร์ท', 'สยาม',
+    'สยาม ', 'สำนักกฎหมาย', 'สำนักงาน', 'สเตชั่น', 'สเตนเลส', 'สเปซ','สแควร์', 'สแตนดาร์ด', 'สแตนเลส', 'สโตน', 'สโตร์', 'สไตล์', 'หจ',
+    'หจ\\.', 'หจ\\.ห้างหุ้นส่วนจำกัด', 'หมู่', 'หลักทรัพ', 'หส\\.','หส\\.ห้างหุ้นส่วนสามัญ', 'หุ้น', 'ห้าง', 'ห้างทอง',
+    'ห้างทองเยาวราช', 'ห้างหุ้นส่วนจำกัด', 'ห้างหุ้นส่วนสามัญ','อพาร์ทเมนท์', 'อพาร์ทเม้นท์', 'อลูมินั่ม', 'อลูมิเนียม', 'ออดิท',
+    'ออดิทติ้ง', 'ออดิโอ', 'ออนไลน์', 'ออฟฟิศ', 'ออยล์', 'ออร์แกนิค','ออโต', 'ออโตเมชั่น', 'ออโตโมทีฟ', 'ออโตโมบิล', 'ออโต้',
+    'ออโต้คาร์', 'ออโต้พาร์ท', 'ออโต้เซอร์วิส', 'อะโกร', 'อะไหล่ยนต์','อันดามัน', 'อาร์คิเทค', 'อาร์ต', 'อาร์ท', 'อิควิปเม้นท์', 'อิงค์',
+    'อิงส์', 'อินชัวรันส์', 'อินดัสตรี', 'อินดัสตรีส์', 'อินดัสตรี้','อินดัสทรี', 'อินดัสทรีส์', 'อินดัสทรี่', 'อินดัสเตรียล',
+    'อินดัสเทรียล', 'อินทิเกรชั่น', 'อินทีเรีย', 'อินฟอร์เมชั่น','อินสไปร์', 'อินเตอ', 'อินเตอร์', 'อินเตอร์กรุ๊ป', 'อินเตอร์ฟู้ด',
+    'อินเตอร์เทค', 'อินเตอร์เทรด', 'อินเตอร์เทรดดิ้ง','อินเตอร์เนชันแนล', 'อินเตอร์เนชั่นแนล', 'อินเทลลิเจนท์', 'อินเวส',
+    'อินโนเทค', 'อินโนเวชั่น', 'อินโนเวทีฟ', 'อิมปอร์ต','อิมปอร์ต-เอ็กซ์ปอร์ต', 'อิมพอร์ต', 'อิมพอร์ท', 'อิมเมจ',
+    'อิเลคทริค', 'อิเล็กทรอนิกส์', 'อิเล็คทริค', 'อิ้งค์','อีควิปเมนท์', 'อีควิปเม้นท์', 'อีสเทิร์น', 'อีเนอจี้',
+    'อีเลคทริค', 'อีเล็คทริค', 'อีเว้นท์', 'อุตสาหกรรม', 'อโกร','ฮอนดา', 'ฮอนด้า', 'ฮับ', 'ฮาร์ดแวร์', 'ฮ่องกง', 'เคมิคอล',
+    'เคมิคัล', 'เคมีคอล', 'เครน', 'เจนเนอรัล', 'เจริญยนต์', 'เจเนอรัล','เจแปน', 'เซนเตอร์', 'เซฟตี้', 'เซรามิค', 'เซล', 'เซลล์', 'เซลส์',
+    'เซอ.*วิส', 'เซอร์วิส', 'เซอร์วิสเซส', 'เซอร์เวย์', 'เซิร์ฟ','เซเว่น', 'เซ็นทรัล', 'เซ็นเตอ', 'เซ็นเตอร์', 'เดคคอร์',
+    'เดคคอเรชั่น', 'เดคอร์', 'เดอะ', 'เทค', 'เทคนิ', 'เทคนิค','เทคนิคอล', 'เทคโน', 'เทคโนโลยี', 'เทคโนโลยีส์', 'เทคโนโลยี่',
+    'เทรด', 'เทรดดิ้ง', 'เทรนนิ่ง', 'เทศบาล', 'เทเลคอม', 'เนเจอร์','เนเชอรัล', 'เน็ตเวิร์ค', 'เน็ทเวิร์ค', 'เบฟเวอเรจ', 'เบย์',
+    'เบอเกอ', 'เบเกอรี', 'เบเกอรี่', 'เปเปอร์', 'เพลส', 'เพาเวอร์','เพ็ท', 'เพ้นท์', 'เฟรช', 'เฟอร์นิเจอร์', 'เภสัช', 'เมคเกอร์',
+    'เมดดิคอล', 'เมดิคอล', 'เมททอล', 'เมทัล', 'เมทัลชีท','เมนเทนแนนซ์', 'เมอร์ชั่น', 'เมเนจเมนท์', 'เมเนจเม้นท์', 'เยาวราช',
+    'เรดิโอ', 'เรสซิเดนซ์', 'เรสซิเด้นซ์', 'เรสเตอรองท์', 'เรียล','เรียลเอสเตท', 'เลิร์นนิ่ง', 'เลเซอร์', 'เวนเจอ', 'เวนเจอร์',
+    'เวนเจอร์ส', 'เวลดิ้ง', 'เวลท์', 'เวลธ์', 'เวลเนส', 'เวิร์ค','เวิลด์', 'เวิลด์ไวด์', 'เอ.*จิเนีย', 'เอ.*เตอ', 'เอนจิเนียริ่ง',
+    'เอนเตอร์ไพรส์', 'เอนเนอ', 'เอนเนอร์จี', 'เอนเนอร์ยี่','เอสดีเอ็น', 'เอสเตท', 'เอเจนซี่', 'เอเชีย', 'เอเซีย',
+    'เอเซียNOMINEES','NOMINEES', 'เอเนเจีย', 'เอเยนซี่', 'เอ็กซ์ปอร์ต','เอ็กซ์พอร์ต', 'เอ็กซ์พอร์ท', 'เอ็กซ์เชนจ์', 'เอ็กซ์เพรส',
+    'เอ็กซ์เพิร์ท', 'เอ็ดดูเคชั่น', 'เอ็นจิเนีย', 'เอ็นจิเนียริ่ง','เอ็นจิเนียร์', 'เอ็นจิเนียร์ริ่ง', 'เอ็นจีเนียริ่ง',
+    'เอ็นเตอร์เทนเมนท์', 'เอ็นเตอร์เทนเม้นท์', 'เอ็นเตอร์ไพรซ์','เอ็นเตอร์ไพรส์', 'เอ็นเตอร์ไพรส์เซส', 'เอ็นเตอร์ไพร์ส', 'เอ็นเนอ',
+    'เอ็นเนอร์จี', 'เอ็นเนอร์ยี', 'เอ็นเนอร์ยี่', 'เอ็ม\\.บี','เอ็มบี', 'เอ็มบีเอช', 'เอ็มไพร์', 'เฮลตี้', 'เฮลท์', 'เฮลท์ตี้',
+    'เฮลท์แคร์', 'เฮลธ์', 'เฮอริเทจ', 'เฮาส', 'เฮาส์', 'เฮิร์บ','เฮ้าส์', 'เฮ้าส์ซิ่ง', 'แกลเลอรี่', 'แก๊ส', 'แค(บ|ป).*ตอล',
+    'แคปปิตอล', 'แคร์', 'แทรคเตอร์', 'แทรเวล', 'แทรเวิล', 'แบรนด์','แปซิฟิก', 'แปซิฟิค', 'แพคเกจจิ้ง', 'แพลนท์', 'แพลนนิ่ง',
+    'แพลนเนอร์', 'แพ็คกิ้ง', 'แพ็คเกจจิ้ง', 'แฟคตอรี่', 'แฟคทอรี่','แฟชั่น', 'แฟบริค', 'แฟมิลี่', 'แมชชินเนอรี่', 'แมชชีน',
+    'แมชชีนเนอรี่', 'แมทที', 'แมททีเรียล', 'แมนชั่น', 'แมนู','แมนูแฟคเจอริ่ง', 'แมนเนจเมนท์', 'แมนเนจเม้นท์', 'แมเนจ',
+    'แมเนจเมนท์', 'แมเนจเม้นท์', 'แลนด์', 'แลนด์สเคป', 'แลป', 'แล็บ','แอ.*เซท', 'แอคเคาท์', 'แอคเคาท์ติ้ง', 'แอคเคาน์ติ้ง', 'แอดวานซ์',
+    'แอดเวอร์ไทซิ่ง', 'แอดไวซอรี่', 'แอดไวซ์', 'แอดไวเซอรี่', 'แอนด์','แอพพาเรล', 'แอร์', 'แอล.*พี', 'แอล.+ซี', 'แอลซี', 'แอลทีดี',
+    'แอลพีจี', 'แอลเอซี', 'แอลแอลซี', 'แอสเซท', 'แอสเซ็ท', 'แอสเสท','แอสโซซิเอท', 'แอสโซซิเอทส์', 'แอ๊ดวานซ์', 'โกลด์', 'โกลบอล',
+    'โกลเบิล', 'โซลาร์', 'โซลู', 'โซลูชั่น', 'โซลูชั่นส์', 'โซล่า','โซล่าร์', 'โดย ', 'โตเกียว', 'โตโยต้า', 'โตโยต้าเภสัช',
+    'โบรกเกอร์', 'โบรคเกอร์', 'โบ๊ท', 'โปรดัก', 'โปรดักชั่น','โปรดักท์', 'โปรดักส์', 'โปรเกรส', 'โปรเจค', 'โปรเจคท์', 'โปรเจ็ค',
+    'โปรเทคชั', 'โปรเฟสชั่นนอล', 'โปรเฟสชั่นแนล', 'โปรโมชั่น','โพรดักส์', 'โพรเกรส', 'โพลีเมอ', 'โพลีเมอร์', 'โมบาย', 'โมลด์',
+    'โมเดิร์น', 'โรงรับจำนำ', 'โลจิส', 'โลจิสติก', 'โลจิสติกส์','โลจิสติคส์', 'โลหะกิจ', 'โฮ.*เต.?ล', 'โฮด', 'โฮม', 'โฮมส์', 'โฮล',
+    'โฮลดิง', 'โฮลดิ้ง', 'โฮลดิ้งส์', 'โฮลเต็ล', 'โฮสด', 'โฮเต็ล','โฮเทล', 'ไซเอนซ์', 'ไทย', 'ไบโอ', 'ไบโอเทค', 'ไพรเวท', 'ไฟเบอร์',
+    'ไฟแนน', 'ไมนิ่ง', 'ไลท์ติ้ง', 'ไลฟ์สไตล์', 'ไอที', 'ไฮดรอลิค','ไฮเทค']
+
+def anti_join(df1,df2):
+    outer = df1.merge(df2, how='outer', indicator=True)
+    return outer[(outer._merge=='left_only')].drop('_merge', axis=1)
 
 st.title('App 2. การทำ Name Matching')
 st.write('เชื่อมข้อมูลที่เกี่ยวข้องกันระหว่าง 2 Dataset เพื่อเอาข้อมูลที่ต้องการโดยใช้ "ชื่อ" เป็นตัวเชื่อม')
@@ -948,20 +1038,60 @@ def adjust_dataset(query_df,corpus_df,
     # return processed dataset
     return final_query_df,final_corpus_df
 
-@st.cache_data
-def name_matching(df_query,query_colname,df_corpus,corpus_colname,regex_list):
-    # preprocess-by Regex
-    query_names,corpus_names = text_preprocess_byRegex(df_query,query_colname,
-                                                df_corpus,corpus_colname,
-                                                regex_list = regex_list)
-    # prepro data for NM
-    syn_df_query,syn_df_corpus = wrap_up_material(df_query,df_corpus,
-                                          query_names,corpus_names)
-    # NM 
-    matched_df = extract_NM(syn_df_query,syn_df_query.query_name,query_colname,
-                            syn_df_corpus,syn_df_corpus.corpus_name,corpus_colname)
+# @st.cache_data
+# def name_matching(df_query,query_colname,df_corpus,corpus_colname,regex_list):
+#     # preprocess-by Regex
+#     query_names,corpus_names = text_preprocess_byRegex(df_query,query_colname,
+#                                                 df_corpus,corpus_colname,
+#                                                 regex_list = regex_list)
+#     # prepro data for NM
+#     syn_df_query,syn_df_corpus = wrap_up_material(df_query,df_corpus,
+#                                           query_names,corpus_names)
+#     # NM 
+#     matched_df = extract_NM(syn_df_query,syn_df_query.query_name,query_colname,
+#                             syn_df_corpus,syn_df_corpus.corpus_name,corpus_colname)
     
-    return matched_df
+#     return matched_df
+
+@st.cache_data
+def batch_request_NameMatching(query_df,query_name_colname,corpus_df,corpus_nmame_colname,regex_list,fold = 10):
+    port = 5002
+    api_route = 'name_matching'
+    
+    total_matched_df = []
+    c = 0 
+    for i in stqdm(range(0,len(query_df),int(np.round(len(query_df)/fold)))):
+        if i == 0:
+            prev_i = 0
+            c += 1
+            samp_df = None
+            continue
+        else:
+            current_i = i
+            samp_df = query_df.iloc[prev_i:current_i]
+            prev_i = current_i
+            c+= 1
+            
+        if c == fold:
+            samp_df = query_df.iloc[current_i:]
+
+        post_data = {
+            'query_df' : samp_df.to_dict(orient= 'list'),
+            'query_name_colname' : query_name_colname,
+            'corpus_df' : corpus_df.to_dict(orient= 'list'),
+            'corpus_name_colname' : corpus_nmame_colname,
+            'textprocess_regex_list': regex_list
+        }
+
+        res = requests.post(f'http://127.0.0.1:{port}/{api_route}', json = post_data)
+        if res.status_code == 201:
+            result_df = pd.json_normalize(res.json()['matched_df'])
+            sorted_col = ['query_name','corpus_name','tfidf_score','fuzzy_ratio','fuzzy_partialratio',query_name_colname,corpus_nmame_colname]
+            result_df = result_df.filter(sorted_col)
+            if len(result_df) > 0:
+                total_matched_df.append(result_df)
+    return pd.concat(total_matched_df,axis = 0).reset_index(drop = True)
+
 
 if st.session_state.app2_textprocess and st.session_state.app2_preprocessNM == False:
     st.header("2. Name Matching",divider = 'blue')
@@ -992,33 +1122,23 @@ if st.session_state.app2_textprocess and st.session_state.app2_preprocessNM == F
             st.session_state['final_query_colname'] = st.session_state[f'query_namecolname']
             st.session_state['final_corpus_colname'] = st.session_state[f'corpus{c}_namecolname']
 
-            # process NM candidate
-            if st.session_state.app2_double_prep:
-                # prep 1
-                info_session = st.empty()
-                info_session.info('Text Preprocess 1/2')
-                matched_df1 = name_matching(st.session_state['final_query_df'],st.session_state['final_query_colname'],
-                                    st.session_state['final_corpus_df'],st.session_state['final_corpus_colname'],
-                                    regex_list = st.session_state.app2_regex_listV1)
-                matched_df1['text_preprocess'] = '1'
-
-                # prep 2
-                info_session.info('Text Preprocess 2/2')
-                matched_df2 = name_matching(st.session_state['final_query_df'],st.session_state['final_query_colname'],
-                                    st.session_state['final_corpus_df'],st.session_state['final_corpus_colname'],
-                                    regex_list = st.session_state.app2_regex_listV2)
-                matched_df2['text_preprocess'] = '2'
-                info_session.success('Complete')
-                time.sleep(1)
-                info_session.empty()
-                matched_df = pd.concat([matched_df1,matched_df2])
-                print('this is matched double df')
-                print(matched_df)
-                
-            else:
-                matched_df = name_matching(st.session_state['final_query_df'],st.session_state['final_query_colname'],
-                                    st.session_state['final_corpus_df'],st.session_state['final_corpus_colname'],
-                                    regex_list = st.session_state.app2_textprocess_regex_list)
+            # st.write(st.session_state['final_query_df']) #query df
+            # st.write(st.session_state['final_query_colname']) # name
+            # st.write(st.session_state['final_corpus_df'])# corpus df
+            # st.write(st.session_state['final_corpus_colname']) # name_data1
+            # st.write(st.session_state.app2_textprocess_regex_list)
+            # Process Name Matching
+            # matched_df = name_matching(st.session_state['final_query_df'],st.session_state['final_query_colname'],
+            #                     st.session_state['final_corpus_df'],st.session_state['final_corpus_colname'],
+            #                     regex_list = st.session_state.app2_textprocess_regex_list)
+            
+            m_info = st.empty()
+            m_info.info("Process : Name Matching ")
+            matched_df = batch_request_NameMatching(st.session_state['final_query_df'],st.session_state['final_query_colname'],
+                                                    st.session_state['final_corpus_df'],st.session_state['final_corpus_colname'],
+                                                    regex_list = st.session_state.app2_textprocess_regex_list)
+            m_info.empty()                            
+            
             # store results each case
             st.session_state[f'matched{c}_df'] = matched_df.copy()
             st.session_state[f'matched{c}_qc'] = st.session_state['final_query_colname']

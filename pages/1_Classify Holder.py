@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import copy
 import re
-from utils.classify_holder_utils import * 
+#from utils.classify_holder_utils import * 
 #from tqdm import tqdm
 import time
 from sklearn.metrics import accuracy_score,f1_score,precision_score,recall_score
@@ -13,7 +13,98 @@ from stqdm import stqdm
 from PIL import Image
 from streamlit_extras.colored_header import colored_header
 import io
+import requests
 stqdm.pandas()
+
+def anti_join(df1,df2):
+    outer = df1.merge(df2, how='outer', indicator=True)
+    return outer[(outer._merge=='left_only')].drop('_merge', axis=1)
+
+ord_all_options = ['(นาย|นาง).*โดย', '^.?MIS', '^.?MISS', 'MISS ', 'MISSนาย', 'MRS','MRS\\.',
+   '^.?MR\\.',"MR\\s", 'MS\\.', 'MS\\. ', '^.(.)?(นาย|นาง)', '^.?.?(นาย|นาง)',
+   '^.?.?นาง', '^.?.?นาย', '^.?คุณ', '^.?พัน', '^.?ร้อย', '^.?เรือ',
+   '^นาง', '^นาย', 'กองทุนส่วนบุคคล', 'กองทุนส่วนบุคคุล', 'คณะ',
+   '^.?คุณ', '^.?จ\\.ส\\.', '^.?จ\\.อ\\.', '^.?จ\\.อ\\.', 'จ่า', '^.?ด\\.ช', '^.?ด\\.ญ',
+   '^.?ด\\.ต', '^.?ดร\\.', 'ดาบ', 'ด็อกเตอร์', 'ทันตแพทย์', '^.?น\\.ต','นส\\.',
+   '^.?น\\.ท', '^.?น\\.พ', '^.?น\\.ส', '^.?น\\.ส\\', '^.?น\\.ส\\.', '^.?น\\.อ', '^.?นพ\\.',
+   'นาง ', 'นางสาว', 'นางสาว ', 'นาย ', 'นายแพท',
+   'นาวา', 'ผศ\\.', 'ผู้', '^.?พ\\.จ', 'พ\\.ญ', 'พ\\.ต', 'พ\\.ต\\.',
+   '^.?พ\\.ท', '^.?พ\\.อ', '^.?พล\\.', '^.?พลต', '^.?พลอากา', '^.?พลอากาศ',
+   'พลอากาศเอก', '^.?พลเ', '^.?พลเอ', '^.?พลโ', '^.?ม\\.ร', '^.?ม\\.ล', '^.?ร\\.ต',
+   '^.?ร\\.ต', '^.?ร\\.ท', '^.?ร\\.อ', '^.?รศ\\.', 'รอง', 'รอง ', 'รอง\\s',
+   '^.?ร้อย', '^.?ร้อยตร', '^.?ร้อยตรคณะ', '^.?ร้อยเอ', '^.?ร้อยโ', '^.?วท\\.ร\\.',
+   '^.?ว่าที่', 'ศาสตราจารย์', '^.?ส\\.ต', '^.?ส\\.ท\\.', '^.?ส\\.อ', '^.?สาว',
+   '^.?สิบ', 'หม่อมราชวง', 'หม่อมหลวง', 'เกตุ', 'เด็ก',
+   'แพทย์หญิง', 'โดยบมจ','\\(นาง','\\(นาย','ดอกเตอร์']
+
+firm_all_options = ['(กรุงเทพ)', '(ประเทศไทย)', '(มหาชน)', '(เอเชีย)', '(ไทย)',
+        '(ไทยแลนด์)', 'BANK', 'BHD', 'CO.', 'COPO', 'CORP', 'CO\\.','FUND', 'GLOBAL', 'GPH', 'LC', 'LIMITED',
+        'BRANCH','HOLD','SERVICE','TRUST','ประกัน','โรงพย','คอปอร์เร','เจริญโภคภัณฑ์','อิน.*ชัน','อิน.*ชั่น','โรงงา','ธนาคาร',
+        'LLC', 'LTD', 'NOMINEES','PTE', 'SDN', 'SECURITIES', 'SINGAPORE', 'กฎหมาย', 'กราฟฟิค','กรีน', 'กรุ๊ป','ดีเวล',
+        'กลาส', 'กลุ่ม', 'กอ.*ท.?น', 'กองทุน', 'กอล์ฟ','การก่อสร้าง', 'การค้า', 'การช่าง', 'การบัญชี', 'การพิมพ์','ห้องเย',
+        'การาจ', 'การเกษตร', 'การโยธา', 'การไฟฟ้า', 'การ์ด', 'การ์เด้น','การ์เด้นท์', 'การ์เมนท์', 'การ์เม้นท์', 'กู๊ด', 'ก่อสร้าง',
+        'ขนส่ง', 'ครอป', 'คราฟท์', 'ครีเอชั่น', 'ครีเอท', 'ครีเอทีฟ','คลับ', 'คลาวด์', 'คลินิก', 'คลีน', 'คลีนนิ่ง', 'ควอลิตี้','คอน.*ซัล',
+        'คอนกรีต', 'คอนซัลติ้ง', 'คอนซัลท์', 'คอนซัลแตนท์','คอนซัลแทนซี่', 'คอนซัลแทนต์', 'คอนซัลแทนท์', 'คอนซัลแทนส์',
+        'คอนวีเนี่ยนสโตร์', 'คอนสตรัค', 'คอนสตรัคชั่น', 'คอนสตรั๊คชั่น','คอนสทรัคชั่น', 'คอนเทนเนอร์', 'คอนเนคชั่น', 'คอนเน็คชั่น',
+        'คอนแทรคเตอร์', 'คอนโด', 'คอนโดมิเนียม', 'คอนโทรล', 'คอฟฟี่','คอม.*นี', 'คอมปะ', 'คอมปะนี', 'คอมปา', 'คอมพิวเตอร์',
+        'คอมมิวนิเคชั่น', 'คอมมูนิเคชั่น', 'คอมเพล็กซ์', 'คอมเมอร์เชียล','คอมเมิร์ซ', 'คอมโพ', 'คอร์ป', 'คอร์ปอร์เรชั่น', 'คอร์ปอเรชั่น',
+        'คอร์ปอเรชั้น', 'คอร์ปอเรท', 'คอร์เปอร์เรชั่น', 'คอร์เปอเรชั่น','คอลเลคชั่น', 'คอสเมติก', 'คอสเมติกส์', 'คัมปะนี', 'คัมพานี',
+        'คัมพานีแมเนจ', 'คัลเลอร์', 'คาร์', 'คาร์เร้นท์', 'คาร์โก้','คาเฟ่', 'คิทเช่น', 'ค้าวัสดุ', 'ค้าไม้', 'จัดหางาน', 'จำกัด',
+        'จิวเวลรี่', 'จิเอ็มบีเอช', 'จี เอ็ม บี เอชนอมีนี', 'จีเอ็มบีเอช','ชิปปิ้ง', 'ช็อป', 'ซอฟต์แวร์', 'ซอฟท์แวร์', 'ซัคเซส', 'ซัพพลาย',
+        'ซัพพลายส์', 'ซัพพลายเออร์', 'ซัพพอร์ต', 'ซัพพอร์ท', 'ซาวด์','ซิตี้', 'ซิลเวอร์', 'ซิสเต.*ม', 'ซิสเต็ม', 'ซิสเต็มส์', 'ซิสเทม',
+        'ซิสเท็ม', 'ซิสเท็มส์', 'ซีฟู้ด', 'ซีวิล', 'ซีสเต็ม','ซีเคียวริตี้', 'ซึ่งจดทะเบียนแล้ว', 'ซุปเปอร์', 'ซุปเปอร์โปร','พลังงา',
+        'ดอท', 'ดาต้า', 'ดิจิตอล', 'ดิจิทัล', 'ดิสทริบิวชั่น','ดิสทริบิวเตอร์', 'ดิเวลลอปเม้นท์', 'ดีซายน์', 'ดีเวลลอป','ผลิตภัณฑ์',
+        'ดีเวลลอปเมนท์', 'ดีเวลลอปเม้นท์', 'ดีเวลล็อปเม้นท์','ดีเวลอปเมนท์', 'ดีเวลอปเม้นท์', 'ดีไซน์', 'ทนายความ', 'ทรัพย์ทวี',
+        'ทรานสปอ', 'ทรานสปอร์ต', 'ทรานสปอร์ท', 'ทรานส์', 'ทราฟฟิค','ทราเวล', 'ทราเวิล', 'ทะเบียน', 'ทัวร์', 'ทาวเวอร์', 'ทิสโก้',
+        'ทีม', 'ทูลลิ่ง', 'ทูลส', 'ทูลส์', 'ธุรกิจ', 'นอมีนี','นำคนต่างด้าวมาทำงานในประเทศ', 'นิตติ้ง', 'นิปปอน', 'บจ','บริวเวอ',
+        'บจ\\.บริษัท', 'บจก', 'บมจ', 'บมจ\\.บริษัท', 'บรรจุภัณฑ์','บริการ', 'บริษัท', 'บริษํท', 'บลจ', 'บางกอก', 'บาร์', 'บิซิเนส',
+        'บิลดิ้ง', 'บิลเดอร์', 'บิวดิ้ง', 'บิวตี้', 'บิวเดอร์', 'บิสซิเนส','บิสสิเนส', 'บิสิเนส', 'บี.วี', 'บี\\.วี', 'บี\\.วีกลุ่ม', 'บีช',
+        'บีเอชดี', 'บ้าน', 'ปักกิ่ง', 'ปาร์ค', 'ปาล์ม', 'ปิโตรเลียม','ปิโตรเลี่ยม', 'พรอพเพอร์ตี้', 'พริ้นติ้ง', 'พริ้นท์', 'พรีซิชั่น',
+        'พร็อพ', 'พร็อพเพอร์ตี้', 'พร็อพเพอร์ตี้ส์', 'พร๊อพเพอร์ตี้','พลัส', 'พลาซ่า', 'พลาสติก', 'พัฒนา', 'พัฒนาอิสลาม', 'พับลิชชิ่ง',
+        'พาณิชย์', 'พาราวู้ด', 'พาราไดซ์', 'พาร์ค', 'พาร์ท', 'พาร์ทเนอ','พาร์ทเนอร์', 'พาร์ทเนอร์ส', 'พาวเวอร์', 'พีทีวาย', 'พีทีอี',
+        'พีแอลซี', 'ฟรุ๊ต', 'ฟอร์เวิร์ด', 'ฟาร์ม', 'ฟาร์มา', 'ฟิตเนส','ฟิล์ม', 'ฟูดส์', 'ฟู้ด', 'ฟู้ดส์', 'ฟู๊ด', 'ฟู๊ดส์', 'มอเตอ',
+        'มอเตอร์', 'มันนี่', 'มัลติมีเดีย', 'มา.*เกต', 'มาร์ท', 'มาร์เก็ต','มาร์เก็ตติ้ง', 'มาสเตอร์', 'มิวสิค', 'มิสเตอร์', 'มีเดีย',
+        'มุลนิธิ', 'มุลนิธิจีเอ็มบีเอช', 'มูลนิธิ', 'ยูนิเวอร์แซล','ยูเนี่ยน', 'ยูไนเต็ด', 'รักษาความปลอดภัย', 'รับเบอร์','แลบบอ','แฟบริ',
+        'รีซอร์สเซส', 'รีสอร์ท', 'รีเทล', 'รีเสิร์ช', 'รีไซเคิล', 'ร้าน','ลอนดรี้', 'ลอว์', 'ลิงค์', 'ลิซซิ่ง', 'ลิฟวิ่ง', 'ลิมิเด็ด',
+        'ลิมิเต็ด', 'ลิสซิ่ง', 'ลีดเดอร์', 'ลีฟวิ่ง', 'ลีสซิ่ง', 'วอเตอร์','วัสดุก่อสร้าง', 'วัสดุภัณฑ์', 'วิชั่น', 'วิลล่า', 'วิลล่าส์',
+        'วิลเลจ', 'วิศวกรรม', 'วู้ด', 'วู๊ด', 'ส\\.', 'สกิน', 'สตีล','สตูดิโอ', 'สถาปนิก', 'สปอร์ต', 'สปา', 'สมาคม', 'สมาร์ท', 'สยาม',
+        'สยาม ', 'สำนักกฎหมาย', 'สำนักงาน', 'สเตชั่น', 'สเตนเลส', 'สเปซ','สแควร์', 'สแตนดาร์ด', 'สแตนเลส', 'สโตน', 'สโตร์', 'สไตล์', 'หจ',
+        'หจ\\.', 'หจ\\.ห้างหุ้นส่วนจำกัด', 'หมู่', 'หลักทรัพ', 'หส\\.','หส\\.ห้างหุ้นส่วนสามัญ', 'หุ้น', 'ห้าง', 'ห้างทอง',
+        'ห้างทองเยาวราช', 'ห้างหุ้นส่วนจำกัด', 'ห้างหุ้นส่วนสามัญ','อพาร์ทเมนท์', 'อพาร์ทเม้นท์', 'อลูมินั่ม', 'อลูมิเนียม', 'ออดิท',
+        'ออดิทติ้ง', 'ออดิโอ', 'ออนไลน์', 'ออฟฟิศ', 'ออยล์', 'ออร์แกนิค','ออโต', 'ออโตเมชั่น', 'ออโตโมทีฟ', 'ออโตโมบิล', 'ออโต้',
+        'ออโต้คาร์', 'ออโต้พาร์ท', 'ออโต้เซอร์วิส', 'อะโกร', 'อะไหล่ยนต์','อันดามัน', 'อาร์คิเทค', 'อาร์ต', 'อาร์ท', 'อิควิปเม้นท์', 'อิงค์',
+        'อิงส์', 'อินชัวรันส์', 'อินดัสตรี', 'อินดัสตรีส์', 'อินดัสตรี้','อินดัสทรี', 'อินดัสทรีส์', 'อินดัสทรี่', 'อินดัสเตรียล',
+        'อินดัสเทรียล', 'อินทิเกรชั่น', 'อินทีเรีย', 'อินฟอร์เมชั่น','อินสไปร์', 'อินเตอ', 'อินเตอร์', 'อินเตอร์กรุ๊ป', 'อินเตอร์ฟู้ด',
+        'อินเตอร์เทค', 'อินเตอร์เทรด', 'อินเตอร์เทรดดิ้ง','อินเตอร์เนชันแนล', 'อินเตอร์เนชั่นแนล', 'อินเทลลิเจนท์', 'อินเวส',
+        'อินโนเทค', 'อินโนเวชั่น', 'อินโนเวทีฟ', 'อิมปอร์ต','อิมปอร์ต-เอ็กซ์ปอร์ต', 'อิมพอร์ต', 'อิมพอร์ท', 'อิมเมจ',
+        'อิเลคทริค', 'อิเล็กทรอนิกส์', 'อิเล็คทริค', 'อิ้งค์','อีควิปเมนท์', 'อีควิปเม้นท์', 'อีสเทิร์น', 'อีเนอจี้','แอ็คเค้า','อีเลค','อิเลค',
+        'อีเลคทริค', 'อีเล็คทริค', 'อีเว้นท์', 'อุตสาหกรรม', 'อโกร','ฮอนดา', 'ฮอนด้า', 'ฮับ', 'ฮาร์ดแวร์', 'ฮ่องกง', 'เคมิคอล',
+        'เคมิคัล', 'เคมีคอล', 'เครน', 'เจนเนอรัล', 'เจริญยนต์', 'เจเนอรัล','เจแปน', 'เซนเตอร์', 'เซฟตี้', 'เซรามิค', 'เซล', 'เซลล์', 'เซลส์',
+        'เซอ.*วิส', 'เซอร์วิส', 'เซอร์วิสเซส', 'เซอร์เวย์', 'เซิร์ฟ','เซเว่น', 'เซ็นทรัล', 'เซ็นเตอ', 'เซ็นเตอร์', 'เดคคอร์',
+        'เดคคอเรชั่น', 'เดคอร์', 'เดอะ', 'เทค', 'เทคนิ', 'เทคนิค','เทคนิคอล', 'เทคโน', 'เทคโนโลยี', 'เทคโนโลยีส์', 'เทคโนโลยี่',
+        'เทรด', 'เทรดดิ้ง', 'เทรนนิ่ง', 'เทศบาล', 'เทเลคอม', 'เนเจอร์','เนเชอรัล', 'เน็ตเวิร์ค', 'เน็ทเวิร์ค', 'เบฟเวอเรจ', 'เบย์',
+        'เบอเกอ', 'เบเกอรี', 'เบเกอรี่', 'เปเปอร์', 'เพลส', 'เพาเวอร์','เพ็ท', 'เพ้นท์', 'เฟรช', 'เฟอร์นิเจอร์', 'เภสัช', 'เมคเกอร์',
+        'เมดดิคอล', 'เมดิคอล', 'เมททอล', 'เมทัล', 'เมทัลชีท','เมนเทนแนนซ์', 'เมอร์ชั่น', 'เมเนจเมนท์', 'เมเนจเม้นท์', 'เยาวราช',
+        'เรดิโอ', 'เรสซิเดนซ์', 'เรสซิเด้นซ์', 'เรสเตอรองท์', 'เรียล','เรียลเอสเตท', 'เลิร์นนิ่ง', 'เลเซอร์', 'เวนเจอ', 'เวนเจอร์',
+        'เวนเจอร์ส', 'เวลดิ้ง', 'เวลท์', 'เวลธ์', 'เวลเนส', 'เวิร์ค','เวิลด์', 'เวิลด์ไวด์', 'เอ.*จิเนีย', 'เอ.*เตอ', 'เอนจิเนียริ่ง',
+        'เอนเตอร์ไพรส์', 'เอนเนอ', 'เอนเนอร์จี', 'เอนเนอร์ยี่','เอสดีเอ็น', 'เอสเตท', 'เอเจนซี่', 'เอเชีย', 'เอเซีย',
+        'เอเซียNOMINEES','NOMINEES', 'เอเนเจีย', 'เอเยนซี่', 'เอ็กซ์ปอร์ต','เอ็กซ์พอร์ต', 'เอ็กซ์พอร์ท', 'เอ็กซ์เชนจ์', 'เอ็กซ์เพรส',
+        'เอ็กซ์เพิร์ท', 'เอ็ดดูเคชั่น', 'เอ็นจิเนีย', 'เอ็นจิเนียริ่ง','เอ็นจิเนียร์', 'เอ็นจิเนียร์ริ่ง', 'เอ็นจีเนียริ่ง',
+        'เอ็นเตอร์เทนเมนท์', 'เอ็นเตอร์เทนเม้นท์', 'เอ็นเตอร์ไพรซ์','เอ็นเตอร์ไพรส์', 'เอ็นเตอร์ไพรส์เซส', 'เอ็นเตอร์ไพร์ส', 'เอ็นเนอ',
+        'เอ็นเนอร์จี', 'เอ็นเนอร์ยี', 'เอ็นเนอร์ยี่', 'เอ็ม\\.บี','เอ็มบี', 'เอ็มบีเอช', 'เอ็มไพร์', 'เฮลตี้', 'เฮลท์', 'เฮลท์ตี้',
+        'เฮลท์แคร์', 'เฮลธ์', 'เฮอริเทจ', 'เฮาส', 'เฮาส์', 'เฮิร์บ','เฮ้าส์', 'เฮ้าส์ซิ่ง', 'แกลเลอรี่', 'แก๊ส', 'แค(บ|ป).*ตอล',
+        'แคปปิตอล', 'แคร์', 'แทรคเตอร์', 'แทรเวล', 'แทรเวิล', 'แบรนด์','แปซิฟิก', 'แปซิฟิค', 'แพคเกจจิ้ง', 'แพลนท์', 'แพลนนิ่ง',
+        'แพลนเนอร์', 'แพ็คกิ้ง', 'แพ็คเกจจิ้ง', 'แฟคตอรี่', 'แฟคทอรี่','แฟชั่น', 'แฟบริค', 'แฟมิลี่', 'แมชชินเนอรี่', 'แมชชีน',
+        'แมชชีนเนอรี่', 'แมทที', 'แมททีเรียล', 'แมนชั่น', 'แมนู','แมนูแฟคเจอริ่ง', 'แมนเนจเมนท์', 'แมนเนจเม้นท์', 'แมเนจ',
+        'แมเนจเมนท์', 'แมเนจเม้นท์', 'แลนด์', 'แลนด์สเคป', 'แลป', 'แล็บ','แอ.*เซท', 'แอคเคาท์', 'แอคเคาท์ติ้ง', 'แอคเคาน์ติ้ง', 'แอดวานซ์',
+        'แอดเวอร์ไทซิ่ง', 'แอดไวซอรี่', 'แอดไวซ์', 'แอดไวเซอรี่', 'แอนด์','แอพพาเรล', 'แอร์', 'แอล.*พี', 'แอล.+ซี', 'แอลซี', 'แอลทีดี',
+        'แอลพีจี', 'แอลเอซี', 'แอลแอลซี', 'แอสเซท', 'แอสเซ็ท', 'แอสเสท','แอสโซซิเอท', 'แอสโซซิเอทส์', 'แอ๊ดวานซ์', 'โกลด์', 'โกลบอล',
+        'โกลเบิล', 'โซลาร์', 'โซลู', 'โซลูชั่น', 'โซลูชั่นส์', 'โซล่า','โซล่าร์', 'โดย ', 'โตเกียว', 'โตโยต้า', 'โตโยต้าเภสัช',
+        'โบรกเกอร์', 'โบรคเกอร์', 'โบ๊ท', 'โปรดัก', 'โปรดักชั่น','โปรดักท์', 'โปรดักส์', 'โปรเกรส', 'โปรเจค', 'โปรเจคท์', 'โปรเจ็ค',
+        'โปรเทคชั', 'โปรเฟสชั่นนอล', 'โปรเฟสชั่นแนล', 'โปรโมชั่น','โพรดักส์', 'โพรเกรส', 'โพลีเมอ', 'โพลีเมอร์', 'โมบาย', 'โมลด์',
+        'โมเดิร์น', 'โรงรับจำนำ', 'โลจิส', 'โลจิสติก', 'โลจิสติกส์','โลจิสติคส์', 'โลหะกิจ', 'โฮ.*เต.?ล', 'โฮด', 'โฮม', 'โฮมส์', 'โฮล',
+        'โฮลดิง', 'โฮลดิ้ง', 'โฮลดิ้งส์', 'โฮลเต็ล', 'โฮสด', 'โฮเต็ล','โฮเทล', 'ไซเอนซ์', 'ไทย', 'ไบโอ', 'ไบโอเทค', 'ไพรเวท', 'ไฟเบอร์',
+        'ไฟแนน', 'ไมนิ่ง', 'ไลท์ติ้ง', 'ไลฟ์สไตล์', 'ไอที', 'ไฮดรอลิค','ไฮเทค','โปรเจก','จี เอ็ม บี เอช']
 
 st.set_page_config(initial_sidebar_state = 'collapsed')
 ################## 1.Regex
@@ -97,7 +188,7 @@ def ClickToNext():
 
 def click_startClassify():
     st.session_state.app1_nameseer = True
-    st.session_state.app1_inidiv_regex_output = load_in(st.session_state.app1_selected_indiv)
+    st.session_state.app1_indiv_regex_output = load_in(st.session_state.app1_selected_indiv)
     st.session_state.app1_company_regex_output = load_in(st.session_state.app1_selected_company)
     st.session_state.app1_regex = False
 
@@ -144,7 +235,7 @@ if 'app1_possible_company_regex' not in st.session_state:
 if 'app1_NameClassify' not in st.session_state:
     st.session_state.app1_NameClassify = False
     st.session_state.app1_NameClassify_Output = None
-    
+    st.session_state['app1_data'] = None
     st.session_state.app1_upload = False
     st.session_state.app1_prep_mult_nmcol = False
     st.session_state.app1_regex = False
@@ -152,6 +243,89 @@ if 'app1_NameClassify' not in st.session_state:
     st.session_state.app1_dev_CleanRestName = False
     st.session_state.app1_MockupEvaluation = False
     st.session_state.app1_NextPage = False
+
+@st.cache_data
+def request_PreprocessByRegex(app1dataframe,app1_name_column,app1_indiv_regex_list,app1_company_regex_list):
+    # define params
+    port = 5001
+    api_route = 'prep_regex'
+    post_data = {
+        'dataframe' : app1dataframe.fillna(0).to_dict(orient= 'list'),
+        'name_column' : app1_name_column,
+        'indiv_regex' : app1_indiv_regex_list,
+        'company_regex' : app1_company_regex_list
+    }
+
+    with st.spinner('Wait for it...'):
+        stm_wn = st.empty()
+        stm_info = st.empty()
+        stm_rows = st.empty()
+        t0 = time.time()
+        stm_wn.warning('ไม่สามารถแสดงผล Progress ให้ท่านดูได้')
+        stm_info.info('แต่ตามสถิติจำนวนข้อมูลประมาณ 1,00,000 ชื่อใช้เวลาประมาณ 2 นาที')
+        stm_rows.write(f"จำนวนข้อมูลของท่านมีจำนวน {st.session_state['app1_dataframe'].shape[0]} rows")
+        res = requests.post(f'http://127.0.0.1:{port}/{api_route}', json = post_data)
+
+        results = {}
+        for key in res.json().keys():
+            try:
+                payload = res.json()[key]
+                if len(payload) > 0:
+                    data = pd.json_normalize(payload)
+                else:
+                    data = pd.DataFrame(columns = [st.session_state['app1_name_column']])    
+            except:
+                data = pd.DataFrame(columns = [st.session_state['app1_name_column']])
+            results[key] = data
+            
+        thai_names,regex_ord_df,regex_firm_df,classified_person_eng,classified_firm_eng = results.values()
+
+        stm_wn.empty()
+        stm_info.empty()
+        stm_rows.empty()
+        t1 = time.time()
+
+    return thai_names,regex_ord_df,regex_firm_df,classified_person_eng,classified_firm_eng
+
+#################################### Nat Classify ####################################
+@st.cache_data
+def request_nat_classify(target_df,holder_class_cn,holder_nat_cn,holder_name_cn):
+    api_route = 'nat_classify'
+    port = 5001
+    
+    post_data = {}
+    post_data['target_df'] = target_df.copy().fillna(0).to_dict(orient= 'list')
+    post_data['holder_class_cn'] = holder_class_cn
+    post_data['holder_nat_cn'] = holder_nat_cn
+    post_data['holder_name_cn'] = holder_name_cn
+
+    res = requests.post(f'http://127.0.0.1:{port}/{api_route}', json = post_data)
+    return pd.json_normalize(res.json()['result'])
+
+if 'nat_classify_input' not in st.session_state:
+    st.session_state['nat_classify_input'] = False
+    st.session_state['nat_classify_output'] = False
+    st.session_state['person_ava'] = None
+    st.session_state['holder_class_cn'] = None
+    st.session_state['holder_nat_cn'] = None
+    st.session_state['holder_name_cn'] = None
+    st.session_state['nat_classify_service'] = None
+    st.session_state['data'] = None
+    st.session_state['output_data'] = None
+
+def submit_natclassify_input():
+    st.session_state['holder_class_cn'] = 'Classified_Class'
+    st.session_state['holder_nat_cn'] = st.session_state['input_holder_nat']
+    st.session_state['holder_name_cn'] = st.session_state['input_holder_name']
+
+    person_df = st.session_state['data'][st.session_state['person_ava']]
+    target_df = person_df[person_df[st.session_state['holder_nat_cn']].isnull()]
+    if len(target_df) > 0 :
+        st.session_state['nat_classify_service'] = 'Success'
+    else:
+        st.session_state['nat_classify_service'] = 'Failed'
+    st.session_state['nat_classify_input'] = True
+
 
 ################## 0. Upload Dataset ##################
 st.title('App 1. คัดแยกประเภทผู้ถือหุ้น')
@@ -309,15 +483,16 @@ if st.session_state.app1_nameseer:
         
     if st.session_state['nameseer_buffer'] and len(st.session_state['thai_names']) > 0:
         st.header("2. คัดแยกบุคคล/บริษัท ด้วย Nameseer",divider = 'blue')
-
-    # print(st.session_state.app1_inidiv_regex_output)
-    # print(st.session_state.app1_company_regex_output)
-    st.session_state['thai_names'],regex_ord_df,regex_firm_df,classified_person_eng,classified_firm_eng = preprocess_byRegex(st.session_state.app1_dataframe,
-                                                                                                        st.session_state.app1_name_column,
-                                                                                                       st.session_state.app1_inidiv_regex_output,
-                                                                                                       st.session_state.app1_company_regex_output)
     
+    ################## request preprocessByRegex ##################
+    st.session_state['thai_names'],regex_ord_df,regex_firm_df,classified_person_eng,classified_firm_eng = request_PreprocessByRegex(app1dataframe = st.session_state.app1_dataframe,
+                                                                                                                                    app1_name_column = st.session_state.app1_name_column,
+                                                                                                                                    app1_indiv_regex_list = st.session_state.app1_indiv_regex_output,
+                                                                                                                                    app1_company_regex_list = st.session_state.app1_company_regex_output)
+    ################## request preprocessByRegex ##################
+        
     if len(st.session_state['thai_names']) == 0:
+        st.write("ไม่มีผลของ Nameseer เนื่องจากคัดแยกชื่อด้วย Regex ได้หมดแล้ว")
         st.session_state['nameseer_buffer'] = False
         classified_person_th = regex_ord_df.filter([st.session_state.app1_name_column])
         classified_person_th['Classified_Class'] = 'person_th'
@@ -330,20 +505,7 @@ if st.session_state.app1_nameseer:
         classified_result = pd.concat([classified_person_th,classified_firm_th,classified_person_eng,classified_firm_eng]).reset_index(drop = True)
         output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
                                                                                            'Classified_Class']),how = 'left')
-        # #refer count
-        # class_values = ['person_th','person_eng','firm_th','firm_eng','Unknown']
-        # values = [0,0,0,0,0]
-        # refer_c = pd.DataFrame({'Classified_Class':class_values,'Count':values})
 
-        # classifier_results = output_classified['Classified_Class'].value_counts().reset_index()
-        # classifier_results.columns = ['Classified_Class','Count']
-
-        # result_c = refer_c.merge(classifier_results,
-        #             on=['Classified_Class'],
-        #             how='left',
-        #             suffixes=('_x', None)).ffill(axis=1).drop(columns = 'Count_x')
-        # result_c['Count'] = result_c['Count'].astype(int)
-        # result_c = result_c.sort_values('Count',ascending = False).query('Count > 0').reset_index(drop = True)
         result_c = output_classified['Classified_Class'].value_counts().reset_index()
         result_c.columns = ['Classified_Class','Count']
         result_c['Count'] = result_c['Count'].astype(int)
@@ -364,11 +526,9 @@ if st.session_state.app1_nameseer:
             st.session_state.nameseer_company = 0.6
 
         with slider_container:
-            #st.slider(label = 'คัดแยกเป็นบุคคลธรรมดาเมื่อ person_score >=',min_value = 0.5,max_value =  1.0,value =  st.session_state.nameseer_person, step = 0.01,key = 'nameseer_person')
             nameseer_p = st.slider(label = 'คัดแยกเป็นบุคคลธรรมดาเมื่อ person_score >=',min_value = 0.5,max_value =  1.0,value =  st.session_state.nameseer_person, step = 0.01,key = 'nameseer_person')
             st.markdown("<div style='text-align: right;'><pre>ยิ่งมากยิ่งลด False Positive </pre>แต่มีความเสี่ยงที่ False Negative เพิ่มขึ้นหรือเกิด Unknown ขึ้น</div>", unsafe_allow_html=True)
             
-            #st.slider(label = 'คัดแยกเป็นบริษัทเมื่อ company_score >=',min_value = 0.5,max_value =  1.0,value =  st.session_state.nameseer_company, step = 0.01)
             nameseer_c = st.slider(label = 'คัดแยกเป็นบริษัทเมื่อ company_score >=',min_value = 0.5,max_value =  1.0,value =  st.session_state.nameseer_company, step = 0.01,key = 'nameseer_company')
 
         if developer_choices_checkBox:
@@ -441,20 +601,6 @@ if st.session_state.app1_nameseer:
             output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
                                                                                             'Classified_Class']),how = 'left')
             
-            #refer count
-            # class_values = ['person_th','person_eng','firm_th','firm_eng','Unknown']
-            # values = [0,0,0,0,0]
-            # refer_c = pd.DataFrame({'Classified_Class':class_values,'Count':values})
-
-            # classifier_results = output_classified['Classified_Class'].value_counts().reset_index()
-            # classifier_results.columns = ['Classified_Class','Count']
-
-            # result_c = refer_c.merge(classifier_results,
-            #             on=['Classified_Class'],
-            #             how='left',
-            #             suffixes=('_x', None)).ffill(axis=1).drop(columns='Count_x')
-            # result_c['Count'] = result_c['Count'].astype(int)
-            # result_c = result_c.sort_values('Count',ascending = False).query('Count > 0').reset_index(drop = True)
             result_c = output_classified['Classified_Class'].value_counts().reset_index()
             result_c.columns = ['Classified_Class','Count']
             result_c['Count'] = result_c['Count'].astype(int)
@@ -462,9 +608,7 @@ if st.session_state.app1_nameseer:
         
         else:
             thai_names_ = st.session_state['thai_names'].copy()
-            #nameseer_ord_df = thai_names_.query('tag_person >= @st.session_state.nameseer_person')
             nameseer_ord_df = thai_names_.query('tag_person >= @nameseer_p')
-            #nameseer_firm_df = thai_names_.query('tag_company >= @st.session_state.nameseer_company')
             nameseer_firm_df = thai_names_.query('tag_company >= @nameseer_c')
 
             nameseer_ord_df = anti_join(nameseer_ord_df,nameseer_firm_df.filter([st.session_state.app1_name_column]))
@@ -496,33 +640,80 @@ if st.session_state.app1_nameseer:
                                                                                             'Classified_Class','Classified_By']),how = 'left')
             output_classified['Classified_Class'] = output_classified['Classified_Class'].fillna('Unknown') 
             
-            # #refer count
-            # class_values = ['person_th','person_eng','firm_th','firm_eng','Unknown']
-            # values = [0,0,0,0,0]
-            # refer_c = pd.DataFrame({'Classified_Class':class_values,'Count':values})
-
-            # classifier_results = output_classified['Classified_Class'].value_counts().reset_index()
-            # classifier_results.columns = ['Classified_Class','Count']
-
-            # result_c = refer_c.merge(classifier_results,
-            #             on=['Classified_Class'],
-            #             how='left',
-            #             suffixes=('_x', None)).ffill(axis=1).drop(columns = 'Count_x')
             result_c = output_classified['Classified_Class'].value_counts().reset_index()
             result_c.columns = ['Classified_Class','Count']
             result_c['Count'] = result_c['Count'].astype(int)
             result_c = result_c.sort_values('Count',ascending = False).query('Count > 0').reset_index(drop = True)
 
-    #st.header('3. Classify Results')
+    # Finished
+    st.session_state['app1_data'] = load_in(output_classified)
+
+#################################### Display Results ####################################
+if st.session_state['nat_classify_input'] == False and st.session_state.app1_nameseer and st.session_state['app1_data'] is not None:
     st.divider()
     st.header("3. Classifed Results",divider = 'green')
     st.subheader(f'คัดแยกได้ทั้งหมด {len(classified_result)} ชื่อแยกเป็นประเภทดังนี้') 
     st.write(result_c)
     st.subheader("Output ที่คัดแยกเสร็จแล้ว")
-    #st.write(output_classified)
+    conditional_st_write_df(dataframe_explorer(st.session_state['app1_data'],case = False))
     
-    filtered_df = dataframe_explorer(output_classified, case=False)
+#################################### Nat Classifier ####################################
+if st.session_state['nat_classify_input'] == False and st.session_state.app1_nameseer:
+    st.session_state['data'] = output_classified.copy()
+    st.session_state['person_ava'] = st.session_state['data']['Classified_Class'].str.upper().str.contains('PERSON|ORD',regex = True)
+    if sum(st.session_state['person_ava']) > 0:
+        apply_nat_classify_checkbox = st.checkbox('Want to Apply Nat Classifier ?')
+        if apply_nat_classify_checkbox:
+            st.subheader("Please Select Necessary Columns")
+            choices = [None]
+            choices.extend(st.session_state['data'].columns.values)
+
+            left,right,out = st.columns([10,10,10])
+            left.subheader(f':gray[สัญชาติผู้ถือหุ้น :]')
+            right.selectbox(label = '',options = choices,index = 0,key = 'input_holder_nat',label_visibility = 'collapsed')
+            left.subheader(f':gray[ชื่อผู้ถือหุ้น :]')
+            right.selectbox(label = '',options = choices,index = 0,key = 'input_holder_name',label_visibility = 'collapsed')
+
+            submit_natclassify_input_bt = st.button('Submit',on_click = submit_natclassify_input)
+
+if st.session_state['nat_classify_input'] and st.session_state['nat_classify_service'] == 'Success':
+    person_df = st.session_state['data'][st.session_state['person_ava']]
+    target_df = person_df[person_df[st.session_state['holder_nat_cn']].isnull()]
+
+    
+    result_df = request_nat_classify(target_df,
+                                  st.session_state['holder_class_cn'],
+                                  st.session_state['holder_nat_cn'],
+                                  st.session_state['holder_name_cn'])
+    
+    st.session_state['data'] = st.session_state['data'].merge(result_df.filter([st.session_state['holder_name_cn'],st.session_state['holder_nat_cn']]),
+                                                              on = st.session_state['holder_name_cn'],
+                                                              how = 'left',suffixes= ['_left','_right'])
+    st.session_state['data'][st.session_state['holder_nat_cn']] = st.session_state['data'][f"{st.session_state['holder_nat_cn']}_left"].fillna(st.session_state['data'][f"{st.session_state['holder_nat_cn']}_right"])
+    st.session_state['data'] = st.session_state['data'].drop([f"{st.session_state['holder_nat_cn']}_left",f"{st.session_state['holder_nat_cn']}_right"],axis = 1)
+    
+    st.session_state['output_data'] = load_in(st.session_state['data'].copy())
+    st.session_state['nat_classify_output'] = True
+    st.session_state['nat_classify_service'] = None
+    
+elif st.session_state['nat_classify_input'] and st.session_state['nat_classify_service'] == 'Failed':
+    st.subheader('Service : Failed')
+
+if st.session_state['nat_classify_output'] == True:
+    st.header("3. Classifed Results",divider = 'green')
+    st.subheader(f'คัดแยกได้ทั้งหมด {len(classified_result)} ชื่อแยกเป็นประเภทดังนี้') 
+    st.write(result_c)
+    #st.subheader("Output ที่คัดแยกเสร็จแล้ว")
+    st.subheader('Output หลังจาก Apply Nat Classifier')
+    before_total_nan = output_classified[st.session_state['holder_nat_cn']].isnull().sum()
+    after_total_nan = st.session_state['output_data'][st.session_state['holder_nat_cn']].isnull().sum()
+    st.write(f'จำนวนสัญชาติที่เป็น NA ก่อนใช้โมเดลคัดแยกสัญชาติ {before_total_nan}')
+    st.write(f'จำนวนสัญชาติที่เป็น NA หลังใช้โมเดลคัดแยกสัญชาติ {after_total_nan}')
+    filtered_df = dataframe_explorer(st.session_state['output_data'], case=False)
     conditional_st_write_df(filtered_df)
+
+#################################### Nat Classifier ####################################
+    
 
 ################## Download Results ##################
 
@@ -542,13 +733,18 @@ def convert_df(df):
 
 if st.session_state.app1_nameseer:
     #st.divider()
-    if len(output_classified) > 0:
+    if len(st.session_state['app1_data']) > 0:
+        st.divider()
         download_but = st.button('Download',on_click = click_download)
 
 if st.session_state.app1_download_file:
     prompt = False
     submitted = False
-    csv = convert_df(output_classified)
+    if st.session_state['nat_classify_output'] == True:
+        st.write('this is output after Apply Nat Classifier')
+        csv = convert_df(st.session_state['output_data'])
+    else:
+        csv = convert_df(st.session_state['app1_data'])
     with st.form('chat_input_form'):
         # Create two columns; adjust the ratio to your liking
         col1, col2 = st.columns([3,1]) 
@@ -566,68 +762,6 @@ if st.session_state.app1_download_file:
 if st.session_state.app1_download_file:
     if prompt and submitted:
         st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
-
-################## 2.1 Evaluation ##################
-# if st.session_state.app1_nameseer:
-#     st.divider()
-#     st.subheader("(Optional) จำลองการประเมินผล Classifier")
-#     with st.expander('Psuedo Evaluation'):
-#         st.subheader('เป็นการประเมินผลของ Classifiers (Regex/Nameseer)')
-#         st.caption('Disclaimer ผลของ evaluation มาจาก psuedo_label (เป็นผลที่โมเดลทำนายยังไม่ใช่ของจริง) จึงไม่เหมาะกับการนำไปอ้างอิงแบบจริงจัง')
-#         evaluation_button = st.button('Get Evaluation Results',key = 'evaluation_click',on_click = click_evaluation)
-#         if st.session_state.app1_MockupEvaluation:
-#             #mockup_df = st.session_state.app1_dataframe
-#             #mockup_df.rename(columns = {st.session_state.app1_name_column:'name'},inplace = True)
-#             indiv_answ,comp_answ = evaluation_mockup(st.session_state.app1_dataframe,st.session_state.app1_name_column)
-            
-#             eva_col1,eva_col2 = st.columns(2)
-#             with eva_col1:
-#                 if indiv_answ is not None:
-#                     st.write('Psuedo Evaluation Class: บุคคลธรรมดาที่เป็นชื่อภาษาไทย (person_th)')
-#                     indiv_answ = indiv_answ.filter([st.session_state.app1_name_column,'tag_person']).merge(output_classified,how = 'left').filter([st.session_state.app1_name_column,'Classified_Class','tag_person'])
-#                     indiv_answ['Psuedo_Label'] = 1
-#                     indiv_answ['Predict'] = [1 if x == 'person_th' else 0 for x in indiv_answ['Classified_Class']]
-
-#                     indiv_acc = accuracy_score(indiv_answ['Psuedo_Label'],indiv_answ['Predict'])
-#                     indiv_precision = precision_score(indiv_answ['Psuedo_Label'],indiv_answ['Predict'])
-#                     indiv_recall = recall_score(indiv_answ['Psuedo_Label'],indiv_answ['Predict'])
-#                     indiv_f1 = f1_score(indiv_answ['Psuedo_Label'],indiv_answ['Predict'])
-#                     indiv_total_samples = len(indiv_answ)
-#                     indiv_eva = pd.DataFrame({'acc':[indiv_acc],'precision':[indiv_precision],'recall':[indiv_recall],'f1_score':[indiv_f1],'sample':[indiv_total_samples]})
-                    
-#                     indiv_answ['Psuedo_Label'] = 'person_th'
-#                     indiv_answ['Predict'] = indiv_answ['Classified_Class']
-#                     indiv_answ = indiv_answ.filter([st.session_state.app1_name_column,'Psuedo_Label','Predict'])
-#                     #indiv_answ.rename(columns = {st.session_state.app1_name_column:st.session_state.app1_name_column},inplace = True)
-#                     st.write(indiv_eva)
-#                     #st.write(indiv_answ.query('Actual != Predict'))
-#                     st.write('ตัวอย่างชื่อที่ classify ไม่ตรงกับ Psuedo Label')
-#                     #st.dataframe(indiv_answ.query('Psuedo_Label != Predict'), use_container_width=True)
-#                     conditional_st_write_df(indiv_answ.query('Psuedo_Label != Predict'))
-#             with eva_col2:
-#                 if comp_answ is not None:
-#                     st.write('Psuedo Evaluation Class: บริษัทที่เป็นชื่อภาษาไทย (company_th)')
-                
-#                     comp_answ = comp_answ.filter([st.session_state.app1_name_column,'tag_company']).merge(output_classified,how = 'left').filter([st.session_state.app1_name_column,'Classified_Class','tag_company'])
-#                     comp_answ['Psuedo_Label'] = 1
-#                     comp_answ['Predict'] = [1 if x == 'firm_th' else 0 for x in comp_answ['Classified_Class']]
-
-#                     comp_acc = accuracy_score(comp_answ['Psuedo_Label'],comp_answ['Predict'])
-#                     comp_precision = precision_score(comp_answ['Psuedo_Label'],comp_answ['Predict'])
-#                     comp_recall = recall_score(comp_answ['Psuedo_Label'],comp_answ['Predict'])
-#                     comp_f1 = f1_score(comp_answ['Psuedo_Label'],comp_answ['Predict'])
-#                     comp_total_samples = len(comp_answ)
-#                     comp_eva = pd.DataFrame({'acc':[comp_acc],'precision':[comp_precision],'recall':[comp_recall],'f1_score':[comp_f1],'sample':[comp_total_samples]})
-#                     comp_answ['Psuedo_Label'] = 'firm_th'
-                    
-#                     comp_answ['Predict'] = comp_answ['Classified_Class']
-#                     comp_answ = comp_answ.filter([st.session_state.app1_name_column,'Psuedo_Label','Predict'])
-#                     #comp_answ.rename(columns = {'name':st.session_state.app1_name_column},inplace = True)
-#                     st.write(comp_eva)
-#                     st.write('ตัวอย่างชื่อที่ classify ไม่ตรงกับ Psuedo Label')
-#                     #st.dataframe(comp_answ.query('Psuedo_Label != Predict'), use_container_width=True)
-#                     conditional_st_write_df(comp_answ.query('Psuedo_Label != Predict'))
-#                     #st.write(comp_answ.query('Actual != Predict'))
 
 ################## Back & Forward ##################
 st.divider()
@@ -649,6 +783,9 @@ with next_col:
     if (st.session_state.app1_nameseer):
         get_next = st.button('Next')
         if get_next:
-            st.session_state.app1_ExportOutput = Export_ToNext(output_classified)
+            if st.session_state['nat_classify_output']:
+                st.session_state.app1_ExportOutput = Export_ToNext(st.session_state['output_data'])
+            else:
+                st.session_state.app1_ExportOutput = Export_ToNext(st.session_state['app1_data'])
             switch_page('name matching')
             

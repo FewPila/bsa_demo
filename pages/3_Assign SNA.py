@@ -10,8 +10,9 @@ from streamlit_extras.dataframe_explorer import dataframe_explorer
 import copy
 import time
 from PIL import Image
-from utils.nm_utils import *
+#from utils.nm_utils import *
 from streamlit_extras.switch_page_button import switch_page
+import requests
 stqdm.pandas()
 #################################################################### App 3 Session ######################################################################
 if 'isic_df_left' not in st.session_state:
@@ -1193,10 +1194,8 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
                 st.session_state['global_input_firm']['sna'] = st.session_state['input_firm_sna']
                 st.session_state['global_input_firm']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
                 st.session_state['global_input_firm']['rid'] = st.session_state['input_firm_rid']
-                st.session_state['apply_rulebased_on_firm_out'] = load_in(st.session_state['apply_rulebased_on_firm'])
-            else:
-                st.session_state['apply_rulebased_on_firm_out'] = False
-                
+                st.session_state['apply_rulebased_on_firm'] = load_in(st.session_state['apply_rulebased_on_firm'])
+
             st.session_state['app3_rule_based_prioritize'] = True
     else:
         # If NOT APPLY RID Rule-based !!
@@ -1328,9 +1327,7 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
                 st.session_state['global_input_firm']['hldr_name'] = st.session_state['input_firm_hldrname']
                 st.session_state['global_input_firm']['sna'] = st.session_state['input_firm_sna']
                 st.session_state['global_input_firm']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
-                st.session_state['apply_rulebased_on_firm_out'] = load_in(st.session_state['apply_rulebased_on_firm'])
-            else:
-                st.session_state['apply_rulebased_on_firm_out'] = False
+                st.session_state['apply_rulebased_on_firm'] = load_in(st.session_state['apply_rulebased_on_firm'])
 
             st.session_state['app3_rule_based_prioritize'] = True
 
@@ -1471,6 +1468,96 @@ if st.session_state['app3_rule_based_prioritize']:
             else:
                 condition = False
         return condition
+    
+    @st.cache_data
+    def batch_request_ApplyRulebased(args,action,filtered_df,func_name,condition,fold = 10):
+        port = 5003
+        api_route = 'apply_rulebased'
+        filtered_df = filtered_df.copy().reset_index(drop = True)
+        
+        if action is not None:
+            action = action.fillna(0).to_dict(orient= 'list')
+            if len(action) == 0:
+                action = None
+
+        total_results = []
+        c = 0 
+        for i in stqdm(range(0,len(filtered_df),int(np.round(len(filtered_df)/fold)))):
+            if i == 0:
+                prev_i = 0
+                c += 1
+                samp_df = None
+                continue
+            else:
+                current_i = i
+                samp_df = filtered_df.iloc[prev_i:current_i]
+                prev_i = current_i
+                c+= 1
+                
+            if c == fold:
+                samp_df = filtered_df.iloc[current_i:]
+
+
+            if samp_df is not None:
+                samp_df = samp_df.fillna(0).to_dict(orient= 'list')
+                if len(samp_df) == 0:
+                    samp_df = None
+
+            post_data = {}
+            post_data['args'] = args
+            post_data['action'] = action
+            post_data['filtered_df'] = samp_df
+            post_data['func_name'] = func_name
+            post_data['condition'] = condition * 1
+
+            res = requests.post(f'http://127.0.0.1:{port}/{api_route}', json = post_data)
+            #if res.status_code == 201:
+            result = res.json()['result']
+            total_results.extend(result)
+
+        return total_results
+    
+    @st.cache_data
+    def request_ApplyRulebased(args,action,filtered_df,func_name,condition):
+        port = 5003
+        api_route = 'apply_rulebased'
+ 
+        if action is not None:
+            action = action.fillna(0).to_dict(orient= 'list')
+            if len(action) == 0:
+                action = None
+        
+        if filtered_df is not None:
+            filtered_df = filtered_df.fillna(0).to_dict(orient= 'list')
+            if len(filtered_df) == 0:
+                filtered_df = None
+        
+        post_data = {}
+        post_data['args'] = args
+        post_data['action'] = action
+        post_data['filtered_df'] = filtered_df
+        post_data['func_name'] = func_name
+        post_data['condition'] = condition * 1
+
+        res = requests.post(f'http://127.0.0.1:{port}/{api_route}', json = post_data)
+
+        return res.json()['result']
+    
+    @st.cache_data
+    def request_TidySna(filtered_df,target_name,type_sna,tidy_action):
+        port = 5003
+        api_route = 'tidy_sna'
+
+        post_data = {}
+        post_data['data'] = filtered_df.copy().fillna(0).to_dict(orient= 'list')
+        post_data['target_sna'] = target_name
+        post_data['type_sna'] = type_sna
+        post_data['action'] = tidy_action.fillna(0).to_dict(orient= 'list')
+
+        res = requests.post(f'http://127.0.0.1:{port}/{api_route}', json = post_data)
+
+        return res.json()['result']
+    
 
     if 'tidy_sna10_sna' not in st.session_state:
         st.session_state['tidy_sna10_sna'] = pd.read_excel('data/Tidy_SNA.xlsx',sheet_name = 'SNA10_SNA',engine = 'openpyxl')        
@@ -1482,7 +1569,7 @@ if st.session_state['app3_rule_based_prioritize']:
         st.session_state['tidy_sna_sna10']['value'] = st.session_state['tidy_sna_sna10']['value'].astype(str)
         
     ###### ***Apply Rule Based on Firm information Too
-    if st.session_state['apply_rulebased_on_firm_out']:
+    if st.session_state['apply_rulebased_on_firm']:
         # define max_rank
         if st.session_state['rid1_checkbox_out'] or st.session_state['rid2_checkbox_out']:
             max_rank = 5
@@ -1561,7 +1648,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
     time.sleep(0.5)
 
     ###### ***Apply Rule Based on Firm information Too
-    if st.session_state['apply_rulebased_on_firm_out']:
+    if st.session_state['apply_rulebased_on_firm']:
         # define max_rank
         if st.session_state['rid1_checkbox_out'] or st.session_state['rid2_checkbox_out']:
             max_rank = 5
@@ -1590,7 +1677,8 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             for rank in range(1,max_rank+1):
                 if len(st.session_state[f'apply_order{target}_rank{rank}']) > 0:
                     block2 = st.empty()
-                    block2.info(f"{rank}/{max_rank} : {st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__}")
+                    block2.info(f"{st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__}")
+                    
                     # If Class is Firm
                     if target == 4:
                         for i in range(1,2+1):
@@ -1603,12 +1691,18 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                 sna_class_info_block.info('2/2')
                                 cn = 'FIRM_FINAL_SNA10'
                             
-                            filtered_df[cn] = filtered_df.progress_apply(lambda row: \
-                            st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
-                                                                                            np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
-                                                                                            st.session_state[f'apply_order{target}_rank{rank}']['action'],
-                                                                                            condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
-                                                                                            axis = 1)
+                            try:
+                                filtered_df[cn] = batch_request_ApplyRulebased(args = np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
+                                                                        action = st.session_state[f'apply_order{target}_rank{rank}']['action'],
+                                                                        filtered_df = filtered_df.copy(),
+                                                                        func_name = st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__,
+                                                                        condition = st.session_state[f'apply_order{target}_rank{rank}']['condition'])
+                            except ValueError:
+                                filtered_df[cn] = request_ApplyRulebased(args = np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
+                                                                        action = st.session_state[f'apply_order{target}_rank{rank}']['action'],
+                                                                        filtered_df = filtered_df.copy(),
+                                                                        func_name = st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__,
+                                                                        condition = st.session_state[f'apply_order{target}_rank{rank}']['condition']) 
                             sna_class_info_block.empty()
 
                     # skip matchedsna for person case
@@ -1627,12 +1721,19 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                 sna_class_info_block = st.empty()
                                 sna_class_info_block.info('2/2')
                                 cn = 'HLDR_FINAL_SNA10'
-                            filtered_df[cn] = filtered_df.progress_apply(lambda row: \
-                                                    st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
-                                                                                                                    np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
-                                                                                                                    st.session_state[f'apply_order{target}_rank{rank}']['action'],
-                                                                                                                    condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
-                                                                                                                    axis = 1)
+
+                            try:
+                                filtered_df[cn] = batch_request_ApplyRulebased(args = np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
+                                                                        action = st.session_state[f'apply_order{target}_rank{rank}']['action'],
+                                                                        filtered_df = filtered_df.copy(),
+                                                                        func_name = st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__,
+                                                                        condition = st.session_state[f'apply_order{target}_rank{rank}']['condition'])
+                            except ValueError:
+                                filtered_df[cn] = request_ApplyRulebased(args = np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
+                                                                        action = st.session_state[f'apply_order{target}_rank{rank}']['action'],
+                                                                        filtered_df = filtered_df.copy(),
+                                                                        func_name = st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__,
+                                                                        condition = st.session_state[f'apply_order{target}_rank{rank}']['condition'])                         
                             sna_class_info_block.empty()
                     # end of each rule
                     block2.empty()
@@ -1660,61 +1761,31 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
 
         # Finshed Loop
         # Process Tidy SNA
-        # tidy_sna_block = st.empty()
-        # tidy_sna_block.info('Final Step : Tidy SNA')
-        # tidy_sna_block_mini1 = st.empty()
-        # tidy_sna_block_mini1.info('1/4')
-        # st.session_state['data']['FIRM_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['FIRM_FINAL_SNA'],row['FIRM_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
-        # tidy_sna_block_mini1.empty()
-        # tidy_sna_block_mini2 = st.empty()
-        # tidy_sna_block_mini2.info('2/4')
-        # st.session_state['data']['FIRM_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['FIRM_FINAL_SNA'],row['FIRM_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
-        # tidy_sna_block_mini2.empty()
-        # tidy_sna_block_mini3 = st.empty()
-        # tidy_sna_block_mini3.info('3/4')
-        # st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
-        # tidy_sna_block_mini3.empty()
-        # tidy_sna_block_mini4 = st.empty()
-        # tidy_sna_block_mini4.info('4/4')
-        # st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
-        # tidy_sna_block_mini4.empty()
-        # tidy_sna_block.empty()
-        # Finished
-        
-        #Finshed Loop
-        #Process Tidy SNA
         tidy_sna_block = st.empty()
         tidy_sna_block.info('Final Step : Tidy SNA')
-        tidy_sna_block.info('Please Wait')
-        # Tidy SNA
-        # tidy_sna_block_mini1 = st.empty()
-        # tidy_sna_block_mini1.info('1/2')
-        st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
-        # tidy_sna_block_mini1.empty()
-        # Tidy SNA10
-        # tidy_sna_block_mini2 = st.empty()
-        # tidy_sna_block_mini2.info('2/2')
-        st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
-        # tidy_sna_block_mini2.empty()
-        tidy_sna_block.empty()
+        TARGET_SNA = ['HLDR_FINAL_SNA','HLDR_FINAL_SNA10','FIRM_FINAL_SNA','FIRM_FINAL_SNA10']
+        SUB_TARGET_SNA = ['HLDR_FINAL_SNA10','HLDR_FINAL_SNA','FIRM_FINAL_SNA10','FIRM_FINAL_SNA']
+        TARGET_ACTION = ['tidy_sna10_sna','tidy_sna_sna10','tidy_sna10_sna','tidy_sna_sna10']
+        TARGET_TYPE = ['HLDR','HLDR','FIRM','FIRM']
+        rules = pd.DataFrame({'TARGET_SNA':TARGET_SNA,
+                    'SUB_TARGET_SNA':SUB_TARGET_SNA,
+                    'TARGET_ACTION':TARGET_ACTION,
+                    'TARGET_TYPE':TARGET_TYPE})
         
-        # tidy_sna_block = st.empty()
-        # tidy_sna_block.info('Final Step : Tidy SNA')
-        # for i in range(1,2+1):
-        #     tidy_sna_block_mini = st.empty()
-        #     tidy_sna_block_mini.info(f"{i}/2")
-        #     main_sna = 'HLDR'
-        #     if i == 1:
-        #         target_final_sna = 'HLDR_FINAL_SNA'
-        #         target_action = 'tidy_sna10_sna'
-        #     elif i == 2:
-        #         target_final_sna = 'HLDR_FINAL_SNA10'
-        #         target_action = 'tidy_sna_sna10'
-        #     st.session_state['data'][target_final_sna] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row[f'{main_sna}_FINAL_SNA'],row[f'{main_sna}_FINAL_SNA10'],st.session_state[target_action]),axis = 1)
-        #     tidy_sna_block_mini.empty()
-        #     time.sleep(0.5)
-        # tidy_sna_block.empty()
-        
+        for idx,row in rules.iterrows():
+            distinct_case = st.session_state['data'].drop_duplicates(subset = [row.TARGET_SNA,row.SUB_TARGET_SNA])\
+                                                .dropna(subset = [row.TARGET_SNA,row.SUB_TARGET_SNA])
+            if len(distinct_case) > 0:
+                distinct_case[f'tidy_{row.TARGET_SNA}'] = request_TidySna(distinct_case,
+                                                                        row.TARGET_SNA,
+                                                                        row.TARGET_TYPE,
+                                                                        tidy_action = st.session_state[row.TARGET_ACTION])
+                st.session_state['data'] = st.session_state['data'].merge(distinct_case.filter([row.TARGET_SNA,f'tidy_{row.TARGET_SNA}']),how = 'left')
+                st.session_state['data'][row.TARGET_SNA] = st.session_state['data'][f'tidy_{row.TARGET_SNA}']
+                st.session_state['data'] = st.session_state['data'].drop(f'tidy_{row.TARGET_SNA}',axis = 1)
+
+        tidy_sna_block.empty()               
+        # Finished
         st.session_state['app3_finalize_output'] = load_in(st.session_state['data'])        
     ###### Apply Rule Based on Holders Only
     else:
@@ -1730,14 +1801,14 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
         for target in range(1,3+1):
             Target_Name = st.session_state['global_input']['hldr_name']
             filtered_df =  st.session_state['data'][st.session_state['data']['Classified_Class'].str.contains(st.session_state[f'assign_sna_target{target}]']['Class'])].drop_duplicates(Target_Name)
-
+            print(filtered_df)
             block1 = st.empty()
             block1.info(f"{target}/4 | Class : {st.session_state[f'assign_sna_target{target}]']['Class']}")
             # Process Operation
             for rank in range(1,max_rank+1):
                 if len(st.session_state[f'apply_order{target}_rank{rank}']) > 0:
                     block2 = st.empty()
-                    block2.info(f"{rank}/{max_rank} : {st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__}")
+                    block2.info(f"{st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__}")
                     
                     # skip matchedsna for person case
                     if bool(re.search('PERSON|ORD',st.session_state[f'assign_sna_target{target}]']['Class'].upper())) and bool(re.search('MATCHEDSNA',st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__.upper())):
@@ -1753,12 +1824,20 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                                 sna_class_info_block = st.empty()
                                 sna_class_info_block.info('2/2')
                                 cn = 'HLDR_FINAL_SNA10'
-                            filtered_df[cn] = filtered_df.progress_apply(lambda row: \
-                                                    st.session_state[f'apply_order{target}_rank{rank}']['function'](row,
-                                                                                                                    np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
-                                                                                                                    st.session_state[f'apply_order{target}_rank{rank}']['action'],
-                                                                                                                    condition =  st.session_state[f'apply_order{target}_rank{rank}']['condition']),
-                                                                                                                    axis = 1)
+                            
+                            try:
+                                filtered_df[cn] = batch_request_ApplyRulebased(args = np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
+                                                                        action = st.session_state[f'apply_order{target}_rank{rank}']['action'],
+                                                                        filtered_df = filtered_df.copy(),
+                                                                        func_name = st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__,
+                                                                        condition = st.session_state[f'apply_order{target}_rank{rank}']['condition'])
+                            except ValueError:
+                                filtered_df[cn] = request_ApplyRulebased(args = np.append(np.array([cn]),st.session_state[f'apply_order{target}_rank{rank}']['input_column']).tolist(),
+                                                                        action = st.session_state[f'apply_order{target}_rank{rank}']['action'],
+                                                                        filtered_df = filtered_df.copy(),
+                                                                        func_name = st.session_state[f'apply_order{target}_rank{rank}']['function'].__name__,
+                                                                        condition = st.session_state[f'apply_order{target}_rank{rank}']['condition'])                                
+
                             sna_class_info_block.empty()
                     # end of each rule
                     block2.empty()
@@ -1775,39 +1854,31 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
             st.session_state['data'] = st.session_state['data'].drop(['HLDR_FINAL_SNA10_left','HLDR_FINAL_SNA10_right'],axis = 1)
 
         # Finshed Loop
-        # Process Tidy SNA
-        # tidy_sna_block = st.empty()
-        # tidy_sna_block.info('Final Step : Tidy SNA')
-        # for i in range(1,2+1):
-        #     tidy_sna_block_mini = st.empty()
-        #     tidy_sna_block_mini.info(f"{i}/2")
-        #     main_sna = 'HLDR'
-        #     if i == 1:
-        #         target_final_sna = 'HLDR_FINAL_SNA'
-        #         target_action = 'tidy_sna10_sna'
-        #     elif i == 2:
-        #         target_final_sna = 'HLDR_FINAL_SNA10'
-        #         target_action = 'tidy_sna_sna10'
-        #     st.session_state['data'][target_final_sna] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row[f'{main_sna}_FINAL_SNA'],row[f'{main_sna}_FINAL_SNA10'],st.session_state[target_action]),axis = 1)
-        #     tidy_sna_block_mini.empty()
-        #     time.sleep(0.5)
-        # tidy_sna_block.empty()
-
-        
-        # Tidy SNA
+        #################################### Process Tidy SNA ####################################
         tidy_sna_block = st.empty()
         tidy_sna_block.info('Final Step : Tidy SNA')
-        tidy_sna_block.info('Please Wait')
-        #tidy_sna_block_mini1 = st.empty()
-        #tidy_sna_block_mini1.info('1/2')
-        st.session_state['data']['HLDR_FINAL_SNA'] = st.session_state['data'].progress_apply(lambda row: tidy_sna(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna10_sna']),axis = 1)
-        #tidy_sna_block_mini1.empty()
-        # Tidy SNA10
-        #tidy_sna_block_mini2 = st.empty()
-        #tidy_sna_block_mini2.info('2/2')
-        st.session_state['data']['HLDR_FINAL_SNA10'] = st.session_state['data'].progress_apply(lambda row: tidy_sna10(row['HLDR_FINAL_SNA'],row['HLDR_FINAL_SNA10'],st.session_state['tidy_sna_sna10']),axis = 1)
-        #tidy_sna_block_mini2.empty()
-        #tidy_sna_block.empty()
+        TARGET_SNA = ['HLDR_FINAL_SNA','HLDR_FINAL_SNA10']
+        SUB_TARGET_SNA = ['HLDR_FINAL_SNA10','HLDR_FINAL_SNA']
+        TARGET_ACTION = ['tidy_sna10_sna','tidy_sna_sna10']
+        TARGET_TYPE = ['HLDR','HLDR']
+        rules = pd.DataFrame({'TARGET_SNA':TARGET_SNA,
+                    'SUB_TARGET_SNA':SUB_TARGET_SNA,
+                    'TARGET_ACTION':TARGET_ACTION,
+                    'TARGET_TYPE':TARGET_TYPE})
+        
+        for idx,row in rules.iterrows():
+            distinct_case = st.session_state['data'].drop_duplicates(subset = [row.TARGET_SNA,row.SUB_TARGET_SNA])\
+                                                .dropna(subset = [row.TARGET_SNA,row.SUB_TARGET_SNA])
+            if len(distinct_case) > 0:
+                distinct_case[f'tidy_{row.TARGET_SNA}'] = request_TidySna(distinct_case,
+                                                                        row.TARGET_SNA,
+                                                                        row.TARGET_TYPE,
+                                                                        tidy_action = st.session_state[row.TARGET_ACTION])
+                st.session_state['data'] = st.session_state['data'].merge(distinct_case.filter([row.TARGET_SNA,f'tidy_{row.TARGET_SNA}']),how = 'left')
+                st.session_state['data'][row.TARGET_SNA] = st.session_state['data'][f'tidy_{row.TARGET_SNA}']
+                st.session_state['data'] = st.session_state['data'].drop(f'tidy_{row.TARGET_SNA}',axis = 1)
+
+        tidy_sna_block.empty()
         # Finished
         st.session_state['app3_finalize_output'] = load_in(st.session_state['data'])
             
