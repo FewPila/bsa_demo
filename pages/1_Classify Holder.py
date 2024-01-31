@@ -533,6 +533,7 @@ if st.session_state.app1_nameseer:
 
         if developer_choices_checkBox:
             thai_names_ = st.session_state['thai_names'].copy()
+            print(thai_names)
             #nameseer_ord_df = thai_names_.query('tag_person >= @st.session_state.nameseer_person')
             nameseer_ord_df = thai_names_.query('tag_person >= @nameseer_p')
             
