@@ -278,7 +278,11 @@ def request_PreprocessByRegex(app1dataframe,app1_name_column,app1_indiv_regex_li
                 data = pd.DataFrame(columns = [st.session_state['app1_name_column']])
             results[key] = data
             
-        thai_names,regex_ord_df,regex_firm_df,classified_person_eng,classified_firm_eng = results.values()
+        thai_names = results['thai_names']
+        regex_ord_df = results['regex_ord_df']
+        regex_firm_df = results['regex_firm_df']
+        classified_person_eng = results['classified_person_eng']
+        classified_firm_eng = results['classified_firm_eng']
 
         stm_wn.empty()
         stm_info.empty()
