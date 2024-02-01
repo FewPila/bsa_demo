@@ -384,7 +384,7 @@ if st.session_state.app1_upload == False:
             st.session_state.app1_dataframe = read_upload_data(uploaded_file)
             st.session_state.app1_query_cache = True
         
-       if st.session_state.app1_dataframe is not None:
+        if st.session_state.app1_dataframe is not None:
             if (st.session_state.app1_dataframe.shape[0]) > 50000:
                 st.write(st.session_state.app1_dataframe.sample(50000))
             else:
