@@ -267,8 +267,12 @@ if  st.session_state.query_input == False:
     # after have input
     if st.session_state.query_df is not None:
         #st.subheader('This is Your Query Dataset')
-        conditional_st_write_df(st.session_state.query_df)
-
+        #conditional_st_write_df(st.session_state.query_df)
+        if (st.sesssion_state.query_df.shape[0]) > 50000:
+            st.write(st.session_state.query_df.sample(50000))
+        else:
+             st.write(st.session_state.query_df)
+                                  
         st.write(f'{st.session_state.query_df.shape[0]} rows , {st.session_state.query_df.shape[1]} columns')
         # select Name Column
         query_namecol_box = [None]
@@ -284,7 +288,11 @@ if  st.session_state.query_input == False:
 if st.session_state.app2_input == False:
     if st.session_state.query_input == True:
         st.header('Step 1: Input Dataset',divider = 'blue')
-        conditional_st_write_df(st.session_state.query_df)
+        #conditional_st_write_df(st.session_state.query_df)
+        if (st.sesssion_state.query_df.shape[0]) > 50000:
+            st.write(st.session_state.query_df.sample(50000))
+        else:
+             st.write(st.session_state.query_df)
         st.write(f'{st.session_state.query_df.shape[0]} rows , {st.session_state.query_df.shape[1]} columns')
 #################################################################################################### 1 Query Input ####################################################################################################
 from rapidfuzz import fuzz
