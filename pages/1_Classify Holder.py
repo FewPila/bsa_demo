@@ -371,7 +371,10 @@ if st.session_state.app1_upload == False:
         if uploaded_file is not None:
             
             dataframe = read_upload_data(uploaded_file)
-            conditional_st_write_df(dataframe)
+            if (dataframe.shape[0]) > 50000:
+                st.write(dataframe.sample(50000))
+            else:
+                 st.write(st.session_state.query_df)
             st.write(f'{dataframe.shape[0]} rows , {dataframe.shape[1]} columns')
             buf = io.StringIO()
             dataframe.info(buf=buf)
@@ -660,7 +663,11 @@ if st.session_state['nat_classify_input'] == False and st.session_state.app1_nam
     st.subheader(f'คัดแยกได้ทั้งหมด {len(classified_result)} ชื่อแยกเป็นประเภทดังนี้') 
     st.write(result_c)
     st.subheader("Output ที่คัดแยกเสร็จแล้ว")
-    conditional_st_write_df(dataframe_explorer(st.session_state['app1_data'],case = False))
+    
+    if st.session_state['app1_data'].shape[0] > 50000:
+        st.write(dataframe_explorer(st.session_state['app1_data'].sample(50000),case = False))
+    else:
+         st.write(dataframe_explorer(st.session_state['app1_data'],case = False))
     
 #################################### Nat Classifier ####################################
 if st.session_state['nat_classify_input'] == False and st.session_state.app1_nameseer:
@@ -714,8 +721,14 @@ if st.session_state['nat_classify_output'] == True:
     after_total_nan = st.session_state['output_data'][st.session_state['holder_nat_cn']].isnull().sum()
     st.write(f'จำนวนสัญชาติที่เป็น NA ก่อนใช้โมเดลคัดแยกสัญชาติ {before_total_nan}')
     st.write(f'จำนวนสัญชาติที่เป็น NA หลังใช้โมเดลคัดแยกสัญชาติ {after_total_nan}')
-    filtered_df = dataframe_explorer(st.session_state['output_data'], case=False)
-    conditional_st_write_df(filtered_df)
+
+    # filtered_df = dataframe_explorer(st.session_state['output_data'], case=False)
+    # conditional_st_write_df(filtered_df)
+    
+    if st.session_state['output_data'].shape[0] > 50000:
+        st.write(dataframe_explorer(st.session_state['output_data'].sample(50000),case = False))
+    else:
+         st.write(dataframe_explorer(st.session_state['output_data'],case = False))
 
 #################################### Nat Classifier ####################################
     
