@@ -340,8 +340,8 @@ if 'app1_query_input' not in st.session_state:
 def submit_app1_input():
     if st.session_state.app1_prep_mult_nmcol:
         st.session_state.app1_dataframe['concated_name'] = concat_name(st.session_state.app1_dataframe.filter(st.session_state.multiple_name_columns))
-    st.session_state.app1_dataframe = st.session_state.app1_dataframe.dropna(subset = st.session_state.option).reset_index(drop = True)
-    st.session_state.app1_name_column = load_in(st.session_state.option)
+    st.session_state.app1_dataframe = st.session_state.app1_dataframe.dropna(subset = st.session_state.selected_option).reset_index(drop = True)
+    st.session_state.app1_name_column = load_in(st.session_state.selected_option)
     #st.session_state.app1_dataframe,st.session_state.app1_name_column = init_data_upload(dataframe,st.session_state.option)
     st.session_state.app1_regex = True
     st.session_state.app1_upload = True
@@ -408,17 +408,16 @@ if st.session_state.app1_upload == False:
                 if not optional_concat:
                     st.write('โปรดเลือกคอลัมน์ชื่อที่ต้องการคัดแยกประเภท "บุคคลธรรมดา/ธุรกิจ"')
                     option = st.selectbox('',box_list,key = 'selected_option',label_visibility='collapsed')
-                    st.session_state.option = st.session_state.selected_option
+                    #st.session_state.option = st.session_state.selected_option
                 elif optional_concat:
                     option = st.multiselect(label = '',options = st.session_state.app1_dataframe.columns.values,default = None,key = 'multiple_name_columns')
                     submit_option = st.button('submit Name columns',on_click = click_concat_mult)
                     if submit_option:
                         st.session_state.option = 'concated_name'
                         st.success("OK please start")
-                
-            if option is not None:
-                start_name_classify =  st.button('คลิกเพื่อเริ่ม',on_click = submit_app1_input)
-                            
+                if  st.session_state.selected_option is not None:
+                    start_name_classify =  st.button('คลิกเพื่อเริ่ม',on_click = submit_app1_input)
+                                
                         
                     # if start_name_classify:
                     #     if st.session_state.app1_prep_mult_nmcol:
