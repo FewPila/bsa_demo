@@ -331,6 +331,20 @@ def submit_natclassify_input():
     st.session_state['nat_classify_input'] = True
 
 
+if 'app1_query_input' not in st.session_state:
+    st.session_state.app1_query_input = False
+    st.session_state.app1_query_cache  = False
+    st.session_state.app1_dataframe = None
+    st.session_state.app1_name_column = None
+    
+def submit_app1_input():
+    if st.session_state.app1_prep_mult_nmcol:
+        st.session_state.app1_dataframe['concated_name'] = concat_name(st.session_state.app1_dataframe.filter(st.session_state.multiple_name_columns))
+    st.session_state.app1_dataframe = st.session_state.app1_dataframe.dropna(subset = st.session_state.option).reset_index(drop = True)
+    st.session_state.app1_name_column = load_in(st.session_state.option)
+    #st.session_state.app1_dataframe,st.session_state.app1_name_column = init_data_upload(dataframe,st.session_state.option)
+    st.session_state.app1_regex = True
+    st.session_state.app1_upload = True
 ################## 0. Upload Dataset ##################
 st.title('App 1. คัดแยกประเภทผู้ถือหุ้น')
 st.write('การทำงานของโปรแกรมนี้จะใช้ทั้งหมด 2 วิธีในการคัดแยกประเภทของผู้ถือหุ้นว่าเป็น "บุคคลธรรมดา/บริษัท"')
@@ -361,30 +375,31 @@ with st.expander("See More Explanation"):
     st.caption("หมายเหตุ: ชื่อจะมีได้แค่ Class เดียว เช่น หากมี person_score >= 0.5 ชื่อดังกล่าวจะไม่มีคะแนนในส่วนของ company_score ")
 
 st.divider()
-if st.session_state.app1_upload == False:
-    first_section = st.empty()
-    with first_section.container():
-        
-        #st.header("Please Upload Your Dataset (.csv หรือ .xlsx)")
-        st.header("กรุณาอัพโหลด Dataset เพื่อเริ่ม (.csv)")
+if st.session_state.app1_upload == False:    
+    #st.header("Please Upload Your Dataset (.csv หรือ .xlsx)")
+    st.header("กรุณาอัพโหลด Dataset เพื่อเริ่ม (.csv)")
+    if st.session_state.app1_query_cache == False:
         uploaded_file = st.file_uploader("Choose a file")
         if uploaded_file is not None:
-            
-            dataframe = read_upload_data(uploaded_file)
-            if (dataframe.shape[0]) > 50000:
-                st.write(dataframe.sample(50000))
+            st.session_state.app1_dataframe = read_upload_data(uploaded_file)
+            st.session_state.app1_query_cache = True
+        
+       if st.session_state.app1_dataframe is not None:
+            if (st.session_state.app1_dataframe.shape[0]) > 50000:
+                st.write(st.session_state.app1_dataframe.sample(50000))
             else:
-                 st.write(st.session_state.query_df)
-            st.write(f'{dataframe.shape[0]} rows , {dataframe.shape[1]} columns')
+                 st.write(st.session_state.app1_dataframe)
+            st.write(f'{st.session_state.app1_dataframe.shape[0]} rows , {st.session_state.app1_dataframe.shape[1]} columns')
+    
             buf = io.StringIO()
-            dataframe.info(buf=buf)
+            st.session_state.app1_dataframe.info(buf=buf)
             s = buf.getvalue()
             lines = [line.split() for line in s.splitlines()[3:-2]]
             st.write('สรุปรายละเอียดของ Dataset')
             st.write(prepLines(lines))
             
             box_list = [None]
-            box_list.extend(dataframe.columns)
+            box_list.extend(st.session_state.app1_dataframe.columns)
 
             upper_container = st.container()
             #optional_concat = st.checkbox('IF Your Names Column is Multiple')
@@ -395,29 +410,30 @@ if st.session_state.app1_upload == False:
                     option = st.selectbox('',box_list,key = 'selected_option',label_visibility='collapsed')
                     st.session_state.option = st.session_state.selected_option
                 elif optional_concat:
-                    option = st.multiselect(label = '',options = dataframe.columns.values,default = None,key = 'multiple_name_columns')
+                    option = st.multiselect(label = '',options = st.session_state.app1_dataframe.columns.values,default = None,key = 'multiple_name_columns')
                     submit_option = st.button('submit Name columns',on_click = click_concat_mult)
                     if submit_option:
                         st.session_state.option = 'concated_name'
                         st.success("OK please start")
                 
             if option is not None:
-                start_name_classify =  st.button('คลิกเพื่อเริ่ม')
-                if start_name_classify:
-                    if st.session_state.app1_prep_mult_nmcol:
-                        dataframe['concated_name'] = concat_name(dataframe.filter(st.session_state.multiple_name_columns))
-                        print(dataframe)
-                    dataframe = dataframe.dropna(subset = st.session_state.option).reset_index(drop = True)
-                    st.session_state.app1_dataframe,st.session_state.app1_name_column = init_data_upload(dataframe,st.session_state.option)
-                    print(st.session_state.app1_dataframe)
-                    print(st.session_state.app1_name_column)
-                    st.session_state.app1_regex = True
-                    first_section.empty()
+                start_name_classify =  st.button('คลิกเพื่อเริ่ม',on_click = submit_app1_input)
+                            
+                        
+                    # if start_name_classify:
+                    #     if st.session_state.app1_prep_mult_nmcol:
+                    #         st.session_state.app1_query_df['concated_name'] = concat_name(st.session_state.app1_query_df.filter(st.session_state.multiple_name_columns))
+                    #     st.session_state.app1_query_df = st.session_state.app1_query_df.dropna(subset = st.session_state.option).reset_index(drop = True)
+                    #     st.session_state.app1_dataframe,st.session_state.app1_name_column = init_data_upload(dataframe,st.session_state.option)
+                    #     print(st.session_state.app1_dataframe)
+                    #     print(st.session_state.app1_name_column)
+                    #     st.session_state.app1_regex = True
+                    #     first_section.empty()
 
 #print(dataframe)
 ################## 1. Classify by Regex ##################
 if st.session_state.app1_regex:
-    st.session_state.app1_upload = True
+    #st.session_state.app1_upload = True
     ### 1.1 Individuals
     st.header("1. คัดแยกบุคคล/บริษัท ด้วย Regex")
     st.write('ใช้ keyword ในการคัดแยกว่าเป็น "บุคคล" หรือ "บริษัท"')
