@@ -1151,6 +1151,7 @@ if st.session_state.app2_textprocess and st.session_state.app2_preprocessNM == F
             st.session_state[f'matched{c}_df'] = matched_df.copy()
             st.session_state[f'matched{c}_qc'] = st.session_state['final_query_colname']
             st.session_state[f'matched{c}_cc'] = st.session_state['final_corpus_colname']
+            st.write(matched_df)
         c += 1
     # after finish
     st.session_state.app2_preprocessNM = True
