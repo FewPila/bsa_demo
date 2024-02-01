@@ -230,8 +230,8 @@ if 'possible_threshold_list' not in st.session_state:
 
 def submit_input_query():
     st.session_state.query_namecolname = st.session_state.namecol_select_box
-    st.session_state.query_df = load_in(st.session_state.query_df.filter(st.session_state.query_keep_col))#.sample(50000)
-    st.session_state.query_df = st.session_state.query_df.drop_duplicates(st.session_state['query_namecolname']).reset_index(drop = True).reset_index().rename(columns = {'index':'query_index'})
+    st.session_state.query_df = load_in(st.session_state.query_df.filter(st.session_state.query_keep_col))
+    #st.session_state.query_df = st.session_state.query_df.drop_duplicates(st.session_state['query_namecolname']).reset_index(drop = True).reset_index().rename(columns = {'index':'query_index'})
     st.session_state.query_input = True
 
 if 'query_input' not in st.session_state:
@@ -1386,6 +1386,7 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')
         st.caption('หมายเหตุ: ผลสามารถเป็นได้ทั้ง False Positive/Negative ไม่ใช่เป็นการ Confirm Matched')
         st.write(st.session_state['query_matched_results'])
+        conditional_st_write_df(st.session_state['query_matched_results'])
     if 't_end' not in st.session_state:
         st.session_state.t_end = time.time()
         st.write(st.session_state.t_end - st.session_state.t_zero)
