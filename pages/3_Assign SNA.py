@@ -1194,7 +1194,7 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
                 st.session_state['global_input_firm']['sna'] = st.session_state['input_firm_sna']
                 st.session_state['global_input_firm']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
                 st.session_state['global_input_firm']['rid'] = st.session_state['input_firm_rid']
-                st.session_state['apply_rulebased_on_firm'] = load_in(st.session_state['apply_rulebased_on_firm'])
+                st.session_state['apply_rulebased_on_firm_out'] = load_in(st.session_state['apply_rulebased_on_firm'])
 
             st.session_state['app3_rule_based_prioritize'] = True
     else:
