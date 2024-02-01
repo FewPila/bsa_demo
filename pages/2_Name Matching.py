@@ -1066,7 +1066,7 @@ def batch_request_NameMatching(query_df,query_name_colname,corpus_df,corpus_nmam
     port = 5002
     api_route = 'name_matching'
     
-    total_matched_df = []
+    total_matched_df = pd.DataFrame()
     c = 0 
     for i in stqdm(range(0,len(query_df),int(np.round(len(query_df)/fold)))):
         if i == 0:
@@ -1097,8 +1097,8 @@ def batch_request_NameMatching(query_df,query_name_colname,corpus_df,corpus_nmam
             sorted_col = ['query_name','corpus_name','tfidf_score','fuzzy_ratio','fuzzy_partialratio',query_name_colname,corpus_nmame_colname]
             result_df = result_df.filter(sorted_col)
             if len(result_df) > 0:
-                total_matched_df.append(result_df)
-    return pd.concat(total_matched_df,axis = 0).reset_index(drop = True)
+                total_matched_df = pd.concat([total_matched_df,result_df])
+    return total_matched_df.reset_index(drop = True)
 
 
 if st.session_state.app2_textprocess and st.session_state.app2_preprocessNM == False:
