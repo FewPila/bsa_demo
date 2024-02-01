@@ -384,40 +384,40 @@ if st.session_state.app1_upload == False:
             st.session_state.app1_dataframe = read_upload_data(uploaded_file)
             st.session_state.app1_query_cache = True
         
-        if st.session_state.app1_dataframe is not None:
-            if (st.session_state.app1_dataframe.shape[0]) > 50000:
-                st.write(st.session_state.app1_dataframe.sample(50000))
-            else:
-                 st.write(st.session_state.app1_dataframe)
-            st.write(f'{st.session_state.app1_dataframe.shape[0]} rows , {st.session_state.app1_dataframe.shape[1]} columns')
-    
-            buf = io.StringIO()
-            st.session_state.app1_dataframe.info(buf=buf)
-            s = buf.getvalue()
-            lines = [line.split() for line in s.splitlines()[3:-2]]
-            st.write('สรุปรายละเอียดของ Dataset')
-            st.write(prepLines(lines))
-            
-            box_list = [None]
-            box_list.extend(st.session_state.app1_dataframe.columns)
+    if st.session_state.app1_dataframe is not None:
+        if (st.session_state.app1_dataframe.shape[0]) > 50000:
+            st.write(st.session_state.app1_dataframe.sample(50000))
+        else:
+             st.write(st.session_state.app1_dataframe)
+        st.write(f'{st.session_state.app1_dataframe.shape[0]} rows , {st.session_state.app1_dataframe.shape[1]} columns')
 
-            upper_container = st.container()
-            #optional_concat = st.checkbox('IF Your Names Column is Multiple')
-            optional_concat = st.checkbox('หากต้องการรวมชื่อจากหลายคอลัมน์')
-            with upper_container:
-                if not optional_concat:
-                    st.write('โปรดเลือกคอลัมน์ชื่อที่ต้องการคัดแยกประเภท "บุคคลธรรมดา/ธุรกิจ"')
-                    option = st.selectbox('',box_list,key = 'selected_option',label_visibility='collapsed')
-                    #st.session_state.option = st.session_state.selected_option
-                elif optional_concat:
-                    option = st.multiselect(label = '',options = st.session_state.app1_dataframe.columns.values,default = None,key = 'multiple_name_columns')
-                    submit_option = st.button('submit Name columns',on_click = click_concat_mult)
-                    if submit_option:
-                        st.session_state.option = 'concated_name'
-                        st.success("OK please start")
-                if  st.session_state.selected_option is not None:
-                    start_name_classify =  st.button('คลิกเพื่อเริ่ม',on_click = submit_app1_input)
-                                
+        buf = io.StringIO()
+        st.session_state.app1_dataframe.info(buf=buf)
+        s = buf.getvalue()
+        lines = [line.split() for line in s.splitlines()[3:-2]]
+        st.write('สรุปรายละเอียดของ Dataset')
+        st.write(prepLines(lines))
+        
+        box_list = [None]
+        box_list.extend(st.session_state.app1_dataframe.columns)
+
+        upper_container = st.container()
+        #optional_concat = st.checkbox('IF Your Names Column is Multiple')
+        optional_concat = st.checkbox('หากต้องการรวมชื่อจากหลายคอลัมน์')
+        with upper_container:
+            if not optional_concat:
+                st.write('โปรดเลือกคอลัมน์ชื่อที่ต้องการคัดแยกประเภท "บุคคลธรรมดา/ธุรกิจ"')
+                option = st.selectbox('',box_list,key = 'selected_option',label_visibility='collapsed')
+                #st.session_state.option = st.session_state.selected_option
+            elif optional_concat:
+                option = st.multiselect(label = '',options = st.session_state.app1_dataframe.columns.values,default = None,key = 'multiple_name_columns')
+                submit_option = st.button('submit Name columns',on_click = click_concat_mult)
+                if submit_option:
+                    st.session_state.option = 'concated_name'
+                    st.success("OK please start")
+            if  st.session_state.selected_option is not None:
+                start_name_classify =  st.button('คลิกเพื่อเริ่ม',on_click = submit_app1_input)
+                            
                         
                     # if start_name_classify:
                     #     if st.session_state.app1_prep_mult_nmcol:
