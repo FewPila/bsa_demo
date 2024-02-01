@@ -268,7 +268,7 @@ if  st.session_state.query_input == False:
     if st.session_state.query_df is not None:
         #st.subheader('This is Your Query Dataset')
         #conditional_st_write_df(st.session_state.query_df)
-        if (st.sesssion_state.query_df.shape[0]) > 50000:
+        if (st.session_state.query_df.shape[0]) > 50000:
             st.write(st.session_state.query_df.sample(50000))
         else:
              st.write(st.session_state.query_df)
