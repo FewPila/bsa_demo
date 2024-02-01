@@ -1338,6 +1338,7 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         for world in st.session_state.order.values():
             print(c)
             if world == True:
+                st.write(st.session_state[f'matched{c}_df'])
                 ## from user threshold
                 nm_matched = pd.DataFrame()
                 #for thresh in st.session_state.possible_threshold_list:
