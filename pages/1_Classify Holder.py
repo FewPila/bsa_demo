@@ -1056,10 +1056,10 @@ if st.session_state.app1_download_file:
     #     st.text_input("กรุณาใส่ชื่อไฟล์", key="filename")
     #     submit = st.form_submit_button("Download Data & Params", on_click=download_df)
 
- if st.session_state.app1_download_file:
-        if prompt and submitted:
-            #st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
-            st.download_button(label="Download data as CSV",data = st.session_state['export_data'].to_csv().encode('utf-8'),file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
+if st.session_state.app1_download_file:
+    if prompt and submitted:
+        #st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
+        st.download_button(label="Download data as CSV",data = st.session_state['export_data'].to_csv().encode('utf-8'),file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
 
     
 #     with st.form('chat_input_form'):
