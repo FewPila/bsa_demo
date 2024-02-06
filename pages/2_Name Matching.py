@@ -1070,9 +1070,9 @@ def batch_request_NameMatching(query_df,query_name_colname,corpus_df,corpus_nmam
     Whole_df = np.array_split(query_df_,fold)
     for samp_df in stqdm(Whole_df):
         post_data = {
-            'query_df' : samp_df.to_dict(orient= 'list'),
+            'query_df' : samp_df.fillna(0).to_dict(orient= 'list'),
             'query_name_colname' : query_name_colname,
-            'corpus_df' : corpus_df.to_dict(orient= 'list'),
+            'corpus_df' : corpus_df.fillna(0).to_dict(orient= 'list'),
             'corpus_name_colname' : corpus_nmame_colname,
             'textprocess_regex_list': regex_list
         }
