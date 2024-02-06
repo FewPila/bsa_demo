@@ -1040,7 +1040,11 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
 
 ############################################################## Prioritize SNA ##############################################################
 if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_prioritize'] == False:
-
+    
+    
+    if 'apply_rulebased_on_firm_out' not in st.session_state:
+        st.session_state['apply_rulebased_on_firm_out'] = False
+        
     ################################# Ranking SNA #################################
     st.header('2. กำหนดลำดับการ Apply Rule Based',divider = 'blue')
     
@@ -1348,6 +1352,8 @@ from utils.app3 import *
 if 't_start' not in st.session_state:
     st.session_state['t_start'] = time.time()
     
+
+
 if st.session_state['app3_rule_based_prioritize']:
     def check_target_allowance(type_,target_):
         if target_ == 4: # if firm info
@@ -1481,23 +1487,8 @@ if st.session_state['app3_rule_based_prioritize']:
                 action = None
 
         total_results = []
-        c = 0 
-        for i in stqdm(range(0,len(filtered_df),int(np.round(len(filtered_df)/fold)))):
-            if i == 0:
-                prev_i = 0
-                c += 1
-                samp_df = None
-                continue
-            else:
-                current_i = i
-                samp_df = filtered_df.iloc[prev_i:current_i]
-                prev_i = current_i
-                c+= 1
-                
-            if c == fold:
-                samp_df = filtered_df.iloc[current_i:]
-
-
+        Whole_df = np.array_split(filtered_df,fold)
+        for samp_df in stqdm(Whole_df):
             if samp_df is not None:
                 samp_df = samp_df.fillna(0).to_dict(orient= 'list')
                 if len(samp_df) == 0:

@@ -106,6 +106,26 @@ firm_all_options = ['(กรุงเทพ)', '(ประเทศไทย)', 
         'โฮลดิง', 'โฮลดิ้ง', 'โฮลดิ้งส์', 'โฮลเต็ล', 'โฮสด', 'โฮเต็ล','โฮเทล', 'ไซเอนซ์', 'ไทย', 'ไบโอ', 'ไบโอเทค', 'ไพรเวท', 'ไฟเบอร์',
         'ไฟแนน', 'ไมนิ่ง', 'ไลท์ติ้ง', 'ไลฟ์สไตล์', 'ไอที', 'ไฮดรอลิค','ไฮเทค','โปรเจก','จี เอ็ม บี เอช']
 
+firm_keywords = ['CO', 'COMPANY', 'CORPORATION', 'CO\\.', 'CO\\s', 'ENTERPRISE',
+    'ENTERPRISES', 'INC', 'INTERNATIONAL', 'LIMITED', 'LLC', 'LTD','TRUST','SERVICE',
+    'NOMINEE', 'NOMINEES', 'PLC', 'PTE', 'PUBLIC', 'THAILAND', 'THE','คาร์โก้','FUND','BANK',
+    '^.?บจ\\.?', '^.?หส\\.?', '^บ', '^บ\\s', '^บจ', '^หจ', '^หส','อาคาร','เจแปน',
+    'กรม.*พัฒ', 'กรมการ', 'กลุ่ม', 'กอง.*โดย', 'กองมรดก', 'การประปา','โตโย','เซรามิค','แอส.*เ.*ท'
+    'กิจการ', 'กิจการร่วมค้า', 'คอร์ปอร์เรชั่น', 'คอร์ปอเรชั่น','เทคนิค','แค.*ตอล','เอเนเจ','คอมแพนนี',
+    'คอร์ปอเรชั้น', 'คอร์ปอเรท', 'คอร์เปอร์เรชั่น', 'คอร์เปอเรชั่น','เอ.*เนอ','ฮ่อง.*กง','โซ.*ล.?า',
+    'คัมปะนี', 'คัมพะนี', 'คัมพานี', 'จดทะเบียน', 'จำกัด', 'จีเอ็มบี','บี\\.?วี','นิติบ','ฟา.*มา',
+    'จีเอ็มบีเอช', 'ทรัสต', 'ทีม', 'นอมินี', 'บ\\.', 'บจก', 'บมจ','การบิน','แลนด์','โฮม','เบ.*เกอ',
+    'บริษัท', 'บริษํท', 'บลจ', 'บี\\.วี\\.?', 'ประเทศไทย', 'พีทีวาย','ซิสเ','บีเอชดี','หลักทร',
+    'พีทีอี', 'พีแอลซี', 'มหาชน', 'มหาลัย', 'มหาวิทยาลัย', 'มูลนิธิ','เวิร์คส','เวิ.*ค','โตเกีย','เวเคช',
+    'ร้าน', 'ลิมิเ.*ด', 'ลิมิเด็ด', 'ลิมิเต็ด', 'วิสาหกิจ','คอมโพ','ไพรเวท','การคลัง','เทคโน','คลับ',
+    'ศูนย์บริหาร', 'สถานสงเคราะห์', 'สถาบัน', 'สมาคม', 'สหกรณ์','ลิมิเต็ต','ลิมิเ','โกลบอล','คอน.*ัล',
+    'สาขา', 'สำนักงาน', 'หจ\\.?', 'หจก', 'หจก\\.?', 'หส\\.', 'หุ้น','นิป.*ปอน','โรงพยาบาล','ประกัน',
+    'ห้างหุ้นส่วนสามัญ', 'อิงค์', 'อิงส์', 'อินเตอร์เนชันแนล','มอเตอ','กองทุน','แอล.?แอล.?ซี','อิ.*ทริก',
+    'อินเตอร์เนชั่นแนล', 'อิ้งค์', 'อุตสาหกรรม', 'เทศบาล', 'เอเชีย','ครอป','คอร์ป','ฟูด','แอส','แอร์',
+    'เอเซีย', 'เอ็นเตอร์ไพรส์', 'เอ็นเตอร์ไพรส์เซส', 'เอ็นเตอร์ไพร์ส','คอมพะนี','คอมปา','โฮ.*ด.*ง',
+    'แอนด', 'แอลซี', 'แอลทีดี', 'แอลเอซี', 'แอลแอลซี', 'แอสเสท','เอ็มบี','อินเวส','เอเจน',
+    'โดย.*จำกัด', 'โดย.*นา', 'โฮลดิง', 'โฮลดิ้ง','กรุ.*ป','อีโอโอ','ไฟแนน','ซิสเต็ม','ทูล']
+
 st.set_page_config(initial_sidebar_state = 'collapsed')
 ################## 1.Regex
 def none_but_please_show_progress_bar(*args, **kwargs):
@@ -187,10 +207,15 @@ def ClickToNext():
     st.session_state.app1_NextPage = True
 
 def click_startClassify():
-    st.session_state.app1_nameseer = True
+    #st.session_state.app1_nameseer = True
+    st.session_state.app1_prepro_regex = True
     st.session_state.app1_indiv_regex_output = load_in(st.session_state.app1_selected_indiv)
     st.session_state.app1_company_regex_output = load_in(st.session_state.app1_selected_company)
     st.session_state.app1_regex = False
+
+    # send to params
+    st.session_state['params_person_regex_list'] = load_in(st.session_state.app1_selected_indiv)
+    st.session_state['params_company_regex_list'] = load_in(st.session_state.app1_selected_company)
 
 @st.cache_data
 def Export_ToNext(input_):
@@ -239,10 +264,36 @@ if 'app1_NameClassify' not in st.session_state:
     st.session_state.app1_upload = False
     st.session_state.app1_prep_mult_nmcol = False
     st.session_state.app1_regex = False
+    st.session_state.app1_prepro_regex = False
     st.session_state.app1_nameseer = False
     st.session_state.app1_dev_CleanRestName = False
     st.session_state.app1_MockupEvaluation = False
     st.session_state.app1_NextPage = False
+
+
+if 'params_person_regex_list' not in st.session_state:
+    st.session_state['params_person_regex_list'] = None
+    st.session_state['params_company_regex_list'] = None
+    st.session_state['params_nameseer_person_score'] = None
+    st.session_state['params_nameseer_company_score'] = None
+    st.session_state['params_nameseer_developer_option'] = None
+    st.session_state['params_apply_nationality_classify'] = None
+
+
+if 'app1_query_input' not in st.session_state:
+    st.session_state.app1_query_input = False
+    st.session_state.app1_query_cache  = False
+    st.session_state.app1_dataframe = None
+    st.session_state.app1_name_column = None
+
+def submit_app1_input():
+    if st.session_state.app1_prep_mult_nmcol:
+        st.session_state.app1_dataframe['concated_name'] = concat_name(st.session_state.app1_dataframe.filter(st.session_state.multiple_name_columns))
+    st.session_state.app1_dataframe = st.session_state.app1_dataframe.dropna(subset = st.session_state.selected_option).reset_index(drop = True)
+    st.session_state.app1_name_column = load_in(st.session_state.selected_option)
+    #st.session_state.app1_dataframe,st.session_state.app1_name_column = init_data_upload(dataframe,st.session_state.option)
+    st.session_state.app1_regex = True
+    st.session_state.app1_upload = True
 
 @st.cache_data
 def request_PreprocessByRegex(app1dataframe,app1_name_column,app1_indiv_regex_list,app1_company_regex_list):
@@ -278,6 +329,7 @@ def request_PreprocessByRegex(app1dataframe,app1_name_column,app1_indiv_regex_li
                 data = pd.DataFrame(columns = [st.session_state['app1_name_column']])
             results[key] = data
             
+        #thai_names,regex_ord_df,regex_firm_df,classified_person_eng,classified_firm_eng = results.values()
         thai_names = results['thai_names']
         regex_ord_df = results['regex_ord_df']
         regex_firm_df = results['regex_firm_df']
@@ -328,23 +380,12 @@ def submit_natclassify_input():
         st.session_state['nat_classify_service'] = 'Success'
     else:
         st.session_state['nat_classify_service'] = 'Failed'
+
     st.session_state['nat_classify_input'] = True
+    # send to params
+    st.session_state['params_apply_nationality_classify'] = True
 
 
-if 'app1_query_input' not in st.session_state:
-    st.session_state.app1_query_input = False
-    st.session_state.app1_query_cache  = False
-    st.session_state.app1_dataframe = None
-    st.session_state.app1_name_column = None
-    
-def submit_app1_input():
-    if st.session_state.app1_prep_mult_nmcol:
-        st.session_state.app1_dataframe['concated_name'] = concat_name(st.session_state.app1_dataframe.filter(st.session_state.multiple_name_columns))
-    st.session_state.app1_dataframe = st.session_state.app1_dataframe.dropna(subset = st.session_state.selected_option).reset_index(drop = True)
-    st.session_state.app1_name_column = load_in(st.session_state.selected_option)
-    #st.session_state.app1_dataframe,st.session_state.app1_name_column = init_data_upload(dataframe,st.session_state.option)
-    st.session_state.app1_regex = True
-    st.session_state.app1_upload = True
 ################## 0. Upload Dataset ##################
 st.title('App 1. คัดแยกประเภทผู้ถือหุ้น')
 st.write('การทำงานของโปรแกรมนี้จะใช้ทั้งหมด 2 วิธีในการคัดแยกประเภทของผู้ถือหุ้นว่าเป็น "บุคคลธรรมดา/บริษัท"')
@@ -373,6 +414,7 @@ with st.expander("See More Explanation"):
     st.write('โดยจะใช้คัดแยกชื่อที่ไม่สามารถคัดแยกประเภทได้จาก Regex โดยผลของ Nameseer อาจมีความผิดพลาดได้เพราะเป็นโมเดลที่ใช้ความน่าจะเป็น \nตามตัวอย่างด้านล่าง')
     st.image(image)
     st.caption("หมายเหตุ: ชื่อจะมีได้แค่ Class เดียว เช่น หากมี person_score >= 0.5 ชื่อดังกล่าวจะไม่มีคะแนนในส่วนของ company_score ")
+
 
 st.divider()
 if st.session_state.app1_upload == False:    
@@ -430,16 +472,33 @@ if st.session_state.app1_upload == False:
                     #     first_section.empty()
 
 #print(dataframe)
+
+if 'customize_upload_regex_indiv' not in st.session_state:
+    st.session_state['customize_upload_regex_indiv'] = False
+    st.session_state['indiv_uploaded_regex'] = None
+
+def submit_uploaded_indiv():
+    st.session_state['indiv_uploaded_regex'] = indiv_regex_df[indiv_regex_df.columns[0]].values.tolist()
+    st.session_state['customize_upload_regex_indiv'] = True
+
+if 'customize_upload_regex_company' not in st.session_state:
+    st.session_state['customize_upload_regex_company'] = False
+    st.session_state['company_uploaded_regex'] = None
+    
+def submit_uploaded_company():
+    st.session_state['company_uploaded_regex'] = company_regex_df[company_regex_df.columns[0]].values.tolist()
+    st.session_state['customize_upload_regex_company'] = True
+
 ################## 1. Classify by Regex ##################
 if st.session_state.app1_regex:
-    #st.session_state.app1_upload = True
+    st.session_state.app1_upload = True
     ### 1.1 Individuals
     st.header("1. คัดแยกบุคคล/บริษัท ด้วย Regex")
     st.write('ใช้ keyword ในการคัดแยกว่าเป็น "บุคคล" หรือ "บริษัท"')
     st.subheader("1.1 คัดแยกบุคคลธรรมดา",divider = 'blue')
     
-    user_indiv_regex_choices = st.radio(label = '',options = ['Suggested set of Keywords','Customize your own Keywords'],
-                                        captions = ['Keywords ที่ Developer คัดสรรมาให้ซึ่งคิดว่าเหมาะสมกับ Dataset: CPFS_Shareholder','ปรับแต่ง Keywords เองทั้งหมด'], 
+    user_indiv_regex_choices = st.radio(label = '',options = ['Suggested set of Keywords','Customize your own Keywords','Upload'],
+                                        captions = ['Keywords ที่ Developer คัดสรรมาให้ซึ่งคิดว่าเหมาะสมกับ Dataset: CPFS_Shareholder','ปรับแต่ง Keywords เองทั้งหมด',''], 
                                         index = 0,key = 'user_indiv_regex_choices_',label_visibility= 'collapsed')
 
     if user_indiv_regex_choices == 'Customize your own Keywords':
@@ -448,6 +507,18 @@ if st.session_state.app1_regex:
     elif user_indiv_regex_choices == 'Suggested set of Keywords':
         st.session_state.app1_possible_indiv_regex = st.session_state.app1_developer_indiv_regex
         st.session_state.app1_possible_indiv_default = copy.deepcopy(st.session_state.app1_developer_indiv_regex)
+    elif user_indiv_regex_choices == 'Upload':
+        if st.session_state['customize_upload_regex_indiv'] == False:
+            indiv_regex_upload = st.file_uploader("Choose a file to upload",key = 'indiv_regex_upload')
+            if indiv_regex_upload is not None:
+                indiv_regex_df = read_upload_data(indiv_regex_upload)
+                #st.session_state['indiv_uploaded_regex'] = indiv_regex_df[indiv_regex_df.columns[0]].values.tolist()
+                st.write(indiv_regex_df)
+                st.button('submit',on_click=submit_uploaded_indiv)
+
+        if st.session_state['customize_upload_regex_indiv']:
+            st.session_state.app1_possible_indiv_regex = copy.deepcopy(st.session_state['indiv_uploaded_regex'])
+            st.session_state.app1_possible_indiv_default = copy.deepcopy(st.session_state['indiv_uploaded_regex'])
 
     t_indiv = st.text_input(label = 'เพิ่ม Keyword ตรงนี้',key = 'individuals_customize_input')
     if t_indiv != '':
@@ -461,8 +532,8 @@ if st.session_state.app1_regex:
     ### 1.2 Company
     st.subheader("1.2 คัดแยกบริษัท",divider = 'blue')
 
-    user_company_regex_choices = st.radio(label = '',options = ['Suggested set of Keywords','Customize your own Keywords'],
-                                        captions = ['Keywords ที่ Developer คัดสรรมาให้ซึ่งคิดว่าเหมาะสมกับ Dataset: CPFS_Shareholder','ปรับแต่ง Keywords เองทั้งหมด'], 
+    user_company_regex_choices = st.radio(label = '',options = ['Suggested set of Keywords','Customize your own Keywords','Upload'],
+                                        captions = ['Keywords ที่ Developer คัดสรรมาให้ซึ่งคิดว่าเหมาะสมกับ Dataset: CPFS_Shareholder','ปรับแต่ง Keywords เองทั้งหมด',''], 
                                         index = 0,key = 'user_company_regex_choices_',label_visibility= 'collapsed')
 
     if user_company_regex_choices == 'Customize your own Keywords':
@@ -471,10 +542,22 @@ if st.session_state.app1_regex:
     elif user_company_regex_choices == 'Suggested set of Keywords':
         st.session_state.app1_possible_company_regex = st.session_state.app1_developer_company_regex
         st.session_state.app1_possible_company_default = copy.deepcopy(st.session_state.app1_developer_company_regex)
+    elif user_company_regex_choices == 'Upload':
+        if st.session_state['customize_upload_regex_company'] == False:
+            company_regex_upload = st.file_uploader("Choose a file to upload",key = 'company_regex_upload')
+            if company_regex_upload is not None:
+                company_regex_df = read_upload_data(company_regex_upload)
+                #st.session_state['company_uploaded_regex'] = company_regex_df[company_regex_df.columns[0]].values.tolist()
+                st.write(company_regex_df)
+                st.button('submit',on_click=submit_uploaded_company)
+
+        if st.session_state['customize_upload_regex_company']:
+            st.session_state.app1_possible_company_regex = copy.deepcopy(st.session_state['company_uploaded_regex'])
+            st.session_state.app1_possible_company_default = copy.deepcopy(st.session_state['company_uploaded_regex'])            
 
     t_company = st.text_input(label = 'เพิ่ม Keyword ตรงนี้',key = 'company_customize_input')
     if t_company != '':
-        if t_company not in st.session_state.possible_company_regex:
+        if t_company not in st.session_state.app1_possible_company_regex:
             st.session_state.app1_possible_company_regex.append(t_company)
             st.session_state.app1_possible_company_default.append(t_company)
     
@@ -497,34 +580,146 @@ if st.session_state.app1_regex:
         with left:
             st.button('Back',key = 'back1',on_click= click_get_back1)
 
+################## 2. Preprocess Regex ###################
+def is_firm_eng(x):
+    eng_pat = ['STREET','CREDIT','J\.P\.','UBS','GLOBAL','CITI','GROUP','GOLDMAN SACHS','DATA','BEST',
+               'INVEST','CEIC','HOLD','MEGA','UNIT','ASIA','CAP','CORP','INTER','EAST','WEST','FORTUNE',
+              'HK ','PACIFIC','RESEARCH','TECH','INC','GPH','PTE','FINAN','CLIENT','ENGINE','LC','GOUR','PRECISION',
+              'ELEC','DEVELOP','PLAN','HOTEL','RESID','RESORT','PRIME','MOTOR','ENERG','SYST','SOLU','PENANG','INTL',
+              'NOMINESS','INVES','&','TERMINAL','MANAGE','FOOD','SCB','LAND','CHEMI','ASSET','INDUS','HONGKONG',
+              'ENTERPR','WORLD','COPO','BATT?ERY','ADVER','ART','GROWTH','SOCIE','MORGAN STAN','JP MORGAN','CREAT','SERVICE',
+              'LIFE','MEDIA','METAL','THE ','PRIVATE','INTELI','MODERN','MEDICAL','TRADE','NILSEN','TOKYO','ATLANTIC','CONTAIN',
+              'LIMITED','MARKET','PAY ','CO\.','AUTO','FUND','LTD','MINING','PRODUCT','POWER','PROPE','TRAVEL','DOTCOM',
+              'SATELLITE','COMMUNICATION','ACCOM','JAPAN','COMPANY','BANK','TRUST','COSMETI','MED','CARE','NOMINE',
+              'GREAT','COMPU','STRAT','RESOUR','CARPET']
+    eng_pat_re = '|'.join(eng_pat)
+    
+    try:
+        out = True if re.search(eng_pat_re, x.strip().upper()) else False
+    except:
+        out = x
+        
+    return out
+
+#@st.cache_data
+def batch_request_PreproRegex(dataframe,name_colname,indiv_regex,company_regex,fold = 10):
+    port = 5001
+    api_route = 'prep_regex'
+    
+    total_names = pd.DataFrame()
+    query_df_ = dataframe.copy()
+    query_df_ = query_df_.drop_duplicates(name_colname).reset_index()
+    query_df_.rename(columns = {'index':'query_index'},inplace = True)
+    Whole_df = np.array_split(query_df_,fold)
+    for samp_df in stqdm(Whole_df):
+
+        post_data = {
+            'dataframe' : samp_df.to_dict(orient= 'list'),
+            'name_column' : name_colname,
+            'indiv_regex' : indiv_regex,
+            'company_regex' : company_regex
+        }
+
+        res = requests.post(f'http://127.0.0.1:{port}/{api_route}', json = post_data)
+        if res.status_code == 201:
+            result_df = pd.json_normalize(res.json()['total_names'])
+            if len(result_df) > 0:
+                total_names = pd.concat([total_names,result_df])
+    return total_names.reset_index(drop = True)
+
+@st.cache_data
+def request_Nameseer(dataframe,name_colname):
+    port = 5001
+    api_route = 'prep_nameseer'
+    post_data = {}
+    post_data['dataframe'] = dataframe.to_dict(orient= 'list')
+    post_data['name_column'] = name_colname
+    
+    res = requests.post(f'http://127.0.0.1:{port}/{api_route}', json = post_data)
+    return pd.json_normalize(res.json()['thai_names'])
+
+
+################## 2. Preprocess Regex ###################
+if st.session_state.app1_prepro_regex:
+    st.subheader('Preprocess Regex')
+    #st.info('Preprocess Regex')
+    st.session_state['total_names'] = batch_request_PreproRegex(st.session_state.app1_dataframe,
+                                            st.session_state.app1_name_column,
+                                            st.session_state.app1_indiv_regex_output,
+                                            st.session_state.app1_company_regex_output)
+    eng_names = st.session_state['total_names'].query('is_eng == True')
+    regex_firm_df = st.session_state['total_names'].query('is_firm == True')
+    st.session_state['total_names'] = anti_join(st.session_state['total_names'],regex_firm_df.filter([st.session_state['app1_name_column']]))
+    regex_ord_df = st.session_state['total_names'].query('is_ordinary == True')
+    thai_names = anti_join(st.session_state['total_names'],regex_ord_df.filter([st.session_state['app1_name_column']]))
+
+    eng_names['is_ordinary_eng'] = eng_names[st.session_state['app1_name_column']].progress_apply(lambda x : bool(re.search("MR\\.|MRS\\.|MISS|MS\\.",str(x).upper().strip())))
+    person_eng = eng_names.query('is_ordinary_eng == True')
+    eng_names = anti_join(eng_names,person_eng.filter([st.session_state['app1_name_column']]))
+
+    eng_names['is_firm'] = eng_names[st.session_state['app1_name_column']].progress_apply(is_firm_eng)
+    firm_eng = eng_names.query('is_firm == True')
+
+    person_eng2 = anti_join(eng_names,firm_eng.filter([st.session_state['app1_name_column']]))
+
+    ### classified eng
+    classified_person_eng = pd.concat([person_eng.filter([st.session_state['app1_name_column']]),
+                                person_eng2.filter([st.session_state['app1_name_column']])]).reset_index(drop = True)
+    classified_person_eng['Classified_Class'] = 'person_eng'
+
+    classified_firm_eng = firm_eng.filter([st.session_state['app1_name_column']]).reset_index(drop = True)
+    classified_firm_eng['Classified_Class'] = 'firm_eng'
+
+    #st.info('Preprocess Nameseer')
+    if len(thai_names) > 0:
+        thai_names = request_Nameseer(thai_names,st.session_state['app1_name_column'])
+    else:
+        thai_names = pd.DataFrame()
+
+    st.session_state['thai_names'] = thai_names
+    st.session_state['regex_ord_df'] = regex_ord_df 
+    st.session_state['regex_firm_df'] = regex_firm_df
+    st.session_state['classified_person_eng'] = classified_person_eng
+    st.session_state['classified_firm_eng'] = classified_person_eng
+
+    st.session_state['nameseer_buffer'] = True
+    st.session_state.app1_nameseer = True
+################## 2. Preprocess Regex ###################
+    
 ################## 2. Classify by Nameseer ##################
 if st.session_state.app1_nameseer:
-    if 'nameseer_buffer' not in st.session_state:
-        st.session_state['thai_names'] = ['A','B','C']
-        st.session_state['nameseer_buffer'] = True
+    st.session_state.app1_prepro_regex = False
+    #st.rerun()
+
+    # if 'nameseer_buffer' not in st.session_state:
+    #     st.session_state['thai_names'] = ['A','B','C']
+    #     st.session_state['nameseer_buffer'] = True
         
     if st.session_state['nameseer_buffer'] and len(st.session_state['thai_names']) > 0:
         st.header("2. คัดแยกบุคคล/บริษัท ด้วย Nameseer",divider = 'blue')
     
     ################## request preprocessByRegex ##################
-    st.session_state['thai_names'],regex_ord_df,regex_firm_df,classified_person_eng,classified_firm_eng = request_PreprocessByRegex(app1dataframe = st.session_state.app1_dataframe,
-                                                                                                                                    app1_name_column = st.session_state.app1_name_column,
-                                                                                                                                    app1_indiv_regex_list = st.session_state.app1_indiv_regex_output,
-                                                                                                                                    app1_company_regex_list = st.session_state.app1_company_regex_output)
+    # st.session_state['thai_names'],regex_ord_df,regex_firm_df,classified_person_eng,classified_firm_eng = request_PreprocessByRegex(app1dataframe = st.session_state.app1_dataframe,
+    #                                                                                                                                 app1_name_column = st.session_state.app1_name_column,
+    #                                                                                                                                 app1_indiv_regex_list = st.session_state.app1_indiv_regex_output,
+    #                                                                                                                                 app1_company_regex_list = st.session_state.app1_company_regex_output)
     ################## request preprocessByRegex ##################
         
     if len(st.session_state['thai_names']) == 0:
         st.write("ไม่มีผลของ Nameseer เนื่องจากคัดแยกชื่อด้วย Regex ได้หมดแล้ว")
         st.session_state['nameseer_buffer'] = False
-        classified_person_th = regex_ord_df.filter([st.session_state.app1_name_column])
+        
+        classified_person_th = st.session_state['regex_ord_df'].filter([st.session_state.app1_name_column])
         classified_person_th['Classified_Class'] = 'person_th'
 
-        classified_firm_th = regex_firm_df.filter([st.session_state.app1_name_column])
+        classified_firm_th = st.session_state['regex_firm_df'].filter([st.session_state.app1_name_column])
         classified_firm_th['Classified_Class'] = 'firm_th'
 
-        classified_person_eng['Classified_Class'] = 'person_eng'
-        classified_firm_eng['Classified_Class'] = 'firm_eng'
-        classified_result = pd.concat([classified_person_th,classified_firm_th,classified_person_eng,classified_firm_eng]).reset_index(drop = True)
+        st.session_state['classified_person_eng']['Classified_Class'] = 'person_eng'
+        st.session_state['classified_firm_eng']['Classified_Class'] = 'firm_eng'
+        classified_result = pd.concat([classified_person_th,classified_firm_th,
+                                       st.session_state['classified_person_eng'],st.session_state['classified_firm_eng']]).reset_index(drop = True)
+        
         output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
                                                                                            'Classified_Class']),how = 'left')
 
@@ -555,7 +750,6 @@ if st.session_state.app1_nameseer:
 
         if developer_choices_checkBox:
             thai_names_ = st.session_state['thai_names'].copy()
-            print(thai_names)
             #nameseer_ord_df = thai_names_.query('tag_person >= @st.session_state.nameseer_person')
             nameseer_ord_df = thai_names_.query('tag_person >= @nameseer_p')
             
@@ -576,26 +770,6 @@ if st.session_state.app1_nameseer:
             nameseer_ord_df = anti_join(nameseer_ord_df,suspect_ord_1.filter([st.session_state.app1_name_column]))
             nameseer_firm_df = anti_join(nameseer_firm_df,suspect_ord_2.filter([st.session_state.app1_name_column]))
 
-            firm_keywords = ['CO', 'COMPANY', 'CORPORATION', 'CO\\.', 'CO\\s', 'ENTERPRISE',
-                'ENTERPRISES', 'INC', 'INTERNATIONAL', 'LIMITED', 'LLC', 'LTD','TRUST','SERVICE',
-                'NOMINEE', 'NOMINEES', 'PLC', 'PTE', 'PUBLIC', 'THAILAND', 'THE','คาร์โก้','FUND','BANK',
-                '^.?บจ\\.?', '^.?หส\\.?', '^บ', '^บ\\s', '^บจ', '^หจ', '^หส','อาคาร','เจแปน',
-                'กรม.*พัฒ', 'กรมการ', 'กลุ่ม', 'กอง.*โดย', 'กองมรดก', 'การประปา','โตโย','เซรามิค','แอส.*เ.*ท'
-                'กิจการ', 'กิจการร่วมค้า', 'คอร์ปอร์เรชั่น', 'คอร์ปอเรชั่น','เทคนิค','แค.*ตอล','เอเนเจ','คอมแพนนี',
-                'คอร์ปอเรชั้น', 'คอร์ปอเรท', 'คอร์เปอร์เรชั่น', 'คอร์เปอเรชั่น','เอ.*เนอ','ฮ่อง.*กง','โซ.*ล.?า',
-                'คัมปะนี', 'คัมพะนี', 'คัมพานี', 'จดทะเบียน', 'จำกัด', 'จีเอ็มบี','บี\\.?วี','นิติบ','ฟา.*มา',
-                'จีเอ็มบีเอช', 'ทรัสต', 'ทีม', 'นอมินี', 'บ\\.', 'บจก', 'บมจ','การบิน','แลนด์','โฮม','เบ.*เกอ',
-                'บริษัท', 'บริษํท', 'บลจ', 'บี\\.วี\\.?', 'ประเทศไทย', 'พีทีวาย','ซิสเ','บีเอชดี','หลักทร',
-                'พีทีอี', 'พีแอลซี', 'มหาชน', 'มหาลัย', 'มหาวิทยาลัย', 'มูลนิธิ','เวิร์คส','เวิ.*ค','โตเกีย','เวเคช',
-                'ร้าน', 'ลิมิเ.*ด', 'ลิมิเด็ด', 'ลิมิเต็ด', 'วิสาหกิจ','คอมโพ','ไพรเวท','การคลัง','เทคโน','คลับ',
-                'ศูนย์บริหาร', 'สถานสงเคราะห์', 'สถาบัน', 'สมาคม', 'สหกรณ์','ลิมิเต็ต','ลิมิเ','โกลบอล','คอน.*ัล',
-                'สาขา', 'สำนักงาน', 'หจ\\.?', 'หจก', 'หจก\\.?', 'หส\\.', 'หุ้น','นิป.*ปอน','โรงพยาบาล','ประกัน',
-                'ห้างหุ้นส่วนสามัญ', 'อิงค์', 'อิงส์', 'อินเตอร์เนชันแนล','มอเตอ','กองทุน','แอล.?แอล.?ซี','อิ.*ทริก',
-                'อินเตอร์เนชั่นแนล', 'อิ้งค์', 'อุตสาหกรรม', 'เทศบาล', 'เอเชีย','ครอป','คอร์ป','ฟูด','แอส','แอร์',
-                'เอเซีย', 'เอ็นเตอร์ไพรส์', 'เอ็นเตอร์ไพรส์เซส', 'เอ็นเตอร์ไพร์ส','คอมพะนี','คอมปา','โฮ.*ด.*ง',
-                'แอนด', 'แอลซี', 'แอลทีดี', 'แอลเอซี', 'แอลแอลซี', 'แอสเสท','เอ็มบี','อินเวส','เอเจน',
-                'โดย.*จำกัด', 'โดย.*นา', 'โฮลดิง', 'โฮลดิ้ง','กรุ.*ป','อีโอโอ','ไฟแนน','ซิสเต็ม','ทูล']
-
             bool_list = [bool(re.search('|'.join(firm_keywords),x.strip().upper())) for x in total_the_rest[st.session_state.app1_name_column]]
             if sum(bool_list) > 0:
                 ord_the_rest = total_the_rest[~np.array(bool_list)]
@@ -604,22 +778,22 @@ if st.session_state.app1_nameseer:
             ### gather output
             classified_person_th = pd.concat([nameseer_ord_df.filter([st.session_state.app1_name_column]),
                                                 ord_the_rest.filter([st.session_state.app1_name_column]),
-                                                regex_ord_df.filter([st.session_state.app1_name_column]),
+                                                st.session_state['regex_ord_df'].filter([st.session_state.app1_name_column]),
                                                 nameseer_ord_df.filter([st.session_state.app1_name_column])])
             classified_person_th['Classified_Class'] = 'person_th'
 
 
             classified_firm_th = pd.concat([nameseer_firm_df.filter([st.session_state.app1_name_column]),
                                             firm_the_rest.filter([st.session_state.app1_name_column]),
-                                            regex_firm_df.filter([st.session_state.app1_name_column]),
+                                            st.session_state['regex_firm_df'].filter([st.session_state.app1_name_column]),
                                             nameseer_firm_df.filter([st.session_state.app1_name_column])])
             classified_firm_th['Classified_Class'] = 'firm_th'
 
             classified_result = pd.concat([
                                 classified_person_th.filter([st.session_state.app1_name_column,'Classified_Class']),
                                 classified_firm_th.filter([st.session_state.app1_name_column,'Classified_Class']),
-                                classified_person_eng.filter([st.session_state.app1_name_column,'Classified_Class']),
-                                classified_firm_eng.filter([st.session_state.app1_name_column,'Classified_Class'])
+                                st.session_state['classified_person_eng'].filter([st.session_state.app1_name_column,'Classified_Class']),
+                                st.session_state['classified_firm_eng'].filter([st.session_state.app1_name_column,'Classified_Class'])
                                 ]).drop_duplicates(st.session_state.app1_name_column)
             output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
                                                                                             'Classified_Class']),how = 'left')
@@ -640,14 +814,14 @@ if st.session_state.app1_nameseer:
             rest_name_th = anti_join(thai_names_,nameseer_ord_df.filter([st.session_state.app1_name_column]))
             rest_name_th = anti_join(rest_name_th,nameseer_firm_df.filter([st.session_state.app1_name_column]))
             ## output session
-            regex_ord_df['Classified_By'] = 'regex'
+            st.session_state['regex_ord_df']['Classified_By'] = 'regex'
             nameseer_ord_df['Classified_By'] = 'nameseer'
-            classified_person_th = pd.concat([regex_ord_df.filter([st.session_state.app1_name_column,'Classified_By']),
+            classified_person_th = pd.concat([st.session_state['regex_ord_df'].filter([st.session_state.app1_name_column,'Classified_By']),
                                             nameseer_ord_df.filter([st.session_state.app1_name_column,'Classified_By'])])
             classified_person_th['Classified_Class'] = 'person_th'
 
 
-            classified_firm_th = pd.concat([regex_firm_df.filter([st.session_state.app1_name_column,'Classified_By']),
+            classified_firm_th = pd.concat([st.session_state['regex_firm_df'].filter([st.session_state.app1_name_column,'Classified_By']),
                                         nameseer_firm_df.filter([st.session_state.app1_name_column,'Classified_By'])])
             classified_firm_th['Classified_Class'] = 'firm_th'
 
@@ -656,8 +830,8 @@ if st.session_state.app1_nameseer:
 
             classified_result = pd.concat([classified_person_th,
                                     classified_firm_th,
-                                    classified_person_eng,
-                                    classified_firm_eng,
+                                    st.session_state['classified_person_eng'],
+                                    st.session_state['classified_firm_eng'],
                                     rest_name_th]).filter([st.session_state.app1_name_column,'Classified_Class','Classified_By']).reset_index(drop = True)
             output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
                                                                                             'Classified_Class','Classified_By']),how = 'left')
@@ -667,6 +841,11 @@ if st.session_state.app1_nameseer:
             result_c.columns = ['Classified_Class','Count']
             result_c['Count'] = result_c['Count'].astype(int)
             result_c = result_c.sort_values('Count',ascending = False).query('Count > 0').reset_index(drop = True)
+
+            # export to params
+            st.session_state['params_nameseer_person_score'] = copy.deepcopy(nameseer_p)
+            st.session_state['params_nameseer_company_score'] = copy.deepcopy(nameseer_c)
+            st.session_state['params_nameseer_developer_option'] = copy.deepcopy(developer_choices_checkBox)
 
     # Finished
     st.session_state['app1_data'] = load_in(output_classified)
@@ -678,12 +857,12 @@ if st.session_state['nat_classify_input'] == False and st.session_state.app1_nam
     st.subheader(f'คัดแยกได้ทั้งหมด {len(classified_result)} ชื่อแยกเป็นประเภทดังนี้') 
     st.write(result_c)
     st.subheader("Output ที่คัดแยกเสร็จแล้ว")
-    
-    if st.session_state['app1_data'].shape[0] > 50000:
-        st.write(dataframe_explorer(st.session_state['app1_data'].sample(50000),case = False))
-    else:
-         st.write(dataframe_explorer(st.session_state['app1_data'],case = False))
-    
+    conditional_st_write_df(dataframe_explorer(st.session_state['app1_data'],case = False))
+
+    ## Export Hyper Parameter for Nameseer
+    #['dev_cleaning'] = True ?
+    #['nameseer_person_score] = 
+    #['nameseer_company_score] = 
 #################################### Nat Classifier ####################################
 if st.session_state['nat_classify_input'] == False and st.session_state.app1_nameseer:
     st.session_state['data'] = output_classified.copy()
@@ -706,7 +885,7 @@ if st.session_state['nat_classify_input'] == False and st.session_state.app1_nam
 if st.session_state['nat_classify_input'] and st.session_state['nat_classify_service'] == 'Success':
     person_df = st.session_state['data'][st.session_state['person_ava']]
     target_df = person_df[person_df[st.session_state['holder_nat_cn']].isnull()]
-
+    
     
     result_df = request_nat_classify(target_df,
                                   st.session_state['holder_class_cn'],
@@ -736,19 +915,76 @@ if st.session_state['nat_classify_output'] == True:
     after_total_nan = st.session_state['output_data'][st.session_state['holder_nat_cn']].isnull().sum()
     st.write(f'จำนวนสัญชาติที่เป็น NA ก่อนใช้โมเดลคัดแยกสัญชาติ {before_total_nan}')
     st.write(f'จำนวนสัญชาติที่เป็น NA หลังใช้โมเดลคัดแยกสัญชาติ {after_total_nan}')
-
-    # filtered_df = dataframe_explorer(st.session_state['output_data'], case=False)
-    # conditional_st_write_df(filtered_df)
-    
-    if st.session_state['output_data'].shape[0] > 50000:
-        st.write(dataframe_explorer(st.session_state['output_data'].sample(50000),case = False))
-    else:
-         st.write(dataframe_explorer(st.session_state['output_data'],case = False))
+    filtered_df = dataframe_explorer(st.session_state['output_data'], case=False)
+    conditional_st_write_df(filtered_df)
 
 #################################### Nat Classifier ####################################
     
 
 ################## Download Results ##################
+import streamlit.components.v1 as components
+import base64
+import json
+
+def download_button(object_to_download, download_filename):
+    """
+    Generates a link to download the given object_to_download.
+    Params:
+    ------
+    object_to_download:  The object to be downloaded.
+    download_filename (str): filename and extension of file. e.g. mydata.csv,
+    Returns:
+    -------
+    (str): the anchor tag to download object_to_download
+    """
+    if isinstance(object_to_download, pd.DataFrame):
+        object_to_download = object_to_download.to_csv(index=False)
+
+    # Try JSON encode for everything else
+    else:
+        object_to_download = json.dumps(object_to_download)
+
+    try:
+        # some strings <-> bytes conversions necessary here
+        b64 = base64.b64encode(object_to_download.encode()).decode()
+
+    except AttributeError as e:
+        b64 = base64.b64encode(object_to_download).decode()
+
+    dl_link = f"""
+    <html>
+    <head>
+    <title>Start Auto Download file</title>
+    <script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script>
+    $('<a href="data:text/csv;base64,{b64}" download="{download_filename}">')[0].click()
+    </script>
+    </head>
+    </html>
+    """
+    return dl_link
+
+def download_df():
+    df = st.session_state.export_data
+
+    params_data_dict = {
+    'person_regex_list': [st.session_state['params_person_regex_list']],
+    'company_regex_list': [st.session_state['params_company_regex_list']],
+    'nameseer_person_score': [st.session_state['params_nameseer_person_score']],
+    'nameseer_company_score': [st.session_state['params_nameseer_company_score']],
+    'nameseer_developer_option': [st.session_state['params_nameseer_developer_option']],
+    'apply_nationality_classify': [st.session_state['params_apply_nationality_classify']]
+    }
+    params_df = pd.DataFrame(params_data_dict).transpose().reset_index()
+
+    components.html(
+        download_button(df, f'{st.session_state.filename}.csv'),
+        height=0,
+    )
+    components.html(
+        download_button(params_df, f'{st.session_state.filename}_params.csv'),
+        height=0,
+    )
 
 if 'app1_download_file' not in st.session_state:
     st.session_state.app1_download_file  = False
@@ -775,26 +1011,51 @@ if st.session_state.app1_download_file:
     submitted = False
     if st.session_state['nat_classify_output'] == True:
         st.write('this is output after Apply Nat Classifier')
-        csv = convert_df(st.session_state['output_data'])
+        #st.session_state.export_data = convert_df(st.session_state['output_data'])
+        st.session_state['export_data'] = st.session_state['output_data'].copy()
     else:
-        csv = convert_df(st.session_state['app1_data'])
-    with st.form('chat_input_form'):
-        # Create two columns; adjust the ratio to your liking
-        col1, col2 = st.columns([3,1]) 
-        # Use the first column for text input
-        with col1:
-            prompt = st.text_input(label = '',value='',placeholder='please write your file_name',label_visibility='collapsed')
-        # Use the second column for the submit button
-        with col2:
-            submitted = st.form_submit_button('Submit')
+        #st.session_state.export_data = convert_df(st.session_state['app1_data'])
+        st.session_state['export_data'] = st.session_state['app1_data'].copy()
         
-        if prompt and submitted:
-            # Do something with the inputted text here
-            st.write(f"Your file_name is: {prompt}.csv")
+    with st.form("my_download_form", clear_on_submit=False):
+        st.text_input("กรุณาใส่ชื่อไฟล์", key="filename")
+        submit = st.form_submit_button("Download Data & Params", on_click=download_df)
 
-if st.session_state.app1_download_file:
-    if prompt and submitted:
-        st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
+
+
+    
+#     with st.form('chat_input_form'):
+#         # Create two columns; adjust the ratio to your liking
+#         col1, col2 = st.columns([3,1]) 
+#         # Use the first column for text input
+#         with col1:
+#             prompt = st.text_input(label = '',value='',placeholder='please write your file_name',label_visibility='collapsed')
+#         # Use the second column for the submit button
+#         with col2:
+#             submitted = st.form_submit_button('Submit')
+        
+#         if prompt and submitted:
+#             # Do something with the inputted text here
+#             st.write(f"Your file_name is: {prompt}.csv")
+
+# if st.session_state.app1_download_file:
+#     if prompt and submitted:        
+#         left_d,right_d = st.columns((2,5))
+#         with left_d:
+#             st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
+        
+#         params_data_dict = {
+#             'person_regex_list': [st.session_state['params_person_regex_list']],
+#             'company_regex_list': [st.session_state['params_company_regex_list']],
+#             'nameseer_person_score': [st.session_state['params_nameseer_person_score']],
+#             'nameseer_company_score': [st.session_state['params_nameseer_company_score']],
+#             'nameseer_developer_option': [st.session_state['params_nameseer_developer_option']],
+#             'apply_nationality_classify': [st.session_state['params_apply_nationality_classify']]
+#         }
+#         params_df = pd.DataFrame(params_data_dict).transpose().to_csv().encode('utf-8')
+#         with right_d:
+#             st.download_button(label="Download hyperparameters",data = params_df,file_name = f'{prompt}_params.csv',mime='text/csv',on_click = click_fin_download)
+
 
 ################## Back & Forward ##################
 st.divider()

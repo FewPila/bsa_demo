@@ -230,7 +230,7 @@ if 'possible_threshold_list' not in st.session_state:
 
 def submit_input_query():
     st.session_state.query_namecolname = st.session_state.namecol_select_box
-    st.session_state.query_df = load_in(st.session_state.query_df.filter(st.session_state.query_keep_col))
+    st.session_state.query_df = load_in(st.session_state.query_df.filter(st.session_state.query_keep_col))#.sample(50000)
     #st.session_state.query_df = st.session_state.query_df.drop_duplicates(st.session_state['query_namecolname']).reset_index(drop = True).reset_index().rename(columns = {'index':'query_index'})
     st.session_state.query_input = True
 
@@ -267,12 +267,8 @@ if  st.session_state.query_input == False:
     # after have input
     if st.session_state.query_df is not None:
         #st.subheader('This is Your Query Dataset')
-        #conditional_st_write_df(st.session_state.query_df)
-        if (st.session_state.query_df.shape[0]) > 50000:
-            st.write(st.session_state.query_df.sample(50000))
-        else:
-             st.write(st.session_state.query_df)
-                                  
+        conditional_st_write_df(st.session_state.query_df)
+
         st.write(f'{st.session_state.query_df.shape[0]} rows , {st.session_state.query_df.shape[1]} columns')
         # select Name Column
         query_namecol_box = [None]
@@ -288,11 +284,7 @@ if  st.session_state.query_input == False:
 if st.session_state.app2_input == False:
     if st.session_state.query_input == True:
         st.header('Step 1: Input Dataset',divider = 'blue')
-        #conditional_st_write_df(st.session_state.query_df)
-        if (st.session_state.query_df.shape[0]) > 50000:
-            st.write(st.session_state.query_df.sample(50000))
-        else:
-             st.write(st.session_state.query_df)
+        conditional_st_write_df(st.session_state.query_df)
         st.write(f'{st.session_state.query_df.shape[0]} rows , {st.session_state.query_df.shape[1]} columns')
 #################################################################################################### 1 Query Input ####################################################################################################
 from rapidfuzz import fuzz
@@ -964,6 +956,10 @@ if st.session_state.corpus3_input == True and st.session_state.app2_input == Fal
 
 
 #################################################################################################### 3. Text-Preprocess ####################################################################################################
+if 'params_text_preprocess_regex' not in st.session_state:
+    st.session_state['params_text_preprocess_regex'] = None
+    st.session_state['params_upload_regex'] = False
+    st.session_state['params_matching_rules'] = None
 
 if 'app2_double_prep' not in st.session_state:
     st.session_state['app2_double_prep'] = False
@@ -1067,26 +1063,15 @@ def batch_request_NameMatching(query_df,query_name_colname,corpus_df,corpus_nmam
     api_route = 'name_matching'
     
     total_matched_df = pd.DataFrame()
-    c = 0 
-    for i in stqdm(range(0,len(query_df),int(np.round(len(query_df)/fold)))):
-        if i == 0:
-            prev_i = 0
-            c += 1
-            samp_df = None
-            continue
-        else:
-            current_i = i
-            samp_df = query_df.iloc[prev_i:current_i]
-            prev_i = current_i
-            c+= 1
-            
-        if c == fold:
-            samp_df = query_df.iloc[current_i:]
-
+    query_df_ = query_df.copy()
+    query_df_ = query_df_.drop_duplicates(query_name_colname).reset_index()
+    query_df_.rename(columns = {'index':'query_index'},inplace = True)
+    Whole_df = np.array_split(query_df_,fold)
+    for samp_df in stqdm(Whole_df):
         post_data = {
-            'query_df' : samp_df.fillna(0).to_dict(orient= 'list'),
+            'query_df' : samp_df.to_dict(orient= 'list'),
             'query_name_colname' : query_name_colname,
-            'corpus_df' : corpus_df.fillna(0).to_dict(orient= 'list'),
+            'corpus_df' : corpus_df.to_dict(orient= 'list'),
             'corpus_name_colname' : corpus_nmame_colname,
             'textprocess_regex_list': regex_list
         }
@@ -1151,7 +1136,6 @@ if st.session_state.app2_textprocess and st.session_state.app2_preprocessNM == F
             st.session_state[f'matched{c}_df'] = matched_df.copy()
             st.session_state[f'matched{c}_qc'] = st.session_state['final_query_colname']
             st.session_state[f'matched{c}_cc'] = st.session_state['final_corpus_colname']
-            st.write(matched_df)
         c += 1
     # after finish
     st.session_state.app2_preprocessNM = True
@@ -1338,7 +1322,6 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         for world in st.session_state.order.values():
             print(c)
             if world == True:
-                st.write(st.session_state[f'matched{c}_df'])
                 ## from user threshold
                 nm_matched = pd.DataFrame()
                 #for thresh in st.session_state.possible_threshold_list:
@@ -1370,7 +1353,7 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
             c += 1
         # duplicate each corpus (sort by number) to get total matched
         query_matched_results = st.session_state['query_df'].merge(query_mat.drop_duplicates(st.session_state['query_namecolname']),\
-                                        on = st.session_state['query_namecolname'],how = 'left').drop('query_index',axis = 1)
+                                        on = st.session_state['query_namecolname'],how = 'left')#.drop('query_index',axis = 1)
         st.session_state['query_matched_results'] = query_matched_results
         st.session_state.processThreshold = False
     
@@ -1386,7 +1369,6 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')
         st.caption('หมายเหตุ: ผลสามารถเป็นได้ทั้ง False Positive/Negative ไม่ใช่เป็นการ Confirm Matched')
         st.write(st.session_state['query_matched_results'])
-        conditional_st_write_df(st.session_state['query_matched_results'])
     if 't_end' not in st.session_state:
         st.session_state.t_end = time.time()
         st.write(st.session_state.t_end - st.session_state.t_zero)
@@ -1396,6 +1378,11 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
 
 def export_to_Extension():
     st.session_state['app2_output'] = load_in(st.session_state['query_matched_results'])
+    # send params
+    st.session_state['params_matching_rules'] = copy.deepcopy(Thresh_List)
+    st.session_state['params_text_preprocess_regex'] = copy.deepcopy(st.session_state['app2_textprocess_regex_list'])
+    if st.session_state['uploaded_regex'] is not  None:
+        st.session_state['params_upload_regex'] = True
 
 if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is None:
     st.divider()
@@ -1517,6 +1504,67 @@ if st.session_state['app2_output'] is not None:
 
 
 ######################## Download Final Output ########################
+import streamlit.components.v1 as components
+import base64
+import json
+
+def download_button(object_to_download, download_filename):
+    """
+    Generates a link to download the given object_to_download.
+    Params:
+    ------
+    object_to_download:  The object to be downloaded.
+    download_filename (str): filename and extension of file. e.g. mydata.csv,
+    Returns:
+    -------
+    (str): the anchor tag to download object_to_download
+    """
+    if isinstance(object_to_download, pd.DataFrame):
+        object_to_download = object_to_download.to_csv(index=False)
+
+    # Try JSON encode for everything else
+    else:
+        object_to_download = json.dumps(object_to_download)
+
+    try:
+        # some strings <-> bytes conversions necessary here
+        b64 = base64.b64encode(object_to_download.encode()).decode()
+
+    except AttributeError as e:
+        b64 = base64.b64encode(object_to_download).decode()
+
+    dl_link = f"""
+    <html>
+    <head>
+    <title>Start Auto Download file</title>
+    <script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script>
+    $('<a href="data:text/csv;base64,{b64}" download="{download_filename}">')[0].click()
+    </script>
+    </head>
+    </html>
+    """
+    return dl_link
+
+def download_df():
+    df = st.session_state['app2_finalize_output'].copy()
+
+    params_data_dict = {
+    'text_preprocess_regex': [st.session_state['params_text_preprocess_regex']],
+    'pupload_regex': [st.session_state['params_upload_regex']],
+    'matching_rules': [st.session_state['params_matching_rules']],
+    }
+    params_df = pd.DataFrame(params_data_dict).transpose().reset_index()
+
+    components.html(
+        download_button(df, f'{st.session_state.filename}.csv'),
+        height=0,
+    )
+    components.html(
+        download_button(params_df, f'{st.session_state.filename}_params.csv'),
+        height=0,
+    )
+
 if st.session_state['app2_finalize_output'] is not None:
     if 'app2_download_file' not in st.session_state:
         st.session_state.app2_download_file  = False
@@ -1540,24 +1588,28 @@ if st.session_state['app2_finalize_output'] is not None:
     if st.session_state.app2_download_file:
         prompt = False
         submitted = False
-        csv = convert_df(st.session_state['app2_finalize_output'])
-        with st.form('chat_input_form'):
-            # Create two columns; adjust the ratio to your liking
-            col1, col2 = st.columns([3,1]) 
-            # Use the first column for text input
-            with col1:
-                prompt = st.text_input(label = '',value='',placeholder='please write your file_name',label_visibility='collapsed')
-            # Use the second column for the submit button
-            with col2:
-                submitted = st.form_submit_button('Submit')
-            
-            if prompt and submitted:
-                # Do something with the inputted text here
-                st.write(f"Your file_name is: {prompt}.csv")
+        #csv = convert_df(st.session_state['app2_finalize_output'])
+        with st.form("my_download_form", clear_on_submit=True):
+            st.text_input("กรุณาใส่ชื่อไฟล์", key="filename")
+            submit = st.form_submit_button("Download Data & Params", on_click = download_df)
 
-    if st.session_state.app2_download_file:
-        if prompt and submitted:
-            st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
+        # with st.form('chat_input_form'):
+        #     # Create two columns; adjust the ratio to your liking
+        #     col1, col2 = st.columns([3,1]) 
+        #     # Use the first column for text input
+        #     with col1:
+        #         prompt = st.text_input(label = '',value='',placeholder='please write your file_name',label_visibility='collapsed')
+        #     # Use the second column for the submit button
+        #     with col2:
+        #         submitted = st.form_submit_button('Submit')
+            
+        #     if prompt and submitted:
+        #         # Do something with the inputted text here
+        #         st.write(f"Your file_name is: {prompt}.csv")
+
+    # if st.session_state.app2_download_file:
+    #     if prompt and submitted:
+    #         st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
     
 # <- back button 10
 if st.session_state['app2_finalize_output'] is not None:
