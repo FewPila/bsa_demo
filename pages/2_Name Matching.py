@@ -165,6 +165,7 @@ def read_upload_data(df):
     return out
 
 #@st.cache_resource
+@st.cache_data
 def conditional_st_write_df(df):
     file_size = df.memory_usage().sum()
     file_size_simp = file_size / 1000000
