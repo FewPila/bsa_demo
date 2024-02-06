@@ -614,7 +614,7 @@ def batch_request_PreproRegex(dataframe,name_colname,indiv_regex,company_regex,f
     for samp_df in stqdm(Whole_df):
 
         post_data = {
-            'dataframe' : samp_df.to_dict(orient= 'list'),
+            'dataframe' : samp_df.fillna(0).to_dict(orient= 'list'),
             'name_column' : name_colname,
             'indiv_regex' : indiv_regex,
             'company_regex' : company_regex
