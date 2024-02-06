@@ -781,7 +781,7 @@ if st.session_state.app1_nameseer:
                 output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
                                                                                                 'Classified_Class']),how = 'left')
                 
-                result_c = output_classified['Classified_Class'].value_counts().reset_index()
+                result_c = output_classified['Classified_Class'].value_counts(dropna = False).reset_index()
                 result_c.columns = ['Classified_Class','Count']
                 result_c['Count'] = result_c['Count'].astype(int)
                 result_c = result_c.sort_values('Count',ascending = False).query('Count > 0').reset_index(drop = True)
@@ -826,7 +826,7 @@ if st.session_state.app1_nameseer:
                                                                                                 'Classified_Class','Classified_By']),how = 'left')
                 output_classified['Classified_Class'] = output_classified['Classified_Class'].fillna('Unknown') 
                 
-                result_c = output_classified['Classified_Class'].value_counts().reset_index()
+                result_c = output_classified['Classified_Class'].value_counts(dropna = False).reset_index()
                 result_c.columns = ['Classified_Class','Count']
                 result_c['Count'] = result_c['Count'].astype(int)
                 result_c = result_c.sort_values('Count',ascending = False).query('Count > 0').reset_index(drop = True)
@@ -860,7 +860,7 @@ if st.session_state.app1_nameseer:
         output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
                                                                                            'Classified_Class']),how = 'left')
 
-        result_c = output_classified['Classified_Class'].value_counts().reset_index()
+        result_c = output_classified['Classified_Class'].value_counts(dropna = False).reset_index()
         result_c.columns = ['Classified_Class','Count']
         result_c['Count'] = result_c['Count'].astype(int)
         result_c = result_c.sort_values('Count',ascending = False).query('Count > 0').reset_index(drop = True)
