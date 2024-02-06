@@ -974,7 +974,7 @@ def download_button(object_to_download, download_filename):
     except AttributeError as e:
         b64 = base64.b64encode(object_to_download).decode()
 
-    dl_link = f"""
+    dl_link = f'''
     <html>
     <head>
     <title>Start Auto Download file</title>
@@ -984,7 +984,7 @@ def download_button(object_to_download, download_filename):
     </script>
     </head>
     </html>
-    """
+    '''
     return dl_link
 
 def download_df():
@@ -1040,7 +1040,7 @@ if st.session_state.app1_download_file:
         #st.session_state.export_data = convert_df(st.session_state['app1_data'])
         st.session_state['export_data'] = st.session_state['app1_data'].copy()
         
-    with st.form("my_download_form", clear_on_submit=False):
+    with st.form("my_download_form", clear_on_submit=True):
         st.text_input("กรุณาใส่ชื่อไฟล์", key="filename")
         submit = st.form_submit_button("Download Data & Params", on_click=download_df)
 
