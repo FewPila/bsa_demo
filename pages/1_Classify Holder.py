@@ -934,7 +934,7 @@ if st.session_state['nat_classify_output'] == True:
     st.write(st.session_state['result_c'])
     #st.subheader("Output ที่คัดแยกเสร็จแล้ว")
     st.subheader('Output หลังจาก Apply Nat Classifier')
-    before_total_nan = output_classified[st.session_state['holder_nat_cn']].isnull().sum()
+    before_total_nan =  st.session_state['app1_data'][st.session_state['holder_nat_cn']].isnull().sum()
     after_total_nan = st.session_state['output_data'][st.session_state['holder_nat_cn']].isnull().sum()
     st.write(f'จำนวนสัญชาติที่เป็น NA ก่อนใช้โมเดลคัดแยกสัญชาติ {before_total_nan}')
     st.write(f'จำนวนสัญชาติที่เป็น NA หลังใช้โมเดลคัดแยกสัญชาติ {after_total_nan}')
