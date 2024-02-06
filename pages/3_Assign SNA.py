@@ -166,7 +166,8 @@ def none_but_please_show_progress_bar(*args, **kwargs):
         bar.update(1)
         return False
     return checker
-
+    
+@st.cache_data
 def conditional_st_write_df(df):
     file_size = df.memory_usage().sum()
     file_size_simp = file_size / 1000000
