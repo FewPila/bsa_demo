@@ -641,7 +641,9 @@ def request_Nameseer(dataframe,name_colname):
 
 ################## 2. Preprocess Regex ###################
 if st.session_state.app1_prepro_regex:
-    st.subheader('Preprocess Regex')
+    prep_process = st.empty()
+    prep_process.info('Classify by Regex : Please Wait')
+    #st.subheader('Preprocess Regex')
     #st.info('Preprocess Regex')
     st.session_state['total_names'] = batch_request_PreproRegex(st.session_state.app1_dataframe,
                                             st.session_state.app1_name_column,
@@ -669,19 +671,20 @@ if st.session_state.app1_prepro_regex:
 
     classified_firm_eng = firm_eng.filter([st.session_state['app1_name_column']]).reset_index(drop = True)
     classified_firm_eng['Classified_Class'] = 'firm_eng'
-
+    
     #st.info('Preprocess Nameseer')
     if len(thai_names) > 0:
         thai_names = request_Nameseer(thai_names,st.session_state['app1_name_column'])
     else:
         thai_names = pd.DataFrame()
-
+    
     st.session_state['thai_names'] = thai_names
     st.session_state['regex_ord_df'] = regex_ord_df 
     st.session_state['regex_firm_df'] = regex_firm_df
     st.session_state['classified_person_eng'] = classified_person_eng
     st.session_state['classified_firm_eng'] = classified_person_eng
-
+    prep_process.empty()
+    
     st.session_state['nameseer_buffer'] = True
     st.session_state.app1_nameseer = True
 ################## 2. Preprocess Regex ###################
@@ -868,7 +871,8 @@ if st.session_state['nat_classify_input'] == False and st.session_state.app1_nam
     st.session_state['data'] = output_classified.copy()
     st.session_state['person_ava'] = st.session_state['data']['Classified_Class'].str.upper().str.contains('PERSON|ORD',regex = True)
     if sum(st.session_state['person_ava']) > 0:
-        apply_nat_classify_checkbox = st.checkbox('Want to Apply Nat Classifier ?')
+        apply_nat_classify_checkbox = st.checkbox('ต้องการใช้โมเดลคัดแยกสัญชาติ')
+        st.caption('ใช้สำหรับกรณีที่ไม่ทราบสัญชาติของบุคคลธรรมดา')
         if apply_nat_classify_checkbox:
             st.subheader("Please Select Necessary Columns")
             choices = [None]
