@@ -143,7 +143,7 @@ def prepLines(lines):
     show_df = show_df.iloc[2:,[0,1]]
     return show_df
 
-@st.cache_data
+#@st.cache_data
 def read_upload_data(df):
     section = st.empty()
     section.info('reading uploaded data')
