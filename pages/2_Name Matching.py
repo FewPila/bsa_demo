@@ -150,7 +150,7 @@ st.divider()
 if 't_zero' not in st.session_state:
     st.session_state.t_zero = time.time()
 
-@st.cache_data
+#@st.cache_data
 def read_upload_data(df):
     def none_but_please_show_progress_bar(*args, **kwargs):
         bar = stqdm(*args, **kwargs)
