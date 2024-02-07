@@ -642,6 +642,9 @@ def request_Nameseer(dataframe,name_colname):
 
 ################## 2. Preprocess Regex ###################
 if st.session_state.app1_prepro_regex:
+    if 't_start' not in st.session_state:
+        st.session_state['t_start'] = time.time()
+        
     st.subheader('Preprocess Regex')
     prep_process = st.empty()
     prep_process.info('Classifiy by Regex : Please Wait')
@@ -881,7 +884,9 @@ if st.session_state['nat_classify_input'] == False and st.session_state.app1_nam
     st.write(st.session_state['result_c'])
     st.subheader("Output ที่คัดแยกเสร็จแล้ว")
     conditional_st_write_df(dataframe_explorer(st.session_state['app1_data'],case = False))
-
+    t_end = time.time()
+    took_time = np.round((t_end - st.session_state['t_start'] )/60,2)
+    st.write(f'ใช้เวลาในการรันทั้งหมด {took_time} นาที')
     ## Export Hyper Parameter for Nameseer
     #['dev_cleaning'] = True ?
     #['nameseer_person_score] = 
@@ -940,7 +945,9 @@ if st.session_state['nat_classify_output'] == True:
     st.write(f'จำนวนสัญชาติที่เป็น NA หลังใช้โมเดลคัดแยกสัญชาติ {after_total_nan}')
     filtered_df = dataframe_explorer(st.session_state['output_data'], case=False)
     conditional_st_write_df(filtered_df)
-
+    t_end = time.time()
+    took_time = np.round((t_end - st.session_state['t_start'] )/60,2)
+    st.write(f'ใช้เวลาในการรันทั้งหมด {took_time} นาที')
 #################################### Nat Classifier ####################################
     
 
