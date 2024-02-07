@@ -178,7 +178,7 @@ def conditional_st_write_df(df):
     else:
         st.dataframe(df,use_container_width= True)
         
-@st.cache_data(ttl=3600)
+#@st.cache_data(ttl=3600)
 def init_data_upload_query(uploaded_file,option):
     user_df = uploaded_file.copy(deep = True)
     user_colname = copy.deepcopy(option)
@@ -1477,6 +1477,9 @@ if st.session_state['app2_output'] is not None:
         st.session_state['app2_finalize_adjust_column'] = True
 
     if st.session_state.app2_finalize_adjust_column:
+        conditional_st_write_df.clear()
+        load_in.clear()
+        
         conditional_st_write_df(st.session_state.app2_output)
         st.write(st.session_state.app2_output.shape)
         if st.session_state.add_section == False: 
