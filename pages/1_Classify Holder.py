@@ -1042,11 +1042,13 @@ if st.session_state.app1_download_file:
     submitted = False
     if st.session_state['nat_classify_output'] == True:
         st.write('this is output after Apply Nat Classifier')
-        #st.session_state.export_data = convert_df(st.session_state['output_data'])
-        st.session_state['export_data'] = st.session_state['output_data'].copy()
+        st.session_state.export_data = convert_df(st.session_state['output_data'])
+        #st.session_state['export_data'] = st.session_state['output_data'].copy()
     else:
-        #st.session_state.export_data = convert_df(st.session_state['app1_data'])
-        st.session_state['export_data'] = st.session_state['app1_data'].copy()
+        st.session_state.export_data = convert_df(st.session_state['app1_data'])
+        #st.session_state['export_data'] = st.session_state['app1_data'].copy()
+    #csv = convert_df(st.session_state['export_data'])
+    
     with st.form('chat_input_form'):
         # Create two columns; adjust the ratio to your liking
         col1, col2 = st.columns([3,1]) 
