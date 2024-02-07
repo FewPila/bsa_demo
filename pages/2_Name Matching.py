@@ -1067,7 +1067,7 @@ def adjust_dataset(query_df,corpus_df,
     
 #     return matched_df
 
-@st.cache_data
+#@st.cache_data
 def batch_request_NameMatching(query_df,query_name_colname,corpus_df,corpus_nmame_colname,regex_list,fold = 10):
     port = 5002
     api_route = 'name_matching'
