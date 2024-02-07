@@ -1020,11 +1020,21 @@ def download_df():
 if 'app1_download_file' not in st.session_state:
     st.session_state.app1_download_file  = False
 
+if 'app1_download_params_file' not in st.session_state:
+    st.session_state['app1_download_params_file'] = False
+
 def click_download():
     st.session_state.app1_download_file = True
 
 def click_fin_download():
     st.session_state.app1_download_file = False
+
+def click_download_params():
+    st.session_state.app1_download_params_file = True
+
+def click_fin_download_params():
+    st.session_state.app1_download_params_file = False
+
 
 @st.cache_data
 def convert_df(df):
@@ -1036,6 +1046,7 @@ if st.session_state.app1_nameseer:
     if len(st.session_state['app1_data']) > 0:
         st.divider()
         download_but = st.button('Download',on_click = click_download)
+        download_params_but = st.button('Download Params Data',on_click= click_download_params)
 
 if st.session_state.app1_download_file:
     prompt = False
@@ -1043,12 +1054,9 @@ if st.session_state.app1_download_file:
     if st.session_state['nat_classify_output'] == True:
         st.write('this is output after Apply Nat Classifier')
         st.session_state.export_data = convert_df(st.session_state['output_data'])
-        #st.session_state['export_data'] = st.session_state['output_data'].copy()
     else:
         st.session_state.export_data = convert_df(st.session_state['app1_data'])
-        #st.session_state['export_data'] = st.session_state['app1_data'].copy()
-    #csv = convert_df(st.session_state['export_data'])
-    
+
     with st.form('chat_input_form'):
         # Create two columns; adjust the ratio to your liking
         col1, col2 = st.columns([3,1]) 
@@ -1069,42 +1077,40 @@ if st.session_state.app1_download_file:
 if st.session_state.app1_download_file:
     if prompt and submitted:
         #st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
-        st.download_button(label="Download data as CSV",data = st.session_state['export_data'].to_csv().encode('utf-8'),file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
+        st.download_button(label="Download data as CSV",data = st.session_state['export_data'],file_name = f'{prompt}.csv',mime='text/csv')
+        
+if st.session_state.app1_download_params_file:
+    prompt2 = False
+    submitted2 = False
+    params_data_dict = {
+    'person_regex_list': [st.session_state['params_person_regex_list']],
+    'company_regex_list': [st.session_state['params_company_regex_list']],
+    'nameseer_person_score': [st.session_state['params_nameseer_person_score']],
+    'nameseer_company_score': [st.session_state['params_nameseer_company_score']],
+    'nameseer_developer_option': [st.session_state['params_nameseer_developer_option']],
+    'apply_nationality_classify': [st.session_state['params_apply_nationality_classify']]
+    }
+    params_df = pd.DataFrame(params_data_dict).transpose().reset_index()
+    st.session_state['params_df'] = params_df.copy()
+
+    with st.form('chat_input_form2'):
+        # Create two columns; adjust the ratio to your liking
+        col1_2, col2_2 = st.columns([3,1]) 
+        # Use the first column for text input
+        with col1_2:
+            prompt2 = st.text_input(label = '',value='',placeholder='please write your file_name',label_visibility='collapsed')
+        # Use the second column for the submit button
+        with col2_2:
+            submitted2 = st.form_submit_button('Submit')
+        if prompt2 and submitted2:
+            # Do something with the inputted text here
+            st.write(f"Your file_name is: {prompt2}.csv")
+
+if st.session_state.app1_download_params_file:
+    if prompt2 and submitted2:
+        st.download_button(label="Download Params data as CSV",data = st.session_state['params_df'].to_csv().encode('utf-8'),file_name = f'{prompt2}.csv',mime='text/csv',on_click = click_fin_download_params)
 
     
-#     with st.form('chat_input_form'):
-#         # Create two columns; adjust the ratio to your liking
-#         col1, col2 = st.columns([3,1]) 
-#         # Use the first column for text input
-#         with col1:
-#             prompt = st.text_input(label = '',value='',placeholder='please write your file_name',label_visibility='collapsed')
-#         # Use the second column for the submit button
-#         with col2:
-#             submitted = st.form_submit_button('Submit')
-        
-#         if prompt and submitted:
-#             # Do something with the inputted text here
-#             st.write(f"Your file_name is: {prompt}.csv")
-
-# if st.session_state.app1_download_file:
-#     if prompt and submitted:        
-#         left_d,right_d = st.columns((2,5))
-#         with left_d:
-#             st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
-        
-#         params_data_dict = {
-#             'person_regex_list': [st.session_state['params_person_regex_list']],
-#             'company_regex_list': [st.session_state['params_company_regex_list']],
-#             'nameseer_person_score': [st.session_state['params_nameseer_person_score']],
-#             'nameseer_company_score': [st.session_state['params_nameseer_company_score']],
-#             'nameseer_developer_option': [st.session_state['params_nameseer_developer_option']],
-#             'apply_nationality_classify': [st.session_state['params_apply_nationality_classify']]
-#         }
-#         params_df = pd.DataFrame(params_data_dict).transpose().to_csv().encode('utf-8')
-#         with right_d:
-#             st.download_button(label="Download hyperparameters",data = params_df,file_name = f'{prompt}_params.csv',mime='text/csv',on_click = click_fin_download)
-
-
 ################## Back & Forward ##################
 st.divider()
 mult_cols = st.columns(9)
