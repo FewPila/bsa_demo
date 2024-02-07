@@ -1477,7 +1477,7 @@ if st.session_state['app2_output'] is not None:
         st.session_state['app2_finalize_adjust_column'] = True
 
     if st.session_state.app2_finalize_adjust_column:
-        st.write(st.session_state.app2_output)
+        conditional_st_write_df(st.session_state.app2_output)
         st.write(st.session_state.app2_output.shape)
         if st.session_state.add_section == False: 
             with st.container():
