@@ -1390,9 +1390,9 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
                 st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด และคิดเป็น :green[{firm_matched_percent}%] ของ Class Firm-TH', icon="✅")
                 st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')
                 st.write(f'และ เป็นจำนวน {firm_matched_len} ชื่อ จากทั้งหมด {len(only_firmth)} ใน Firm-TH')
-            else:
-                st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด', icon="✅")
-                st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')        
+        else:
+            st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด', icon="✅")
+            st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')        
         #st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด', icon="✅")
         #st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')
         st.caption('หมายเหตุ: ผลสามารถเป็นได้ทั้ง False Positive/Negative ไม่ใช่เป็นการ Confirm Matched')
@@ -1617,6 +1617,15 @@ if st.session_state['app2_finalize_output'] is not None:
         st.session_state.app2_download_file = False
         st.write('clicked please wait')
 
+    if 'app2_download_params_file' not in st.session_state:
+        st.session_state['app2_download_params_file'] = False
+
+    def click_download_params():
+        st.session_state.app2_download_params_file = True
+
+    def click_fin_download_params():
+        st.session_state.app2_download_params_file = False
+
     @st.cache_data
     def convert_df(df):
         # IMPORTANT: Cache the conversion to prevent computation on every rerun
@@ -1626,6 +1635,7 @@ if st.session_state['app2_finalize_output'] is not None:
         #st.divider()
         if len(st.session_state['query_matched_results']) > 0:
             download_but = st.button('Download',on_click = click_download)
+            download_params_but = st.button('Download Params Data',on_click= click_download_params)
 
     if st.session_state.app2_download_file:
         prompt = False
@@ -1651,6 +1661,34 @@ if st.session_state['app2_finalize_output'] is not None:
     if st.session_state.app2_download_file:
         if prompt and submitted:
             st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
+    
+    if st.session_state.app2_download_params_file:
+        prompt2 = False
+        submitted2 = False
+        params_data_dict = {
+            'text_preprocess_regex': [st.session_state['params_text_preprocess_regex']],
+            'pupload_regex': [st.session_state['params_upload_regex']],
+            'matching_rules': [st.session_state['params_matching_rules']],
+        }
+        params_df = pd.DataFrame(params_data_dict).transpose().reset_index()
+        st.session_state['params_df'] = params_df.copy()
+
+        with st.form('chat_input_form2'):
+            # Create two columns; adjust the ratio to your liking
+            col1_2, col2_2 = st.columns([3,1]) 
+            # Use the first column for text input
+            with col1_2:
+                prompt2 = st.text_input(label = '',value='',placeholder='please write your file_name',label_visibility='collapsed')
+            # Use the second column for the submit button
+            with col2_2:
+                submitted2 = st.form_submit_button('Submit')
+            if prompt2 and submitted2:
+                # Do something with the inputted text here
+                st.write(f"Your file_name is: {prompt2}.csv")
+
+    if st.session_state.app2_download_params_file:
+        if prompt2 and submitted2:
+            st.download_button(label="Download Params data as CSV",data = st.session_state['params_df'].to_csv().encode('utf-8'),file_name = f'{prompt2}.csv',mime='text/csv',on_click = click_fin_download_params)
     
 # <- back button 10
 if st.session_state['app2_finalize_output'] is not None:
