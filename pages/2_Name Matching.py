@@ -231,7 +231,7 @@ if 'possible_threshold_list' not in st.session_state:
 
 def submit_input_query():
     st.session_state.query_namecolname = st.session_state.namecol_select_box
-    st.session_state.query_df = load_in(st.session_state.query_df.filter(st.session_state.query_keep_col))#.sample(50000)
+    st.session_state.query_df = load_in(st.session_state.query_df.filter(st.session_state.query_keep_col))
     #st.session_state.query_df = st.session_state.query_df.drop_duplicates(st.session_state['query_namecolname']).reset_index(drop = True).reset_index().rename(columns = {'index':'query_index'})
     st.session_state.query_input = True
 
@@ -268,8 +268,12 @@ if  st.session_state.query_input == False:
     # after have input
     if st.session_state.query_df is not None:
         #st.subheader('This is Your Query Dataset')
-        conditional_st_write_df(st.session_state.query_df)
-
+        #conditional_st_write_df(st.session_state.query_df)
+        if (st.session_state.query_df.shape[0]) > 50000:
+            st.write('สุ่มมาทั้งหมด 50,000 rows')
+            st.write(st.session_state.query_df.sample(50000))
+        else:
+             st.write(st.session_state.query_df)
         st.write(f'{st.session_state.query_df.shape[0]} rows , {st.session_state.query_df.shape[1]} columns')
         # select Name Column
         query_namecol_box = [None]
@@ -285,7 +289,12 @@ if  st.session_state.query_input == False:
 if st.session_state.app2_input == False:
     if st.session_state.query_input == True:
         st.header('Step 1: Input Dataset',divider = 'blue')
-        conditional_st_write_df(st.session_state.query_df)
+        #conditional_st_write_df(st.session_state.query_df)
+        if (st.session_state.query_df.shape[0]) > 50000:
+            st.write('สุ่มมาทั้งหมด 50,000 rows')
+            st.write(st.session_state.query_df.sample(50000))
+        else:
+             st.write(st.session_state.query_df)        
         st.write(f'{st.session_state.query_df.shape[0]} rows , {st.session_state.query_df.shape[1]} columns')
 #################################################################################################### 1 Query Input ####################################################################################################
 from rapidfuzz import fuzz
