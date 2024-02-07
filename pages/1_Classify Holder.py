@@ -429,6 +429,7 @@ if st.session_state.app1_upload == False:
         
     if st.session_state.app1_dataframe is not None:
         if (st.session_state.app1_dataframe.shape[0]) > 50000:
+            st.write('สุ่มมาทั้งหมด 50,000 rows')
             st.write(st.session_state.app1_dataframe.sample(50000))
         else:
              st.write(st.session_state.app1_dataframe)
