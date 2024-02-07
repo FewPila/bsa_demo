@@ -1476,7 +1476,7 @@ if st.session_state['app3_rule_based_prioritize']:
                 condition = False
         return condition
     
-    @st.cache_data
+    #@st.cache_data
     def batch_request_ApplyRulebased(args,action,filtered_df,func_name,condition,fold = 10):
         port = 5003
         api_route = 'apply_rulebased'
