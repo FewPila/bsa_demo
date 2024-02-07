@@ -1088,6 +1088,9 @@ def batch_request_NameMatching(query_df,query_name_colname,corpus_df,corpus_nmam
 
 
 if st.session_state.app2_textprocess and st.session_state.app2_preprocessNM == False:
+    if 't_start' not in st.session_state:
+        st.session_state['t_start'] = time.time()
+        
     st.header("2. Name Matching",divider = 'blue')
     c = 1
     for world in st.session_state.order.values():
@@ -1369,11 +1372,16 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด', icon="✅")
         st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')
         st.caption('หมายเหตุ: ผลสามารถเป็นได้ทั้ง False Positive/Negative ไม่ใช่เป็นการ Confirm Matched')
-        st.write(st.session_state['query_matched_results'])
-    if 't_end' not in st.session_state:
-        st.session_state.t_end = time.time()
-        st.write(st.session_state.t_end - st.session_state.t_zero)
-        print(st.session_state.t_end - st.session_state.t_zero)
+        #st.write(st.session_state['query_matched_results'])
+        conditional_st_write_df(st.session_state['query_matched_results'])
+        # Took Time
+        t_end = time.time()
+        took_time = np.round((t_end - st.session_state['t_start'] )/60,2)
+        st.write(f'ใช้เวลาในการรันทั้งหมด {took_time} นาที')
+    # if 't_end' not in st.session_state:
+    #     st.session_state.t_end = time.time()
+    #     st.write(st.session_state.t_end - st.session_state.t_zero)
+    #     print(st.session_state.t_end - st.session_state.t_zero)
 
 #################################################################### Tidy Results ####################################################################
 
