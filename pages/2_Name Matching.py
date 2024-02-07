@@ -1380,8 +1380,21 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         print(len(st.session_state.query_df))
         total_matched_len = len(st.session_state['query_matched_results'].dropna(subset = 'MATCHED_NAME'))
         matched_percent = np.round(total_matched_len/len(st.session_state.query_df)* 100,1)
-        st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด', icon="✅")
-        st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')
+        if 'Classified_Class' in st.session_state['query_matched_results'].columns.values.tolist():
+            #st.write('Found Classified Class Columns')
+            total_class = st.session_state['query_matched_results']['Classified_Class'].unique().tolist()
+            if 'firm_th' in total_class:
+                only_firmth = load_in(st.session_state['query_matched_results'].query('Classified_Class == "firm_th"'))
+                firm_matched_len = len(only_firmth.dropna(subset = 'MATCHED_NAME'))
+                firm_matched_percent = np.round(firm_matched_len/len(only_firmth)*100,1)
+                st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด และคิดเป็น :green{firm_matched_percent} ของ Class:Firm-TH', icon="✅")
+                st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')
+                st.write(f'เป็นจำนวน {firm_matched_len} ชื่อ จากทั้งหมด {len(only_firmth)} ใน Firm-TH')
+            else:
+                st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด', icon="✅")
+                st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')        
+        #st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด', icon="✅")
+        #st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')
         st.caption('หมายเหตุ: ผลสามารถเป็นได้ทั้ง False Positive/Negative ไม่ใช่เป็นการ Confirm Matched')
         #st.write(st.session_state['query_matched_results'])
         conditional_st_write_df(st.session_state['query_matched_results'])
