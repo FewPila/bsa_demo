@@ -1520,7 +1520,7 @@ if st.session_state['app2_output'] is not None:
     if st.session_state.app2_finalize_column and st.session_state['app2_finalize_output'] is None:
         
         if st.session_state['temporary_df'] is not None:
-            st.write(st.session_state['temporary_df'])
+            conditional_st_write_df(st.session_state['temporary_df'])
         
         if st.session_state['submit_coltoKeep'] == False:
             columnsFromDf = st.session_state['temporary_df'].columns.values
@@ -1538,7 +1538,10 @@ if st.session_state['app2_output'] is not None:
     
     # Show Results
     if st.session_state['app2_finalize_output'] is not None:
-        st.write(st.session_state['app2_finalize_output'])
+        if 'second_clear' not in st.session_state:
+            conditional_st_write_df.clear()
+            st.session_state['second_clear'] = False
+        conditional_st_write_df(st.session_state['app2_finalize_output'])
 
 
 ######################## Download Final Output ########################
