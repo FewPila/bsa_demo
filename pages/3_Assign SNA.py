@@ -1904,6 +1904,7 @@ if st.session_state['app3_finalize_output'] is not None:
 
     def click_fin_download():
         st.session_state.app3_download_file = False
+        st.write('clicked please wait')
 
     @st.cache_data
     def convert_df(df):
@@ -1918,7 +1919,7 @@ if st.session_state['app3_finalize_output'] is not None:
     if st.session_state.app3_download_file:
         prompt = False
         submitted = False
-        #csv = convert_df(st.session_state['app3_finalize_output'])
+        csv = convert_df(st.session_state['app3_finalize_output'])
         with st.form('chat_input_form'):
             # Create two columns; adjust the ratio to your liking
             col1, col2 = st.columns([3,1]) 
@@ -1935,8 +1936,8 @@ if st.session_state['app3_finalize_output'] is not None:
 
     if st.session_state.app3_download_file:
         if prompt and submitted:
-            #st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
-            st.download_button(label="Download data as CSV",data = st.session_state['app3_finalize_output'].to_csv().encode('utf-8'),file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
+            st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
+            #st.download_button(label="Download data as CSV",data = st.session_state['app3_finalize_output'].to_csv().encode('utf-8'),file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
 
 ############################## Get Back
     def back_click3():
