@@ -1387,9 +1387,9 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
                 only_firmth = load_in(st.session_state['query_matched_results'].query('Classified_Class == "firm_th"'))
                 firm_matched_len = len(only_firmth.dropna(subset = 'MATCHED_NAME'))
                 firm_matched_percent = np.round(firm_matched_len/len(only_firmth)*100,1)
-                st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด และคิดเป็น :green{firm_matched_percent} ของ Class:Firm-TH', icon="✅")
+                st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด และคิดเป็น :green[{firm_matched_percent}%] ของ Class Firm-TH', icon="✅")
                 st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')
-                st.write(f'เป็นจำนวน {firm_matched_len} ชื่อ จากทั้งหมด {len(only_firmth)} ใน Firm-TH')
+                st.write(f'และ เป็นจำนวน {firm_matched_len} ชื่อ จากทั้งหมด {len(only_firmth)} ใน Firm-TH')
             else:
                 st.success(f'สามารถ Match ได้ :green[{matched_percent}%] จากทั้งหมด', icon="✅")
                 st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')        
