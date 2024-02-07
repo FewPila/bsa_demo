@@ -1551,7 +1551,7 @@ def download_button(object_to_download, download_filename):
     except AttributeError as e:
         b64 = base64.b64encode(object_to_download).decode()
 
-    dl_link = f"""
+    dl_link = f'''
     <html>
     <head>
     <title>Start Auto Download file</title>
@@ -1561,7 +1561,7 @@ def download_button(object_to_download, download_filename):
     </script>
     </head>
     </html>
-    """
+    '''
     return dl_link
 
 def download_df():
@@ -1592,6 +1592,7 @@ if st.session_state['app2_finalize_output'] is not None:
 
     def click_fin_download():
         st.session_state.app2_download_file = False
+        st.write('clicked please wait')
 
     @st.cache_data
     def convert_df(df):
@@ -1606,28 +1607,27 @@ if st.session_state['app2_finalize_output'] is not None:
     if st.session_state.app2_download_file:
         prompt = False
         submitted = False
-        #csv = convert_df(st.session_state['app2_finalize_output'])
-        with st.form("my_download_form", clear_on_submit=True):
-            st.text_input("กรุณาใส่ชื่อไฟล์", key="filename")
-            submit = st.form_submit_button("Download Data & Params", on_click = download_df)
-
-        # with st.form('chat_input_form'):
-        #     # Create two columns; adjust the ratio to your liking
-        #     col1, col2 = st.columns([3,1]) 
-        #     # Use the first column for text input
-        #     with col1:
-        #         prompt = st.text_input(label = '',value='',placeholder='please write your file_name',label_visibility='collapsed')
-        #     # Use the second column for the submit button
-        #     with col2:
-        #         submitted = st.form_submit_button('Submit')
+        csv = convert_df(st.session_state['app2_finalize_output'])
+        # with st.form("my_download_form", clear_on_submit=True):
+        #     st.text_input("กรุณาใส่ชื่อไฟล์", key="filename")
+        #     submit = st.form_submit_button("Download Data & Params", on_click = download_df)
+        with st.form('chat_input_form'):
+            # Create two columns; adjust the ratio to your liking
+            col1, col2 = st.columns([3,1]) 
+            # Use the first column for text input
+            with col1:
+                prompt = st.text_input(label = '',value='',placeholder='please write your file_name',label_visibility='collapsed')
+            # Use the second column for the submit button
+            with col2:
+                submitted = st.form_submit_button('Submit')
             
-        #     if prompt and submitted:
-        #         # Do something with the inputted text here
-        #         st.write(f"Your file_name is: {prompt}.csv")
+            if prompt and submitted:
+                # Do something with the inputted text here
+                st.write(f"Your file_name is: {prompt}.csv")
 
-    # if st.session_state.app2_download_file:
-    #     if prompt and submitted:
-    #         st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
+    if st.session_state.app2_download_file:
+        if prompt and submitted:
+            st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
     
 # <- back button 10
 if st.session_state['app2_finalize_output'] is not None:
