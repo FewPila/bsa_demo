@@ -1089,10 +1089,12 @@ def batch_request_NameMatching(query_df,query_name_colname,corpus_df,corpus_nmam
         res = requests.post(f'http://127.0.0.1:{port}/{api_route}', json = post_data)
         if res.status_code == 201:
             result_df = pd.json_normalize(res.json()['matched_df'])
+            print(result_df)
             sorted_col = ['query_name','corpus_name','tfidf_score','fuzzy_ratio','fuzzy_partialratio',query_name_colname,corpus_nmame_colname]
             result_df = result_df.filter(sorted_col)
             if len(result_df) > 0:
                 total_matched_df = pd.concat([total_matched_df,result_df])
+                print(total_matched_df)
     return total_matched_df.reset_index(drop = True)
 
 
