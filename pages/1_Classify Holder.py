@@ -897,7 +897,8 @@ if st.session_state['nat_classify_input'] == False and st.session_state.app1_nam
     st.session_state['data'] = st.session_state['app1_data'].copy()
     st.session_state['person_ava'] = st.session_state['data']['Classified_Class'].str.upper().str.contains('PERSON|ORD',regex = True)
     if sum(st.session_state['person_ava']) > 0:
-        apply_nat_classify_checkbox = st.checkbox('Want to Apply Nat Classifier ?')
+        apply_nat_classify_checkbox = st.checkbox('ต้องการใช้โมเดลคัดแยกสัญชาติบุคคลธรรมดา')
+        st.caption('ใช้สำหรับการคัดแยกสัญชาติของผู้ถือหุ้นที่เป็นบุคคลธรรมดาที่ไม่มีสัญชาติ')
         if apply_nat_classify_checkbox:
             st.subheader("Please Select Necessary Columns")
             choices = [None]
