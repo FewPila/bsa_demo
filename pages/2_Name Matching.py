@@ -990,6 +990,11 @@ def submit_textpreprocess_regex():
 
 
 if (st.session_state.app2_input == True) and (st.session_state.app2_textprocess == False) :
+    if 'begin_clear' not in st.session_state:
+        conditional_st_write_df.clear()
+        load_in.clear()
+        st.session_state['begin_clear'] = True
+    
     st.header("1. Text Preprocess",divider= 'blue')
     st.write('ขั้นตอนการทำ Text Preprocess จะทำการลบ Keywords (Regex) ดังกล่าวออกจากชื่อผู้ถือหุ้นทั้งหมด')
     st.code('name = "บริษัท เคอรี่โลจิสติกส์ จำกัด" \nRegex = ["บริษัท","จำกัด","มหาชน"]')
