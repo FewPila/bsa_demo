@@ -888,6 +888,18 @@ if st.session_state['nat_classify_input'] == False and st.session_state.app1_nam
     t_end = time.time()
     took_time = np.round((t_end - st.session_state['t_start'] )/60,2)
     st.write(f'ใช้เวลาในการรันทั้งหมด {took_time} นาที')
+
+    params_data_dict = {
+        'person_regex_list': [np.array(st.session_state['params_person_regex_list'],dtype = 'str')],
+        'company_regex_list': [np.array(st.session_state['params_company_regex_list'],dtype = 'str')],
+        'nameseer_person_score': [st.session_state['params_nameseer_person_score']],
+        'nameseer_company_score': [st.session_state['params_nameseer_company_score']],
+        'nameseer_developer_option': [st.session_state['params_nameseer_developer_option']],
+        'apply_nationality_classify': [st.session_state['params_apply_nationality_classify']]
+        }
+    #params_df = pd.DataFrame(params_data_dict).transpose().reset_index()
+    params_df = pd.DataFrame(params_data_dict)
+    st.session_state['params_df'] = params_df.copy()
     ## Export Hyper Parameter for Nameseer
     #['dev_cleaning'] = True ?
     #['nameseer_person_score] = 
@@ -911,6 +923,9 @@ if st.session_state['nat_classify_input'] == False and st.session_state.app1_nam
             right.selectbox(label = '',options = choices,index = 0,key = 'input_holder_name',label_visibility = 'collapsed')
 
             submit_natclassify_input_bt = st.button('Submit',on_click = submit_natclassify_input)
+            
+            with st.expander('พารามิเตอร์ของ App1'):
+                st.dataframe(st.session_state['params_df'])
 
 if st.session_state['nat_classify_input'] and st.session_state['nat_classify_service'] == 'Success':
     person_df = st.session_state['data'][st.session_state['person_ava']]
@@ -950,6 +965,9 @@ if st.session_state['nat_classify_output'] == True:
     t_end = time.time()
     took_time = np.round((t_end - st.session_state['t_start'] )/60,2)
     st.write(f'ใช้เวลาในการรันทั้งหมด {took_time} นาที')
+    
+    with st.expander('พารามิเตอร์ของ App1'):
+        st.dataframe(st.session_state['params_df'])
 #################################### Nat Classifier ####################################
     
 
