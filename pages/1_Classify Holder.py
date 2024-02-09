@@ -1068,6 +1068,7 @@ def click_download():
     st.session_state.app1_download_file = True
 
 def click_fin_download():
+    st.write('Clicked Please Wait')
     st.session_state.app1_download_file = False
 
 def click_download_params():
@@ -1087,7 +1088,7 @@ if st.session_state.app1_nameseer:
     if len(st.session_state['app1_data']) > 0:
         st.divider()
         download_but = st.button('Download',on_click = click_download)
-        download_params_but = st.button('Download Params Data',on_click= click_download_params)
+        #download_params_but = st.button('Download Params Data',on_click= click_download_params)
 
 if st.session_state.app1_download_file:
     prompt = False
