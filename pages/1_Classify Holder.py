@@ -645,6 +645,10 @@ def request_Nameseer(dataframe,name_colname):
 if st.session_state.app1_prepro_regex:
     if 't_start' not in st.session_state:
         st.session_state['t_start'] = time.time()
+    if 'first_clear' not in st.session_state:
+        conditional_st_write_df.clear()
+        load_in.clear()
+        st.session_state['first_clear'] = True
         
     st.subheader('Preprocess Regex')
     prep_process = st.empty()
@@ -879,6 +883,10 @@ if st.session_state.app1_nameseer:
 #################################### Display Results ####################################
 if st.session_state['nat_classify_input'] == False and st.session_state.app1_nameseer and st.session_state['app1_data'] is not None:
     st.session_state['init_process_output'] = False
+    if 'second_clear' not in st.session_state:
+        conditional_st_write_df.clear()
+        load_in.clear()
+        st.session_state['second_clear'] = True
     st.divider()
     st.header("3. Classifed Results",divider = 'green')
     st.subheader(f"คัดแยกได้ทั้งหมด {len(st.session_state['classified_result'])} ชื่อแยกเป็นประเภทดังนี้") 
