@@ -1145,10 +1145,10 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
         left.subheader(f':gray[รหัส RID :]')
         right.selectbox(label = '',options = choices,index = 0,key = 'input_rid',label_visibility = 'collapsed')
         
-        cal_eq = st.checkbox('Calculate Equity?')
-        if cal_eq:
-            left.subheader(f':gray[จำนวนหุ้น :]')
-            right.selectbox(label = '',options = choices,index = 0,key = 'input_share',label_visibility = 'collapsed')
+        #cal_eq = st.checkbox('Calculate Equity?')
+        # if cal_eq:
+        #     left.subheader(f':gray[จำนวนหุ้น :]')
+        #     right.selectbox(label = '',options = choices,index = 0,key = 'input_share',label_visibility = 'collapsed')
 
         apply_firm_checkbox = st.checkbox('Apply Rule Based กับข้อมูลบริษัทที่ลงทุน',key = 'apply_rulebased_on_firm')
         if st.session_state['apply_rulebased_on_firm']:
@@ -1176,10 +1176,10 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
             st.session_state['global_input']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
             st.session_state['global_input']['rid'] = st.session_state['input_rid']
 
-            if cal_eq:
-                st.session_state['global_input']['share'] = st.session_state['input_share']
-            else:
-                st.session_state['global_input']['share'] = None
+            # if cal_eq:
+            #     st.session_state['global_input']['share'] = st.session_state['input_share']
+            # else:
+            #     st.session_state['global_input']['share'] = None
             
             # ranking
             st.session_state['rank1']['condition'] = st.session_state['rank1_condition'] # get value from findout function
@@ -1284,10 +1284,10 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
         right.selectbox(label = '',options = choices,index = 0,key = 'input_hldrname',label_visibility = 'collapsed')
         left.subheader(f':gray[รหัส isic4 :]')
         right.selectbox(label = '',options = choices,index = 0,key = 'input_isic',label_visibility = 'collapsed')
-        cal_eq = st.checkbox('Calculate Equity?')
-        if cal_eq:
-            left.subheader(f':gray[จำนวนหุ้น :]')
-            right.selectbox(label = '',options = choices,index = 0,key = 'input_share',label_visibility = 'collapsed')
+        # cal_eq = st.checkbox('Calculate Equity?')
+        # if cal_eq:
+        #     left.subheader(f':gray[จำนวนหุ้น :]')
+        #     right.selectbox(label = '',options = choices,index = 0,key = 'input_share',label_visibility = 'collapsed')
 
         apply_firm_checkbox = st.checkbox('Apply Rule Based กับข้อมูลบริษัทที่ลงทุน',key = 'apply_rulebased_on_firm')
         if st.session_state['apply_rulebased_on_firm']:
@@ -1312,10 +1312,10 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
             st.session_state['global_input']['hldr_name'] = st.session_state['input_hldrname']
             st.session_state['global_input']['sna'] = st.session_state['input_sna']
             st.session_state['global_input']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
-            if cal_eq:
-                st.session_state['global_input']['share'] = st.session_state['input_share']
-            else:
-                st.session_state['global_input']['share'] = None
+            # if cal_eq:
+            #     st.session_state['global_input']['share'] = st.session_state['input_share']
+            # else:
+            #     st.session_state['global_input']['share'] = None
             
             # ranking
             st.session_state['rank1']['condition'] = st.session_state['rank1_condition'] # get value from findout function
