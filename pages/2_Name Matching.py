@@ -1041,7 +1041,7 @@ if (st.session_state.app2_input == True) and (st.session_state.app2_textprocess 
 
 #################################################################################################### 4. Name Matching ####################################################################################################
 
-@st.cache_data
+#@st.cache_data
 def adjust_dataset(query_df,corpus_df,
                    adjust_query,query_filter,query_filter_dtype,query_filter_condition):
     final_query_df = query_df.copy()
@@ -1174,6 +1174,8 @@ def click_submit_threshold():
         agree4 = False
         agree5 = False
     st.session_state.app2_processThreshold = True
+    conditonal_st_write_df.clear()
+    load_in.clear()
 
 if 'read_df1' not in st.session_state:
     st.session_state.read_df1 = True
