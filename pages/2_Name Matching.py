@@ -169,8 +169,8 @@ def read_upload_data(df):
 def conditional_st_write_df(df):
     file_size = df.memory_usage().sum()
     file_size_simp = file_size / 1000000
-    if file_size_simp > 200:
-        divider = file_size_simp/200
+    if file_size_simp > 100:
+        divider = file_size_simp/50
         sample_size = int(np.round(len(df)/divider))
         portion_of = np.round(sample_size/len(df) * 100)
         st.write(f'File Size is too large so we sample {portion_of}% of total')
