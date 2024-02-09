@@ -1073,7 +1073,7 @@ def adjust_dataset(query_df,corpus_df,
 #     return matched_df
 
 #@st.cache_data
-def batch_request_NameMatching(query_df,query_name_colname,corpus_df,corpus_nmame_colname,regex_list,fold = 10):
+def batch_request_NameMatching(query_df,query_name_colname,corpus_df,corpus_name_colname,regex_list,fold = 10):
     port = 5002
     api_route = 'name_matching'
     
@@ -1087,7 +1087,7 @@ def batch_request_NameMatching(query_df,query_name_colname,corpus_df,corpus_nmam
             'query_df' : samp_df.fillna(0).to_dict(orient= 'list'),
             'query_name_colname' : query_name_colname,
             'corpus_df' : corpus_df.fillna(0).to_dict(orient= 'list'),
-            'corpus_name_colname' : corpus_nmame_colname,
+            'corpus_name_colname' : corpus_name_colname,
             'textprocess_regex_list': regex_list
         }
 
@@ -1095,7 +1095,7 @@ def batch_request_NameMatching(query_df,query_name_colname,corpus_df,corpus_nmam
         if res.status_code == 201:
             result_df = pd.json_normalize(res.json()['matched_df'])
             print(result_df)
-            sorted_col = ['query_name','corpus_name','tfidf_score','fuzzy_ratio','fuzzy_partialratio',query_name_colname,corpus_nmame_colname]
+            sorted_col = ['query_name','corpus_name','tfidf_score','fuzzy_ratio','fuzzy_partialratio',query_name_colname,corpus_name_colname]
             result_df = result_df.filter(sorted_col)
             if len(result_df) > 0:
                 total_matched_df = pd.concat([total_matched_df,result_df])
