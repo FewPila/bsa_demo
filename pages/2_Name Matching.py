@@ -1174,7 +1174,7 @@ def click_submit_threshold():
         agree4 = False
         agree5 = False
     st.session_state.app2_processThreshold = True
-    conditonal_st_write_df.clear()
+    conditional_st_write_df.clear()
     load_in.clear()
 
 if 'read_df1' not in st.session_state:
