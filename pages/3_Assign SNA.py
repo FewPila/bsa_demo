@@ -176,7 +176,7 @@ def load_in(input_):
     output = input_
     return output
 
-@st.cache_data
+#@st.cache_data
 def read_upload_data(df):
     section = st.empty()
     section.info('reading uploaded data')
@@ -1547,7 +1547,7 @@ if st.session_state['app3_rule_based_prioritize']:
 
         return total_results
     
-    @st.cache_data
+    #@st.cache_data
     def request_ApplyRulebased(args,action,filtered_df,func_name,condition):
         port = 5003
         api_route = 'apply_rulebased'
@@ -1573,7 +1573,7 @@ if st.session_state['app3_rule_based_prioritize']:
 
         return res.json()['result']
     
-    @st.cache_data
+    #@st.cache_data
     def request_TidySna(filtered_df,target_name,type_sna,tidy_action):
         port = 5003
         api_route = 'tidy_sna'
