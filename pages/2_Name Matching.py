@@ -1664,8 +1664,9 @@ if st.session_state['app2_finalize_output'] is not None:
         st.session_state.app2_download_file = True
 
     def click_fin_download():
-        st.session_state.app2_download_file = False
         st.write('clicked please wait')
+        st.session_state.app2_download_file = False
+        
 
     if 'app2_download_params_file' not in st.session_state:
         st.session_state['app2_download_params_file'] = False
