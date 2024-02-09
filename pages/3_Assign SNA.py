@@ -1913,8 +1913,15 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
         st.session_state['app3_finalize_output'] = load_in(st.session_state['data'])
             
 if st.session_state['app3_finalize_output'] is not None:
-    conditional_st_write_df(st.session_state['app3_finalize_output'])
-    st.write(st.session_state['app3_finalize_output'].shape)
+    #conditional_st_write_df(st.session_state['app3_finalize_output'])
+    #st.write(st.session_state['app3_finalize_output'].shape)
+    if (st.session_state.app3_finalize_output.shape[0]) > 50000:
+        st.write('สุ่มมาทั้งหมด 50,000 rows')
+        st.write(st.session_state.app3_finalize_output.sample(50000))
+    else:
+         st.write(st.session_state.app3_finalize_output)
+    #conditional_st_write_df(st.session_state['data'])
+    st.write(f"{st.session_state['app3_finalize_output'].shape[0]} rows , {st.session_state['app3_finalize_output'].shape[1]} columns")
     st.session_state['app3_rule_based_process'] = False
 
     TARGET_CLASS = 'HLDR_FINAL_SNA10'
