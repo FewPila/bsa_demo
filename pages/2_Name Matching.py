@@ -1506,8 +1506,14 @@ if st.session_state['app2_output'] is not None:
             load_in.clear()
             st.session_state.first_clear = True
             
-        conditional_st_write_df(st.session_state.app2_output)
-        st.write(st.session_state.app2_output.shape)
+        #conditional_st_write_df(st.session_state.app2_output)
+        if (st.session_state.app2_output.shape[0]) > 50000:
+            st.write('สุ่มมาทั้งหมด 50,000 rows')
+            conditional_st_write_df(st.session_state.app2_output.sample(50000))
+        else:
+             conditional_st_write_df(st.session_state.app2_output)
+        st.write(f'{st.session_state.app2_output.shape[0]} rows , {st.session_state.app2_output.shape[1]} columns')
+        #st.write(st.session_state.app2_output.shape)
         if st.session_state.add_section == False: 
             with st.container():
                 st.subheader('เพิ่ม Column ที่ต้องการรวม')
@@ -1531,7 +1537,13 @@ if st.session_state['app2_output'] is not None:
     if st.session_state.app2_finalize_column and st.session_state['app2_finalize_output'] is None:
         
         if st.session_state['temporary_df'] is not None:
-            conditional_st_write_df(st.session_state['temporary_df'])
+            #conditional_st_write_df(st.session_state['temporary_df'])
+            if (st.session_state.temporary_df.shape[0]) > 50000:
+                st.write('สุ่มมาทั้งหมด 50,000 rows')
+                conditional_st_write_df(st.session_state.temporary_df.sample(50000))
+            else:
+                 conditional_st_write_df(st.session_state.temporary_df)
+        st.write(f'{st.session_state.temporary_df.shape[0]} rows , {st.session_state.temporary_df.shape[1]} columns')
         
         if st.session_state['submit_coltoKeep'] == False:
             columnsFromDf = st.session_state['temporary_df'].columns.values
@@ -1552,7 +1564,13 @@ if st.session_state['app2_output'] is not None:
         if 'second_clear' not in st.session_state:
             conditional_st_write_df.clear()
             st.session_state['second_clear'] = False
-        conditional_st_write_df(st.session_state['app2_finalize_output'])
+        #conditional_st_write_df(st.session_state['app2_finalize_output'])
+        if (st.session_state.app2_finalize_output.shape[0]) > 50000:
+            st.write('สุ่มมาทั้งหมด 50,000 rows')
+            conditional_st_write_df(st.session_state.app2_finalize_output.sample(50000))
+        else:
+             conditional_st_write_df(st.session_state.app2_finalize_output)
+        st.write(f'{st.session_state.app2_finalize_output.shape[0]} rows , {st.session_state.app2_finalize_output.shape[1]} columns')
                 
         params_data_dict = {
         'text_preprocess_regex': [st.session_state['params_text_preprocess_regex']],
