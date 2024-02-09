@@ -704,6 +704,7 @@ if 'init_process_output' not in st.session_state:
 
 def adjust_result():
     st.session_state['process_output'] = True
+    conditional_st_write_df.clear()
 
 ################## 2. Classify by Nameseer ##################
 if st.session_state.app1_nameseer:
