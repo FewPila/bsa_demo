@@ -127,6 +127,33 @@ if 'rid1_upload' not in st.session_state:
     st.session_state['rid2_dataset'] = None
     st.session_state['rid3_dataset'] = None
 
+if 'params_app3' not in st.session_state:
+    st.session_state['params_app3'] = False
+    st.session_state['params_app3_firm_th_isic_key'] = None
+    st.session_state['params_app3_firm_th_isic_value'] = None
+    st.session_state['params_app3_firm_th_keywords_key'] = None
+    st.session_state['params_app3_firm_th_keywords_value'] = None
+    st.session_state['params_app3_firm_th_nationalities_key'] = None
+    st.session_state['params_app3_firm_th_nationalities_value'] = None
+    st.session_state['params_app3_firm_th_rid_key'] = None
+    st.session_state['params_app3_firm_th_rid_value'] = None
+
+    st.session_state['params_app3_firm_eng_isic_key'] = None
+    st.session_state['params_app3_firm_eng_isic_value'] = None
+    st.session_state['params_app3_firm_eng_keywords_key'] = None
+    st.session_state['params_app3_firm_eng_keywords_value'] = None
+    st.session_state['params_app3_firm_eng_nationalities_key'] = None
+    st.session_state['params_app3_firm_eng_nationalities_value'] = None
+    st.session_state['params_app3_firm_eng_rid_key'] = None
+    st.session_state['params_app3_firm_eng_rid_value'] = None
+    
+    st.session_state['params_app3_person_isic_key'] = None
+    st.session_state['params_app3_person_isic_value'] = None
+    st.session_state['params_app3_person_keywords_key'] = None
+    st.session_state['params_app3_person_keywords_value'] = None
+    st.session_state['params_app3_person_nationalities_key'] = None
+    st.session_state['params_app3_person_nationalities_value'] = None
+
 
 def submit_isic1_upload():
     st.session_state['isic1_dataset'] = load_in(dataframe)
@@ -1895,6 +1922,35 @@ if st.session_state['app3_finalize_output'] is not None:
     took_time = np.round((t_end - st.session_state['t_start'] )/60,2)
     st.write(f'ใช้เวลาในการรันทั้งหมด {took_time} นาที')
     
+    params_app3_dict = {
+        'firm_th_isic_key': [st.session_state['params_app3_firm_th_isic_key']],
+        'firm_th_isic_value': [st.session_state['params_app3_firm_th_isic_value']],
+        'firm_th_keywords_key': [st.session_state['params_app3_firm_th_keywords_key']],
+        'firm_th_keywords_value':[st.session_state['params_app3_firm_th_keywords_value']],
+        'firm_th_nationalities_key': [st.session_state['params_app3_firm_th_nationalities_key']],
+        'firm_th_nationalities_value': [st.session_state['params_app3_firm_th_nationalities_value']],
+        'firm_th_rid_key': [st.session_state['params_app3_firm_th_rid_key']],
+        'firm_th_rid_value':[st.session_state['params_app3_firm_th_rid_value']],
+        
+        'firm_eng_isic_key': [st.session_state['params_app3_firm_eng_isic_key']],
+        'firm_eng_isic_value': [st.session_state['params_app3_firm_eng_isic_value']],
+        'firm_eng_keywords_key': [st.session_state['params_app3_firm_eng_keywords_key']],
+        'firm_eng_keywords_value':[st.session_state['params_app3_firm_eng_keywords_value']],
+        'firm_eng_nationalities_key': [st.session_state['params_app3_firm_eng_nationalities_key']],
+        'firm_eng_nationalities_value': [st.session_state['params_app3_firm_eng_nationalities_value']],
+        'firm_eng_rid_key': [st.session_state['params_app3_firm_eng_rid_key']],
+        'firm_eng_rid_value': [st.session_state['params_app3_firm_eng_rid_value']],
+
+        'person_isic_key': [st.session_state['params_app3_person_isic_key']],
+        'person_isic_value': [st.session_state['params_app3_person_isic_value']],
+        'person_keywords_key': [st.session_state['params_app3_person_keywords_key']],
+        'person_keywords_value': [st.session_state['params_app3_person_keywords_value']],
+        'person_nationalities_key': [st.session_state['params_app3_person_nationalities_key']],
+        'person_nationalities_value': [st.session_state['params_app3_person_nationalities_value']]
+    }
+    #st.write(params_app3_dict)
+    params_df = pd.DataFrame(params_app3_dict)#.transpose()
+    st.session_state['params_df'] = params_df.copy()    
 ############################## download    
     if 'app3_download_file' not in st.session_state:
         st.session_state.app3_download_file  = False
@@ -1945,7 +2001,10 @@ if st.session_state['app3_finalize_output'] is not None:
         st.session_state['app3_rule_based_process'] = True
         st.session_state['app3_finalize_output'] = None
         st.session_state.pop('app3_output_total_c',None)
-
+        
+    with st.expander('พารามิเตอร์ของ App3'):
+        st.dataframe(st.session_state['params_df'])
+        
     l3,r3 = st.columns([10,1])
     # with r2:
     #     next_bt2 = st.button('Next',on_click= submit_prioritize)
