@@ -1977,8 +1977,9 @@ if st.session_state['app3_finalize_output'] is not None:
         st.session_state.app3_download_file = True
 
     def click_fin_download():
-        st.session_state.app3_download_file = False
         st.write('clicked please wait')
+        st.session_state.app3_download_file = False
+        
 
     @st.cache_data
     def convert_df(df):
