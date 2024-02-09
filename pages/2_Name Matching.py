@@ -1348,7 +1348,10 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
                 nm_matched = pd.DataFrame()
                 #for thresh in st.session_state.possible_threshold_list:
                 for thresh in Thresh_List:
-                    nm_matched = pd.concat([nm_matched,st.session_state[f'matched{c}_df'].query(thresh)])
+                    queried_df = st.session_state[f'matched{c}_df'].query(thresh)
+                    if len(queried_df) > 0:
+                        #nm_matched = pd.concat([nm_matched,st.session_state[f'matched{c}_df'].query(thresh)])
+                        nm_matched = pd.concat([nm_matched,queried_df])
                 nm_matched = nm_matched.drop_duplicates(st.session_state[f'matched{c}_qc'])
 
                 # get matched results
