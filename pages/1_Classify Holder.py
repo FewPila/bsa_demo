@@ -893,7 +893,14 @@ if st.session_state['nat_classify_input'] == False and st.session_state.app1_nam
     st.subheader(f"คัดแยกได้ทั้งหมด {len(st.session_state['classified_result'])} ชื่อแยกเป็นประเภทดังนี้") 
     st.write(st.session_state['result_c'])
     st.subheader("Output ที่คัดแยกเสร็จแล้ว")
-    conditional_st_write_df(dataframe_explorer(st.session_state['app1_data'],case = False))
+    if (st.session_state.app1_data.shape[0]) > 100000:
+        st.write('สุ่มมาทั้งหมด 100,000 rows')
+        st.write(dataframe_explorer(st.session_state.app1_data.sample(100000)))
+    else:
+        st.write(dataframe_explorer(st.session_state.app1_data))
+    #conditional_st_write_df(dataframe_explorer(st.session_state['app1_data'],case = False))
+    st.write(f'{st.session_state.app1_data.shape[0]} rows , {st.session_state.app1_data.shape[1]} columns')
+
     t_end = time.time()
     took_time = np.round((t_end - st.session_state['t_start'] )/60,2)
     st.write(f'ใช้เวลาในการรันทั้งหมด {took_time} นาที')
@@ -969,8 +976,14 @@ if st.session_state['nat_classify_output'] == True:
     after_total_nan = st.session_state['output_data'][st.session_state['holder_nat_cn']].isnull().sum()
     st.write(f'จำนวนสัญชาติที่เป็น NA ก่อนใช้โมเดลคัดแยกสัญชาติ {before_total_nan}')
     st.write(f'จำนวนสัญชาติที่เป็น NA หลังใช้โมเดลคัดแยกสัญชาติ {after_total_nan}')
-    filtered_df = dataframe_explorer(st.session_state['output_data'], case=False)
-    conditional_st_write_df(filtered_df)
+    #filtered_df = dataframe_explorer(st.session_state['output_data'], case=False)
+    #conditional_st_write_df(filtered_df)
+    if (st.session_state.output_data.shape[0]) > 100000:
+        st.write('สุ่มมาทั้งหมด 100,000 rows')
+        st.write(dataframe_explorer(st.session_state.output_data.sample(100000)))
+    else:
+        st.write(dataframe_explorer(st.session_state.output_data))
+    st.write(f'{st.session_state.output_data.shape[0]} rows , {st.session_state.output_data.shape[1]} columns')
     t_end = time.time()
     took_time = np.round((t_end - st.session_state['t_start'] )/60,2)
     st.write(f'ใช้เวลาในการรันทั้งหมด {took_time} นาที')
