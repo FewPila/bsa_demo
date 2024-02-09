@@ -225,7 +225,12 @@ if st.session_state['app3_input'] == False :
         check_box = st.checkbox('Use App2 Input')
         if check_box:
             st.session_state['data'] = load_in(st.session_state['app2_ExportOutput'])
-            conditional_st_write_df(st.session_state['data'])
+            if (st.session_state.data.shape[0]) > 50000:
+                st.write('สุ่มมาทั้งหมด 50,000 rows')
+                st.write(st.session_state.data.sample(50000))
+            else:
+                 st.write(st.session_state.data)
+            #conditional_st_write_df(st.session_state['data'])
             st.write(f"{st.session_state['data'].shape[0]} rows , {st.session_state['data'].shape[1]} columns")
     else:
         check_box = False
@@ -234,9 +239,15 @@ if st.session_state['app3_input'] == False :
         uploaded_file = st.file_uploader("Choose a file")
         if uploaded_file is not None:
             dataframe = read_upload_data(uploaded_file)
-            conditional_st_write_df(dataframe)
-            st.write(f'{dataframe.shape[0]} rows , {dataframe.shape[1]} columns')
+            #conditional_st_write_df(dataframe)
+            
             st.session_state['data'] = load_in(dataframe)
+            if (st.session_state.data.shape[0]) > 50000:
+                st.write('สุ่มมาทั้งหมด 50,000 rows')
+                st.write(st.session_state.data.sample(50000))
+            else:
+                 st.write(st.session_state.data)
+            st.write(f'{dataframe.shape[0]} rows , {dataframe.shape[1]} columns')
 
     if st.session_state['data'] is not None:
         st.button('Submit',on_click = submit_app3_input ,key = 'submit_app3_input')
