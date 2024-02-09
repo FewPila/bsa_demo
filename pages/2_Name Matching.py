@@ -1402,16 +1402,7 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         t_end = time.time()
         took_time = np.round((t_end - st.session_state['t_start'] )/60,2)
         st.write(f'ใช้เวลาในการรันทั้งหมด {took_time} นาที')
-        
-        params_data_dict = {
-        'text_preprocess_regex': [st.session_state['params_text_preprocess_regex']],
-        'pupload_regex': [st.session_state['params_upload_regex']],
-        'matching_rules': [st.session_state['params_matching_rules']],
-        }
-        params_df = pd.DataFrame(params_data_dict)
-        st.session_state['params_df'] = params_df.copy()
-        with st.expander('พารามิเตอร์ของ App2'):
-            st.dataframe(st.session_state['params_df'])        
+      
     # if 't_end' not in st.session_state:
     #     st.session_state.t_end = time.time()
     #     st.write(st.session_state.t_end - st.session_state.t_zero)
@@ -1552,7 +1543,16 @@ if st.session_state['app2_output'] is not None:
             conditional_st_write_df.clear()
             st.session_state['second_clear'] = False
         conditional_st_write_df(st.session_state['app2_finalize_output'])
-
+                
+        params_data_dict = {
+        'text_preprocess_regex': [st.session_state['params_text_preprocess_regex']],
+        'pupload_regex': [st.session_state['params_upload_regex']],
+        'matching_rules': [st.session_state['params_matching_rules']],
+        }
+        params_df = pd.DataFrame(params_data_dict)
+        st.session_state['params_df'] = params_df.copy()
+        with st.expander('พารามิเตอร์ของ App2'):
+            st.dataframe(st.session_state['params_df'])  
 
 ######################## Download Final Output ########################
 import streamlit.components.v1 as components
