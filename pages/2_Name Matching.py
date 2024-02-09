@@ -1388,7 +1388,8 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         st.header("3. Matched Results",divider = 'green')
         #total_matched_len = len(nm_matched)
         print(len(st.session_state.query_df))
-        total_matched_len = len(st.session_state['query_matched_results'].dropna(subset = 'MATCHED_NAME'))
+        total_matched_data = st.session_state['query_matched_results'].dropna(subset = 'MATCHED_NAME')
+        total_matched_len = len(total_matched_data)
         matched_percent = np.round(total_matched_len/len(st.session_state.query_df)* 100,1)
         if 'Classified_Class' in st.session_state['query_matched_results'].columns.values.tolist():
             #st.write('Found Classified Class Columns')
@@ -1407,7 +1408,18 @@ if st.session_state.app2_preprocessNM and st.session_state['app2_output'] is Non
         #st.write(f'เป็นจำนวน {total_matched_len} ชื่อ จากทั้งหมด {len(st.session_state.query_df)}')
         st.caption('หมายเหตุ: ผลสามารถเป็นได้ทั้ง False Positive/Negative ไม่ใช่เป็นการ Confirm Matched')
         #st.write(st.session_state['query_matched_results'])
-        conditional_st_write_df(st.session_state['query_matched_results'])
+        #conditional_st_write_df(st.session_state['query_matched_results'])
+        if len(total_matched_data) > 1000:
+            st.write(total_matched_data)
+            st.write(f"Data ที่ Match ชื่อได้ {total_matched_data.shape[0]} rows ")
+        else:
+            if (st.session_state.query_matched_results.shape[0]) > 50000:
+                st.write('สุ่มมาทั้งหมด 50,000 rows')
+                st.write(st.session_state.query_matched_results.sample(50000))
+            else:
+                 st.write(st.session_state.query_matched_results)
+
+        st.write(f"โดย Dataset ทั้งหมดมีจำนวน {total_matched_data.shape[0]} rows , {total_matched_data.shape[1]} columns")
         # Took Time
         t_end = time.time()
         took_time = np.round((t_end - st.session_state['t_start'] )/60,2)
