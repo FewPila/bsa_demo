@@ -4,6 +4,11 @@ primaryColor="#4ba3ff"
 
 [server]
 maxUploadSize = 5000
-maxMessageSize = 2000
-enableXsrfProtection = false
-enableCORS = false
+#maxMessageSize = 2000
+#enableXsrfProtection = false
+#enableCORS = false
+maxMessageSize = 500
+headless = true
+enableCORS=false
+enableXsrfProtection=false
+enableWebsocketCompression=false
