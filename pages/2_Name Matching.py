@@ -1586,7 +1586,7 @@ if st.session_state['app2_output'] is not None:
                 
         params_data_dict = {
         'text_preprocess_regex': [st.session_state['params_text_preprocess_regex']],
-        'pupload_regex': [st.session_state['params_upload_regex']],
+        'upload_regex': [st.session_state['params_upload_regex']],
         'matching_rules': [st.session_state['params_matching_rules']],
         }
         params_df = pd.DataFrame(params_data_dict)
@@ -1642,7 +1642,7 @@ def download_df():
 
     params_data_dict = {
     'text_preprocess_regex': [st.session_state['params_text_preprocess_regex']],
-    'pupload_regex': [st.session_state['params_upload_regex']],
+    'upload_regex': [st.session_state['params_upload_regex']],
     'matching_rules': [st.session_state['params_matching_rules']],
     }
     params_df = pd.DataFrame(params_data_dict).transpose().reset_index()
@@ -1717,7 +1717,7 @@ if st.session_state['app2_finalize_output'] is not None:
         submitted2 = False
         params_data_dict = {
             'text_preprocess_regex': [st.session_state['params_text_preprocess_regex']],
-            'pupload_regex': [st.session_state['params_upload_regex']],
+            'upload_regex': [st.session_state['params_upload_regex']],
             'matching_rules': [st.session_state['params_matching_rules']],
         }
         params_df = pd.DataFrame(params_data_dict).transpose().reset_index()
