@@ -2081,6 +2081,214 @@ if st.session_state['app3_finalize_output'] is not None:
             st.download_button(label="Download data as CSV",data = csv,file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
             #st.download_button(label="Download data as CSV",data = st.session_state['app3_finalize_output'].to_csv().encode('utf-8'),file_name = f'{prompt}.csv',mime='text/csv',on_click = click_fin_download)
 
+############################################# Aggregate Results #############################################
+
+def click_show_display_aggregated_result():
+    st.session_state['display_aggregated_result'] = True
+
+if st.session_state['app3_finalize_output'] is not None:
+    st.divider()
+    if len(st.session_state['app3_finalize_output']) > 0:
+        agg_but = st.button('Calculate Aggregate Result',on_click = click_show_display_aggregated_result)
+
+if st.session_state['app3_finalize_output'] is not None:
+    if 'refer_columns' not in st.session_state:
+        st.session_state['refer_columns'] = [None]
+        st.session_state['refer_columns'].extend(st.session_state['app3_finalize_output'].columns.values.tolist())
+        st.session_state['display_aggregated_result'] = False
+    
+    if 'show_stat' not in st.session_state:
+        st.session_state['show_stat'] = False
+        st.session_state['stat_data'] = None
+            
+    if 'app3_download_aggregated_file' not in st.session_state:
+        st.session_state.app3_download_aggregated_file  = False
+
+    if st.session_state['display_aggregated_result']:
+        #pre init
+        if 'pre_init_idx' not in st.session_state:
+            st.session_state['pre_init_idx'] = False
+            #### HOLDER
+            # HLDR_NAME
+            hldr_nm_srch = np.where([bool(re.search('HLDR_NAME|HLDR_NAME|HOLDER_NAME',str(cn).upper())) for cn in st.session_state['refer_columns']])[0]
+            if len(hldr_nm_srch) > 0:
+                st.session_state['hldr_nm_init_idx'] = int(hldr_nm_srch[0])
+            else:
+                st.session_state['hldr_nm_init_idx'] = 0
+            # HLDR_NAT
+            hldr_nat_srch = np.where([bool(re.search('HLDR_NAT|HLDR_NATIONALITI',str(cn).upper())) for cn in st.session_state['refer_columns']])[0]
+            if len(hldr_nat_srch) > 0:
+                st.session_state['hldr_nat_init_idx'] = int(hldr_nat_srch[0])
+            else:
+                st.session_state['hldr_nat_init_idx'] = 0
+
+            ### SHARE
+            # Share
+            hldr_shr_srch = np.where([bool(re.search('^SHARE',str(cn).upper())) for cn in st.session_state['refer_columns']])[0]
+            if len(hldr_shr_srch) > 0:
+                st.session_state['hldr_share_init_idx'] = int(hldr_shr_srch[0])
+            else:
+                st.session_state['hldr_share_init_idx'] = 0        
+            # Total Share
+            total_shr_srch = np.where([bool(re.search('^TOTAL_SHARE',str(cn).upper())) for cn in st.session_state['refer_columns']])[0]
+            if len(total_shr_srch) > 0:
+                st.session_state['total_share_init_idx'] = int(total_shr_srch[0])
+            else:
+                st.session_state['total_share_init_idx'] = 0
+
+            #### FIRM
+            # FIRM RID
+            firm_rid_srch = np.where([bool(re.search('FIRM_RID|^RID$',str(cn).upper())) for cn in st.session_state['refer_columns']])[0]
+            if len(firm_rid_srch) > 0:
+                st.session_state['firm_rid_init_idx'] = int(firm_rid_srch[0])
+            else:
+                st.session_state['firm_rid_init_idx'] = 0
+            # FIRM NAME
+            firm_nm_srch = np.where([bool(re.search('FIRM_NAME|^RID_NAME',str(cn).upper())) for cn in st.session_state['refer_columns']])[0]
+            if len(firm_nm_srch) > 0:
+                st.session_state['firm_nm_init_idx'] = int(firm_nm_srch[0])
+            else:
+                st.session_state['firm_nm_init_idx'] = 0
+            # FIRM ISIC
+            firm_isic_srch = np.where([bool(re.search('FIRM_ISIC',str(cn).upper())) for cn in st.session_state['refer_columns']])[0]
+            if len(firm_isic_srch) > 0:
+                st.session_state['firm_isic_init_idx'] = int(firm_isic_srch[0])
+            else:
+                st.session_state['firm_isic_init_idx'] = 0
+
+        def submit_agg_input_cn():
+            #hldr_col_list = [st.session_state['hldr_nm_init_idx'],]
+            st.session_state['input_hldr_name_out'] = copy.deepcopy(st.session_state['input_hldr_name'])
+            st.session_state['input_nat_out'] = copy.deepcopy(st.session_state['input_nat'])
+            st.session_state['input_share_out'] = copy.deepcopy(st.session_state['input_share'])
+            st.session_state['input_total_share_out'] = copy.deepcopy(st.session_state['input_total_share'])
+            st.session_state['input_firm_name_out'] = copy.deepcopy(st.session_state['input_firm_name'])
+            st.session_state['input_firm_rid_out'] = copy.deepcopy(st.session_state['input_firm_rid'])
+            st.session_state['input_firm_isic_out'] = copy.deepcopy(st.session_state['input_firm_isic'])
+            st.session_state['pre_init_idx'] = True 
+
+        def click_show_stat():
+            st.session_state['show_stat'] = True
+
+        if st.session_state['pre_init_idx'] == False:
+            left,right,out = st.columns([10,10,10])
+            left.subheader(f':gray[ชื่อผู้ถือหุ้น :]')
+            right.selectbox(label = '',options = st.session_state['refer_columns'],index = st.session_state['hldr_nm_init_idx'],key = 'input_hldr_name',label_visibility = 'collapsed')
+            left.subheader(f':gray[สัญชาติผู้ถือหุ้น :]')
+            right.selectbox(label = '',options = st.session_state['refer_columns'],index = st.session_state['hldr_nat_init_idx'],key = 'input_nat',label_visibility = 'collapsed')
+            left.subheader(f':gray[จำนวนหุ้น :]')
+            right.selectbox(label = '',options = st.session_state['refer_columns'],index = st.session_state['hldr_share_init_idx'],key = 'input_share',label_visibility = 'collapsed')
+            left.subheader(f':gray[จำนวนหุ้นทั้งหมด :]')
+            right.selectbox(label = '',options = st.session_state['refer_columns'],index = st.session_state['total_share_init_idx'],key = 'input_total_share',label_visibility = 'collapsed')
+
+            left.subheader(f':gray[ชื่อ ของบริษัท:]')
+            right.selectbox(label = '',options = st.session_state['refer_columns'],index = st.session_state['firm_nm_init_idx'],key = 'input_firm_name',label_visibility = 'collapsed')
+            left.subheader(f':gray[รหัส RID ของบริษัท:]')
+            right.selectbox(label = '',options = st.session_state['refer_columns'],index = st.session_state['firm_rid_init_idx'],key = 'input_firm_rid',label_visibility = 'collapsed')
+            left.subheader(f':gray[รหัส isic ของบริษัท:]')
+            right.selectbox(label = '',options = st.session_state['refer_columns'],index = st.session_state['firm_isic_init_idx'],key = 'input_firm_isic',label_visibility = 'collapsed')
+
+            st.button('submit',on_click= submit_agg_input_cn)
+
+        if st.session_state['pre_init_idx']:
+            options = ['รายบริษัทที่ไปลงทุน/รายผู้ถือหุ้น',
+                       'รายบริษัทที่ไปลงทุน/รายSNA',
+                       'รายSNAบริษัทที่ไปลงทุน/รายSNA']
+            #st.radio('',options = [1,2,3],index = 0,key = 'init_radio')
+            st.radio('',options = options,index = 0,key = 'init_radio')
+            # FIRM/HOLDER
+            if st.session_state['init_radio'] == "รายบริษัทที่ไปลงทุน/รายผู้ถือหุ้น":
+                drop_col = []
+                left_side_col_lists = [st.session_state['input_firm_name_out'],st.session_state['input_firm_rid_out'],st.session_state['input_firm_isic_out'],
+                                    st.session_state['input_total_share_out'],
+                                    st.session_state['input_hldr_name_out'],st.session_state['input_nat_out'],
+                                    'FIRM_FINAL_SNA','FIRM_FINAL_SNA10',
+                                    'HLDR_FINAL_SNA','HLDR_FINAL_SNA10']
+                left_side_col_lists = [x for x in left_side_col_lists if x is not None]
+                right_side_col_lists = [st.session_state['input_share_out']]
+                right_side_col_lists = [x for x in right_side_col_lists if x is not None]
+
+                
+            # FIRM/SNA
+            elif st.session_state['init_radio'] == 'รายบริษัทที่ไปลงทุน/รายSNA':
+                drop_col = [st.session_state['input_hldr_name_out'],st.session_state['input_nat_out'],st.session_state['input_firm_name_out'],st.session_state['input_firm_rid_out'],st.session_state['input_firm_isic_out']]
+                drop_col = [x for x in drop_col if x is not None]
+
+                # left_side_col_lists = [st.session_state['input_firm_name_out'],st.session_state['input_firm_rid_out'],st.session_state['input_firm_isic_out'],
+                #                     st.session_state['input_total_share_out'],
+                #                     'FIRM_FINAL_SNA','FIRM_FINAL_SNA10',
+                #                     'HLDR_FINAL_SNA','HLDR_FINAL_SNA10']
+                left_side_col_lists = [
+                                    st.session_state['input_total_share_out'],
+                                    'FIRM_FINAL_SNA','FIRM_FINAL_SNA10',
+                                    'HLDR_FINAL_SNA','HLDR_FINAL_SNA10']
+                left_side_col_lists = [x for x in left_side_col_lists if x is not None]
+                right_side_col_lists = [st.session_state['input_share_out']]
+                right_side_col_lists = [x for x in right_side_col_lists if x is not None]        
+
+            # Display Reuslts
+            left,right = st.columns(2)
+            left.multiselect('Column ที่ต้องการ Groupby',options = st.session_state['refer_columns'],default=left_side_col_lists,key = 'left_side_col')
+            right.multiselect('Column Stat ที่ต้องการ Summarize',options = st.session_state['refer_columns'],default= right_side_col_lists,key = 'right_side_col')
+            right.multiselect('Column ที่ต้องการ Drop',options = st.session_state['refer_columns'],default= drop_col,key = 'right_side_drop_col')
+            st.button('Submit',key = 'submit_summarize_stat',on_click = click_show_stat)
+
+        if st.session_state['show_stat'] == True:
+            prep_inf = st.empty()
+            prep_inf.info('Calculate Aggregate Stat')
+            time.sleep(1)
+            right_side_dict = {}
+            for cn in st.session_state['right_side_col']:
+                right_side_dict[cn] = 'sum'
+            
+            if st.session_state['init_radio'] == "รายบริษัทที่ไปลงทุน/รายผู้ถือหุ้น":
+                agggregated_df = st.session_state['app3_finalize_output'].groupby(st.session_state['left_side_col'],dropna = False).agg(right_side_dict)
+            elif st.session_state['init_radio'] == "รายบริษัทที่ไปลงทุน/รายSNA":
+                agggregated_df = st.session_state['app3_finalize_output'].drop(drop_col,axis = 1).groupby(st.session_state['left_side_col'],dropna = False).agg(right_side_dict)
+        
+            st.session_state['stat_data'] = agggregated_df.copy()
+            prep_inf.empty()
+
+        if st.session_state['stat_data'] is not None:
+            st.subheader('Aggregated Result')
+            st.dataframe(st.session_state['stat_data'],use_container_width=True)
+            st.write(f"มีจำนวนทั้งหมด {st.session_state['stat_data'].shape[0]} rows")
+            st.session_state['show_stat'] = False
+        
+        ### Download Data Session    
+        def click_download_aggregated_result():
+            st.session_state.app3_download_aggregated_file = True
+
+        def click_fin_download_aggregated_result():
+            st.session_state.app3_download_aggregated_file = False
+            st.write('clicked please wait')
+        
+        if st.session_state['stat_data'] is not None:
+            st.button('Download Aggregated Result',on_click = click_download_aggregated_result,key = 'download_agg_result_bt')
+        
+        if st.session_state.app3_download_aggregated_file:
+            prompt_agg = False
+            submitted_agg = False
+            csv_agg = convert_df(st.session_state['stat_data'].reset_index())
+            with st.form('chat_input_form_agg'):
+                # Create two columns; adjust the ratio to your liking
+                col1_agg, col2_agg = st.columns([3,1]) 
+                # Use the first column for text input
+                with col1_agg:
+                    prompt_agg = st.text_input(label = '',value='',placeholder='please write your file_name',label_visibility='collapsed')
+                # Use the second column for the submit button
+                with col2_agg:
+                    submitted_agg = st.form_submit_button('Submit')
+                
+                if prompt_agg and submitted_agg:
+                    st.write(f"Your file_name is: {prompt_agg}.csv")
+
+        if st.session_state.app3_download_aggregated_file:
+            if prompt_agg and submitted_agg:
+                st.download_button(label="Download Aggregated data as CSV",data = csv_agg,file_name = f'{prompt_agg}.csv',mime='text/csv',on_click = click_fin_download_aggregated_result)
+
+
+############################################# Aggregate Results #############################################
 ############################## Get Back
     def back_click3():
         st.session_state['app3_rule_based_prioritize'] = False
