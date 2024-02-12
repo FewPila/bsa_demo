@@ -1968,7 +1968,7 @@ if st.session_state['app3_finalize_output'] is not None:
     }
     #st.write(params_app3_dict)
     params_df = pd.DataFrame(params_app3_dict)#.transpose()
-    st.session_state['params_df'] = params_df.copy()    
+    st.session_state['params_df'] = load_in(params_df.copy())    
 ############################## download    
     if 'app3_download_file' not in st.session_state:
         st.session_state.app3_download_file  = False
