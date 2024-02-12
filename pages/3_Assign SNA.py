@@ -461,12 +461,18 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                             st.session_state['rule_based1_isic_action']['SNA'] = None
                         else:
                             st.session_state['rule_based1_isic_action'] = load_in(st.session_state['isic1_dataset'])
+                        # send to params
+                        st.session_state['params_app3_firm_th_isic_key'] = copy.deepcopy(st.session_state['rule_based1_isic_action']['Rule'].values.tolist())
+                        st.session_state['params_app3_firm_th_isic_value'] = copy.deepcopy(st.session_state['rule_based1_isic_action']['SNA10'].values.tolist())
                     else:
                         st.session_state['rule_based1_isic_action'] = None
-
+                        # send to params
+                        st.session_state['params_app3_firm_eng_isic_key'] = None
+                        st.session_state['params_app3_firm_eng_isic_value'] = None
+                    
+                    ### Collect keywords's action
                     if st.session_state['keywords1_checkbox']:
                         if keywords1_section is not None:
-                            ### Collect keywords's action
                             keywords_df = pd.DataFrame()
                             for key in keywords1_section:
                                 new_dict = dict( SNA10 = np.array([key]), Rule = np.array(st.session_state[key]))
@@ -478,23 +484,41 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                             st.session_state['rule_based1_keywords_action']['SNA'] = None
                         else:
                             st.session_state['rule_based1_keywords_action'] =load_in(st.session_state['keywords1_dataset'])
+                        # send to params
+                        st.session_state['params_app3_firm_th_keywords_key'] = load_in(st.session_state['rule_based1_keywords_action']['Rule'].values.tolist())
+                        st.session_state['params_app3_firm_th_keywords_value'] = load_in(st.session_state['rule_based1_keywords_action']['SNA10'].values.tolist())
                     else:
                         st.session_state['rule_based1_keywords_action'] = None
-
+                        # send to params
+                        st.session_state['params_app3_firm_th_keywords_key'] = None
+                        st.session_state['params_app3_firm_th_keywords_value'] = None
+                    
                     ### Collect Nationalities's action
                     if st.session_state['nat1_checkbox']:
                         st.session_state['rule_based1_nat_else_th'] = st.session_state['rule_based1_first_nat_v']
                         st.session_state['rule_based1_nat_else_nonth'] = st.session_state['rule_based1_second_nat_v']
+                        # send to params
+                        st.session_state['params_app3_firm_th_nationalities_key'] = ['TH','NON-TH']
+                        st.session_state['params_app3_firm_th_nationalities_value'] = [st.session_state['rule_based1_first_nat_v'],st.session_state['rule_based1_second_nat_v']]
                     else:
                         st.session_state['rule_based1_nat_else_th'] = None
                         st.session_state['rule_based1_nat_else_nonth'] = None
+                        # send to params
+                        st.session_state['params_app3_firm_th_nationalities_key'] = None
+                        st.session_state['params_app3_firm_th_nationalities_value'] = None
                     
                     ### Collect RID's action
                     if st.session_state['rid1_checkbox']:
                         if st.session_state['rid1_upload']:
                             st.session_state['rule_based1_rid_action'] = load_in(st.session_state['rid1_dataset'])
+                            # send to params
+                            st.session_state['params_app3_firm_th_rid_key'] = st.session_state['rule_based1_rid_action']['Rule'].values.tolist()
+                            st.session_state['params_app3_firm_th_rid_value'] = st.session_state['rule_based1_rid_action']['SNA10'].values.tolis
                     else:
                         st.session_state['rule_based1_rid_action'] = None
+                        # send to params
+                        st.session_state['params_app3_firm_th_rid_key'] = None
+                        st.session_state['params_app3_firm_th_rid_value'] = None                        
 
                     # submit rules-based
                     st.session_state['isic1_checkbox_out'] = load_in(st.session_state['isic1_checkbox'])
@@ -746,8 +770,15 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                             st.session_state['rule_based2_isic_action']['SNA'] = None
                         else:
                             st.session_state['rule_based2_isic_action'] = load_in(st.session_state['isic2_dataset'])
+                        # send to params
+                        st.session_state['params_app3_firm_eng_isic_key'] = copy.deepcopy(st.session_state['rule_based2_isic_action']['Rule'].values.tolist())
+                        st.session_state['params_app3_firm_eng_isic_value'] = copy.deepcopy(st.session_state['rule_based2_isic_action']['SNA10'].values.tolist())
                     else:
                         st.session_state['rule_based2_isic_action'] = None
+                        # send to params
+                        st.session_state['params_app3_firm_eng_isic_key'] = None
+                        st.session_state['params_app3_firm_eng_isic_value'] = None
+                        
 
                     if st.session_state['keywords2_checkbox']:
                         if keywords2_section is not None:
@@ -763,23 +794,41 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                             st.session_state['rule_based2_keywords_action']['SNA'] = None
                         else:
                             st.session_state['rule_based2_keywords_action'] =load_in(st.session_state['keywords2_dataset'])
+                        # send to params
+                        st.session_state['params_app3_firm_eng_keywords_key'] = copy.deepcopy(st.session_state['rule_based2_keywords_action']['Rule'].values.tolist())
+                        st.session_state['params_app3_firm_eng_keywords_value'] = copy.deepcopy(st.session_state['rule_based2_keywords_action']['SNA10'].values.tolist())
                     else:
                         st.session_state['rule_based2_keywords_action'] = None
+                        # send to params
+                        st.session_state['params_app3_firm_eng_keywords_key'] = None
+                        st.session_state['params_app3_firm_eng_keywords_value'] = None
 
                     ### Collect Nationalities's action
                     if st.session_state['nat2_checkbox']:
                         st.session_state['rule_based2_nat_else_th'] = st.session_state['rule_based2_first_nat_v']
                         st.session_state['rule_based2_nat_else_nonth'] = st.session_state['rule_based2_second_nat_v']
+                        # send to params
+                        st.session_state['params_app3_firm_eng_nationalities_key'] = ['TH','NON-TH']
+                        st.session_state['params_app3_firm_eng_nationalities_value'] = [st.session_state['rule_based2_first_nat_v'],st.session_state['rule_based2_second_nat_v']]
                     else:
                         st.session_state['rule_based2_nat_else_th'] = None
                         st.session_state['rule_based2_nat_else_nonth'] = None
+                        # send to params
+                        st.session_state['params_app3_firm_eng_nationalities_key'] = None
+                        st.session_state['params_app3_firm_eng_nationalities_value'] = None
 
                     ### Collect RID's action
                     if st.session_state['rid2_checkbox']:
                         if st.session_state['rid2_upload']:
                             st.session_state['rule_based2_rid_action'] = load_in(st.session_state['rid2_dataset'])
+                            # send to params
+                            st.session_state['params_app3_firm_eng_rid_key'] = st.session_state['rule_based2_rid_action']['Rule'].values.tolist()
+                            st.session_state['params_app3_firm_eng_rid_value'] = st.session_state['rule_based2_rid_action']['SNA10'].values.tolist()
                     else:
                         st.session_state['rule_based2_rid_action'] = None
+                        # send to params
+                        st.session_state['params_app3_firm_eng_rid_key'] = None
+                        st.session_state['params_app3_firm_eng_rid_value'] = None
 
                     # submit rules-based
                     st.session_state['isic2_checkbox_out'] = load_in(st.session_state['isic2_checkbox'])
@@ -1007,8 +1056,14 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                             st.session_state['rule_based3_isic_action']['SNA'] = None
                         else:
                             st.session_state['rule_based3_isic_action'] = load_in(st.session_state['isic3_dataset'])
+                        # send to params
+                        st.session_state['params_app3_person_isic_key'] = copy.deepcopy(st.session_state['rule_based3_isic_action']['Rule'].values.tolist())
+                        st.session_state['params_app3_person_isic_value'] = copy.deepcopy(st.session_state['rule_based3_isic_action']['SNA10'].values.tolist())
                     else:
                         st.session_state['rule_based3_isic_action'] = None
+                        # send to params
+                        st.session_state['params_app3_person_isic_key'] = None
+                        st.session_state['params_app3_person_isic_value'] = None
 
                     if st.session_state['keywords3_checkbox']:
                         if keywords3_section is not None:
@@ -1024,16 +1079,28 @@ if st.session_state['app3_rule_based'] == False and st.session_state['app3_input
                             st.session_state['rule_based3_keywords_action']["SNA"] = None
                         else:
                             st.session_state['rule_based3_keywords_action'] =load_in(st.session_state['keywords3_dataset'])
+                        # send to params
+                        st.session_state['params_app3_person_keywords_key'] = load_in(st.session_state['rule_based3_keywords_action']['Rule'].values.tolist())
+                        st.session_state['params_app3_person_keywords_value'] = load_in(st.session_state['rule_based3_keywords_action']['SNA10'].values.tolist())
                     else:
                         st.session_state['rule_based3_keywords_action'] = None
+                        # send to params
+                        st.session_state['params_app3_person_keywords_key'] = None
+                        st.session_state['params_app3_person_keywords_value'] = None
 
                     ### Collect Nationalities's action
                     if st.session_state['nat3_checkbox']:
                         st.session_state['rule_based3_nat_else_th'] = st.session_state['rule_based3_first_nat_v']
                         st.session_state['rule_based3_nat_else_nonth'] = st.session_state['rule_based3_second_nat_v']
+                        # send to params
+                        st.session_state['params_app3_person_nationalities_key'] = ['TH','NON-TH']
+                        st.session_state['params_app3_person_nationalities_value'] = [st.session_state['rule_based3_first_nat_v'],st.session_state['rule_based3_second_nat_v']]
                     else:
                         st.session_state['rule_based3_nat_else_th'] = None
                         st.session_state['rule_based3_nat_else_nonth'] = None
+                        # send to params
+                        st.session_state['params_app3_person_nationalities_key'] = None
+                        st.session_state['params_app3_person_nationalities_value'] = None
 
                     # submit rules-based
                     st.session_state['isic3_checkbox_out'] = load_in(st.session_state['isic3_checkbox'])
