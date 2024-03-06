@@ -1084,7 +1084,8 @@ def click_fin_download_params():
 @st.cache_data
 def convert_df(df):
     # IMPORTANT: Cache the conversion to prevent computation on every rerun
-    return df.to_csv().encode('utf-8')
+    #return df.to_csv().encode('utf-8')
+    return df.to_csv(encoding='utf-8-sig')
 
 if st.session_state.app1_nameseer:
     #st.divider()
@@ -1153,8 +1154,9 @@ if st.session_state.app1_download_params_file:
 
 if st.session_state.app1_download_params_file:
     if prompt2 and submitted2:
-        st.download_button(label="Download Params data as CSV",data = st.session_state['params_df'].to_csv().encode('utf-8'),file_name = f'{prompt2}.csv',mime='text/csv',on_click = click_fin_download_params)
-
+        #st.download_button(label="Download Params data as CSV",data = st.session_state['params_df'].to_csv().encode('utf-8'),file_name = f'{prompt2}.csv',mime='text/csv',on_click = click_fin_download_params)
+        st.download_button(label="Download Params data as CSV",data = st.session_state['params_df'].to_csv(encoding='utf-8-sig'),file_name = f'{prompt2}.csv',mime='text/csv',on_click = click_fin_download_params)
+        #to_csv(encoding='utf-8-sig')
     
 ################## Back & Forward ##################
 st.divider()
