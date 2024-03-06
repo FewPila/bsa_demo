@@ -147,7 +147,10 @@ def prepLines(lines):
 def read_upload_data(df):
     section = st.empty()
     section.info('reading uploaded data')
-    out = pd.read_csv(df,skiprows = none_but_please_show_progress_bar())
+    try:
+        out = pd.read_csv(df,skiprows = none_but_please_show_progress_bar())
+    except:
+        out = pd.read_csv(df,skiprows = none_but_please_show_progress_bar(),encoding='cp1252')
     section.empty()
     return out
 
