@@ -150,7 +150,7 @@ def read_upload_data(df):
     try:
         out = pd.read_csv(df,skiprows = none_but_please_show_progress_bar())
     except:
-        out = pd.read_csv(df,skiprows = none_but_please_show_progress_bar(),encoding='cp1252')
+        out = pd.read_csv(df,skiprows = none_but_please_show_progress_bar(),encoding='cp1252',on_bad_lines='skip')
     section.empty()
     return out
 
