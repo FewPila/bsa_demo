@@ -203,23 +203,6 @@ def click_to_NM():
 if 'order' not in st.session_state:
     st.session_state.order = {'corpus1':False,'corpus2':False,'corpus3':False}
 
-if 'app1_ExportOutput' not in st.session_state:
-    st.session_state.app1_ExportOutput = None
-
-if 'app2_input' not in st.session_state:
-    st.session_state.app2_input = False
-    st.session_state.app2_output = None
-    st.session_state['app2_finalize_output'] = None
-
-# if 'app2_textprocess' not in st.session_state:
-#     st.session_state.app2_textprocess = False
-#     st.session_state.app2_textprocess_regex_list = False
-#     st.session_state.app2_default_regex_list = copy.deepcopy(default_regex_list)
-#     st.session_state.app2_developer_regex_list = copy.deepcopy(soft_simp_words)
-#     st.session_state.app2_developer_regex_listV2 = copy.deepcopy(hard_simp_words)
-#     st.session_state.app2_regex_listV1 = None
-#     st.session_state.app2_regex_listV2 = None
-
 if 'app2_preprocessNM' not in st.session_state:
     st.session_state.app2_preprocessNM = False
 
@@ -229,10 +212,17 @@ if 'possible_threshold_list' not in st.session_state:
     st.session_state.app2_possible_threshold_list = ["tfidf_score >= 60 & fuzzy_ratio >= 90 & fuzzy_partialratio >= 90",
                            "tfidf_score >= 66.7 & fuzzy_partialratio >= 97","tfidf_score >= 70"]
 
+if 'app1_ExportOutput' not in st.session_state:
+    st.session_state.app1_ExportOutput = None
+
+if 'app2_input' not in st.session_state:
+    st.session_state.app2_input = False
+    st.session_state.app2_output = None
+    st.session_state['app2_finalize_output'] = None
+
 def submit_input_query():
     st.session_state.query_namecolname = st.session_state.namecol_select_box
     st.session_state.query_df = load_in(st.session_state.query_df.filter(st.session_state.query_keep_col))
-    #st.session_state.query_df = st.session_state.query_df.drop_duplicates(st.session_state['query_namecolname']).reset_index(drop = True).reset_index().rename(columns = {'index':'query_index'})
     st.session_state.query_input = True
 
 if 'query_input' not in st.session_state:
@@ -240,6 +230,90 @@ if 'query_input' not in st.session_state:
     st.session_state.query_cache  = False
     st.session_state.query_df = None
     st.session_state.query_namecolname = None
+
+    # tidy & merge section
+    st.session_state['merge_issuer'] = False #1
+    st.session_state.issuer_df = None
+    st.session_state.issuer_cache = False
+    st.session_state['tidy_data'] = False #2
+    st.session_state['s_hldr_cn'] = False #3
+
+####################################################### Merge Issuer #######################################################
+def submit_merge_issuser():
+    if merge_issuer_checkbox:
+        #fil RID for hldr
+        st.session_state['query_df'][st.session_state['hldr_rid_column']] = st.session_state['query_df'][st.session_state['hldr_rid_column']].astype(str).str.zfill(13)
+        #fil RID for issuer
+        st.session_state['issuer_df'][st.session_state['issuer_rid_column']] = st.session_state['issuer_df'][st.session_state['issuer_rid_column']].astype(str).str.zfill(13)
+        r_df = st.session_state['query_df'].merge(st.session_state['issuer_df'].rename(columns = {st.session_state['issuer_rid_column']:st.session_state['hldr_rid_column']}),
+                                                    on = st.session_state['hldr_rid_column'],
+                                                    how = 'left')
+        st.session_state['query_df'] = r_df.copy()
+        st.session_state['merge_issuer'] = True
+
+####################################################### tidy data #######################################################
+if 'query_df_adjust_column' not in st.session_state:
+    st.session_state.query_df_adjust_column = True #init
+    st.session_state.query_df_finalize_column = False
+    st.session_state['query_df_finalize_output'] = None
+
+##### Add Section
+if 'query_add_section' not in st.session_state:
+    st.session_state.query_add_section = False
+    st.session_state.query_section_df = pd.DataFrame()
+    st.session_state['query_temporary_df'] = None
+    st.session_state['query_submit_coltoKeep'] = False        
+
+def combinder(candidate,dataframe):
+    df = dataframe.copy()
+    candidate_verify = np.array(candidate)[np.isin(candidate,df.columns.values)]
+    if len(candidate_verify) > 0:
+        if len(candidate_verify) == 1:
+            result_values = df[candidate_verify[0]].values.tolist()
+        else:
+            c = 0
+            for cand in candidate_verify:
+                if c == 0:
+                    result_values = df[cand].values
+                    c += 1
+                else:
+                    result_values = [y if pd.isna(x) else x for x,y in list(zip(result_values,df[cand].values))]
+    return result_values
+
+def query_save_extracolumn(add):
+    fake_df = pd.DataFrame({'Name':[add],'Columns':[st.session_state.candidate_col]})
+    st.session_state.query_section_df = pd.concat([st.session_state.query_section_df,fake_df])
+
+def query_submit_section():
+    st.session_state['query_temporary_df'] = st.session_state['query_df'].copy()
+    for idx,row in st.session_state['query_section_df'].iterrows():
+        st.session_state['query_temporary_df'].loc[:,row.Name] = combinder(row.Columns,st.session_state['query_df'])
+    st.session_state.query_df_adjust_column = False
+    st.session_state.query_df_finalize_column = True
+
+def query_skip_section():
+    st.session_state['query_temporary_df'] = st.session_state['query_df'].copy()
+    st.session_state.query_df_adjust_column = False
+    st.session_state.query_df_finalize_column = True
+
+def query_finalize_column():
+    st.session_state['query_temporary_df'] = load_in(st.session_state['query_temporary_df'].filter(st.session_state.query_col_list_select_box))
+    st.session_state['query_submit_coltoKeep'] = True
+    st.session_state['query_df'] = load_in(st.session_state['query_temporary_df'])
+
+def query_start_finalize():
+    st.session_state['query_df_adjust_column'] = True
+
+####################################################### select holder name column #######################################################
+def query_input_process1():
+    st.session_state['merge_issuer'] = True
+    st.session_state['tidy_data'] = True
+    st.session_state['s_hldr_cn'] = True
+
+def submit_input_query():
+    st.session_state.query_namecolname = st.session_state.namecol_select_box
+    #st.session_state.query_df = load_in(st.session_state.query_df.filter(st.session_state.query_keep_col))
+    st.session_state.query_input = True
 #################################################################################################### 1 Query Input ####################################################################################################
 if  st.session_state.query_input == False:
     st.header("Step 1: Input Dataset",divider= 'blue')
@@ -265,23 +339,96 @@ if  st.session_state.query_input == False:
             if st.session_state.app1_ExportOutput is not None and check_box:
                 st.session_state.query_df = load_in(st.session_state.app1_ExportOutput)
                 st.session_state.query_cache = True
-    # after have input
-    if st.session_state.query_df is not None:
-        #st.subheader('This is Your Query Dataset')
-        #conditional_st_write_df(st.session_state.query_df)
+
+    ###################### after have input ######################
+    if st.session_state.query_df is not None and st.session_state['tidy_data'] == False :
+        if st.session_state.query_df_finalize_column == False: # init before finalze query input
+            if (st.session_state.query_df.shape[0]) > 50000:
+                st.write('สุ่มมาทั้งหมด 50,000 rows')
+                st.write(st.session_state.query_df.sample(50000))
+            else:
+                st.write(st.session_state.query_df)
+            st.write(f'{st.session_state.query_df.shape[0]} rows , {st.session_state.query_df.shape[1]} columns')
+            
+        # if merge issuer
+        if st.session_state['merge_issuer'] == False:
+            merge_issuer_checkbox = st.checkbox('Want to Merge Issuer?')
+            if merge_issuer_checkbox:
+                issuer_upload = st.file_uploader("Choose a file to upload",key = 'issuer_upload')
+                if issuer_upload is not None:
+                    st.session_state.issuer_df = read_upload_data(issuer_upload)
+                    st.session_state.issuer_cache = True
+                
+                if st.session_state['issuer_df'] is not None and st.session_state['merge_issuer'] == False:
+                    # select hldr column for merge
+                    hldr_column_list = [None]
+                    hldr_column_list.extend(st.session_state['query_df'].columns.values.tolist())
+                    
+                    # select issuer column for merge
+                    issuer_column_list = [None]
+                    issuer_column_list.extend(st.session_state['issuer_df'].columns.values.tolist())
+                    
+
+                    l1,r1 = st.columns(2)
+                    with l1:
+                        st.subheader('Please Select Necessary Column')
+                        st.selectbox('HLDR RID',options = hldr_column_list,key = 'hldr_rid_column')
+                        st.selectbox('ISSUER RID',options = issuer_column_list,key = 'issuer_rid_column')
+                    st.button('Merge Issuer',on_click = submit_merge_issuser,key = 'submit_merge_issuer')
+
+        # if tidy dataframe
+        tidy_data_checkbox = st.checkbox('Want to Tidy Data?')
+        if tidy_data_checkbox:
+            
+            # 1.adjust (add or combine)
+            if st.session_state.query_df_adjust_column: #init = True
+                if st.session_state.query_add_section == False: 
+                    with st.container():
+                        st.subheader('เพิ่ม Column ที่ต้องการรวม')
+                        add = st.text_input(label = '', placeholder= 'พิมพ์ชื่อคอลัมน์ใหม่และ Enter หลังจากนั้นเลือก Column และกด Add',label_visibility='collapsed')
+                        comb = st.multiselect(label = '',options = st.session_state['query_df'].columns.values,key = 'candidate_col')
+                        bt = st.button(label = 'Add',on_click = query_save_extracolumn, args = ([add]))
+
+                if len(st.session_state.query_section_df) > 0 :
+                    st.write(st.session_state.query_section_df)
+                    process_button = st.button('Submit',on_click = query_submit_section)
+                else:
+                    skip_button = st.button('Skip',on_click = query_skip_section)
+
+            # 2.finalize (select column to keep)
+            if st.session_state.query_df_finalize_column:
+                if st.session_state['query_temporary_df'] is not None:
+                    if (st.session_state.query_temporary_df.shape[0]) > 50000:
+                        st.write('สุ่มมาทั้งหมด 50,000 rows')
+                        conditional_st_write_df(st.session_state.query_temporary_df.sample(50000))
+                    else:
+                        conditional_st_write_df(st.session_state.query_temporary_df)
+                st.write(f'{st.session_state.query_temporary_df.shape[0]} rows , {st.session_state.query_temporary_df.shape[1]} columns')
+                
+                if st.session_state['query_submit_coltoKeep'] == False:
+                    columnsFromDf = st.session_state['query_temporary_df'].columns.values
+                    st.multiselect(label = 'Please Select Column to Keep',options = columnsFromDf,default = columnsFromDf,key = 'query_col_list_select_box')
+                    l1,r1 = st.columns([11,2])
+                    r1.button('Submit',on_click = query_finalize_column,key = 'q_s_col_button')
+
+        # next button
+        st.divider()
+        st.button("Next Step",on_click = query_input_process1)
+        
+    ###################### select holder name columns ######################
+    if st.session_state['query_df'] is not None and st.session_state['merge_issuer'] and st.session_state['tidy_data'] and st.session_state['s_hldr_cn']:
         if (st.session_state.query_df.shape[0]) > 50000:
             st.write('สุ่มมาทั้งหมด 50,000 rows')
             st.write(st.session_state.query_df.sample(50000))
         else:
-             st.write(st.session_state.query_df)
+                st.write(st.session_state.query_df)
         st.write(f'{st.session_state.query_df.shape[0]} rows , {st.session_state.query_df.shape[1]} columns')
+        
         # select Name Column
         query_namecol_box = [None]
         query_namecol_box.extend(st.session_state.query_df.columns)
         query_namecol_option = st.selectbox('โปรดเลือกคอลัมน์ "ชื่อ" ที่ต้องการจะ Name Matching',query_namecol_box,key = 'namecol_select_box')
         # select Column to keep
-        query_keep_col_list = st.session_state.query_df.columns.values.tolist()
-        st.multiselect(label = 'โปรดเลือกคอลัมน์ ที่ต้องการจะเก็บไว้',options = query_keep_col_list,default = query_keep_col_list,key = 'query_keep_col')
         # submit query_input
         if st.session_state['namecol_select_box'] is not None:
             submit_input_query = st.button('Submit',on_click = submit_input_query)
