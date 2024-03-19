@@ -1676,7 +1676,7 @@ if st.session_state['app2_output'] is not None:
         #st.write(st.session_state.app2_output.shape)
         if st.session_state.add_section == False: 
             with st.container():
-                st.subheader('เพิ่ม Column ที่ต้องการรวม')
+                st.subheader('เพิ่ม/รวม/แก้ไข Column ที่ต้องการ')
                 add = st.text_input(label = '', placeholder= 'พิมพ์ชื่อคอลัมน์ใหม่และ Enter หลังจากนั้นเลือก Column และกด Add',label_visibility='collapsed')
                 comb = st.multiselect(label = '',options = st.session_state.app2_output.columns.values,key = 'candidate_col')
                 bt = st.button(label = 'Add',on_click = save_extracolumn, args = ([add]))
