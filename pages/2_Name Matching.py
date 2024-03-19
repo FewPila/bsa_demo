@@ -371,7 +371,7 @@ if  st.session_state.query_input == False:
 
                     l1,r1 = st.columns(2)
                     with l1:
-                        st.subheader('Please Select Necessary Column')
+                        st.subheader('เลือก RID ของ Holder และ Issuer')
                         st.selectbox('HLDR RID',options = hldr_column_list,key = 'hldr_rid_column')
                         st.selectbox('ISSUER RID',options = issuer_column_list,key = 'issuer_rid_column')
                     st.button('Merge Issuer',on_click = submit_merge_issuser,key = 'submit_merge_issuer')
