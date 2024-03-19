@@ -355,9 +355,10 @@ if  st.session_state.query_input == False:
             merge_issuer_checkbox = st.checkbox('Want to Merge Issuer?')
             if merge_issuer_checkbox:
                 issuer_upload = st.file_uploader("Choose a file to upload",key = 'issuer_upload')
-                if issuer_upload is not None:
-                    st.session_state.issuer_df = read_upload_data(issuer_upload)
-                    st.session_state.issuer_cache = True
+                if st.session_state.issuer_cache == False:
+                    if issuer_upload is not None:
+                        st.session_state.issuer_df = read_upload_data(issuer_upload)
+                        st.session_state.issuer_cache = True
                 
                 if st.session_state['issuer_df'] is not None and st.session_state['merge_issuer'] == False:
                     # select hldr column for merge
