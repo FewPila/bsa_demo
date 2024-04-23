@@ -1389,6 +1389,8 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
         right.selectbox(label = '',options = choices,index = 0,key = 'input_hldrname',label_visibility = 'collapsed')
         left.subheader(f':gray[รหัส isic4 :]')
         right.selectbox(label = '',options = choices,index = 0,key = 'input_isic',label_visibility = 'collapsed')
+        left.subheader(f':gray[รหัส Issuer RID :]')
+        right.selectbox(label = '',options = choices,index = 0,key = 'input_issuer_rid',label_visibility = 'collapsed')
         # cal_eq = st.checkbox('Calculate Equity?')
         # if cal_eq:
         #     left.subheader(f':gray[จำนวนหุ้น :]')
@@ -1417,6 +1419,8 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
             st.session_state['global_input']['hldr_name'] = st.session_state['input_hldrname']
             st.session_state['global_input']['sna'] = st.session_state['input_sna']
             st.session_state['global_input']['sna_action'] = pd.read_csv('data/action_matchedsna.csv')
+            st.session_state['global_input']['issuer_rid'] = st.session_state['input_issuer_rid']
+            
             # if cal_eq:
             #     st.session_state['global_input']['share'] = st.session_state['input_share']
             # else:
@@ -1860,7 +1864,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
         if target == 4:
             st.session_state['data'] = st.session_state['data'].drop_duplicates(subset = [st.session_state['global_input']['hldr_name'], st.session_state['global_input_firm']['hldr_name'], 
                                                                                           st.session_state['global_input']['nat'],
-                                                                                          st.session_state['global_input_firm']['rid']]).reset_index(drop = True)
+                                                                                          st.session_state['global_input']['issuer_rid']]).reset_index(drop = True)
         # Finshed Loop
         # Process Tidy SNA
         tidy_sna_block = st.empty()
