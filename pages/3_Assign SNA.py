@@ -1893,13 +1893,14 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
 
         tidy_sna_block.empty()               
     # Finished
-    st.session_state['app3_finalize_output'] = load_in(st.session_state['data'].drop_duplicates(subset = 'Index').reset_index(drop = True)
-    ###### Apply Rule Based on Holders Only
+    st.session_state['app3_finalize_output'] = load_in(st.session_state['data'].drop_duplicates(subset = 'Index').reset_index(drop = True))
+
+###### Apply Rule Based on Holders Only
+else:
+    if st.session_state['rid1_checkbox_out'] or st.session_state['rid2_checkbox_out']:
+        max_rank = 5
     else:
-        if st.session_state['rid1_checkbox_out'] or st.session_state['rid2_checkbox_out']:
-            max_rank = 5
-        else:
-            max_rank = 4
+        max_rank = 4
 
         st.session_state['data']['HLDR_FINAL_SNA'] = np.nan
         st.session_state['data']['HLDR_FINAL_SNA10'] = np.nan
@@ -1988,7 +1989,9 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
         tidy_sna_block.empty()
         # Finished
         #st.session_state['app3_finalize_output'] = load_in(st.session_state['data'].reset_index().drop_duplicates(subset='index', keep='first').drop('index',axis = 1).reset_index(drop = True))
-    st.session_state['app3_finalize_output'] = load_in(st.session_state['data'].drop_duplicates(subset = 'Index').reset_index(drop = True)
+    st.session_state['app3_finalize_output'] = load_in(st.session_state['data'].drop_duplicates(subset = 'Index').reset_index(drop = True))
+
+
 if st.session_state['app3_finalize_output'] is not None:
     #conditional_st_write_df(st.session_state['app3_finalize_output'])
     #st.write(st.session_state['app3_finalize_output'].shape)
