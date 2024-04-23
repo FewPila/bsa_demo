@@ -1892,8 +1892,7 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                 st.session_state['data'] = st.session_state['data'].drop(f'tidy_{row.TARGET_SNA}',axis = 1)
 
         tidy_sna_block.empty()               
-        # Finished
-#st.session_state['app3_finalize_output'] = load_in(st.session_state['data'].reset_index().drop_duplicates(subset='index', keep='first').drop('index',axis = 1).reset_index(drop = True))
+    # Finished
     st.session_state['app3_finalize_output'] = load_in(st.session_state['data'].drop_duplicates(subset = 'Index').reset_index(drop = True)
     ###### Apply Rule Based on Holders Only
     else:
