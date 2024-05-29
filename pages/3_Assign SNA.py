@@ -1869,10 +1869,11 @@ if st.session_state['app3_rule_based_prioritize'] and st.session_state['app3_rul
                 st.session_state['data'] = st.session_state['data'].drop(['HLDR_FINAL_SNA10_left','HLDR_FINAL_SNA10_right'],axis = 1)
         
         # Drop Duplicate in Issuer-Case
-        if target == 4:
-            st.session_state['data'] = st.session_state['data'].drop_duplicates(subset = [st.session_state['global_input']['hldr_name'], st.session_state['global_input_firm']['hldr_name'], 
-                                                                                          st.session_state['global_input']['nat'],
-                                                                                          st.session_state['global_input']['issuer_rid']]).reset_index(drop = True)
+        #if target == 4:
+        #    st.session_state['data'] = st.session_state['data'].drop_duplicates(subset = [st.session_state['global_input']['hldr_name'], st.session_state['global_input_firm']['hldr_name'], 
+        #                                                                                  st.session_state['global_input']['nat'],
+        #                                                                                  st.session_state['global_input']['issuer_rid']]).reset_index(drop = True)
+        
         # Finshed Loop
         # Process Tidy SNA
         tidy_sna_block = st.empty()
