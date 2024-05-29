@@ -1404,7 +1404,7 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
             left_firm.subheader(f':gray[SNA บริษัท:]')
             right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_sna',label_visibility = 'collapsed')
             left_firm.subheader(f':gray[สัญชาติบริษัท :]')
-            right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_nat',label_visibility = 'collapsed')
+            right_firm.selectbox(label = '',options = np.append(['Force-TH'],choices).tolist(),index = 0,key = 'input_firm_nat',label_visibility = 'collapsed')
             left_firm.subheader(f':gray[ชื่อบริษัท :]')
             right_firm.selectbox(label = '',options = choices,index = 0,key = 'input_firm_hldrname',label_visibility = 'collapsed')
             left_firm.subheader(f':gray[รหัส Isic บริษัท :]')
@@ -1437,7 +1437,14 @@ if st.session_state['app3_rule_based'] and st.session_state['app3_rule_based_pri
             
             if st.session_state['apply_rulebased_on_firm']:
                 st.session_state['global_input_firm'] = {}
-                st.session_state['global_input_firm']['nat'] = st.session_state['input_firm_nat']
+                # force firm nationalities to TH
+                #st.session_state['global_input_firm']['nat'] = st.session_state['input_firm_nat']
+                time.sleep(0.5)
+                if st.session_state['input_firm_nat'] == 'Force-TH':
+                    st.session_state['data']['firm_force_nat'] = "TH"
+                    st.session_state['global_input_firm']['nat'] = 'firm_force_nat'
+                else:
+                    st.session_state['global_input_firm']['nat'] = st.session_state['input_firm_nat']
                 st.session_state['global_input_firm']['isic4'] = st.session_state['input_firm_isic']
                 st.session_state['global_input_firm']['hldr_name'] = st.session_state['input_firm_hldrname']
                 st.session_state['global_input_firm']['sna'] = st.session_state['input_firm_sna']
