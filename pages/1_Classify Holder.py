@@ -1089,6 +1089,8 @@ def click_download_params():
 def click_fin_download_params():
     st.session_state.app1_download_params_file = False
 
+if 'app1_drop_dup_index' not in st.session_state:
+    st.session_state['app1_drop_dup_index'] = False
 
 @st.cache_data
 def convert_df(df):
@@ -1110,11 +1112,15 @@ if st.session_state.app1_download_file:
     if st.session_state['nat_classify_output'] == True:
         st.write('this is output after Apply Nat Classifier')
         print(st.session_state['output_data'])
-        st.session_state['output_data'] = st.session_state['output_data'].drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
+        if not st.session_state['app1_drop_dup_index']:
+            st.session_state['output_data'] = st.session_state['output_data'].drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
+            st.session_state['app1_drop_dup_index'] = True
         st.session_state.export_data = convert_df(st.session_state['output_data'])
     else:
         print(st.session_state['app1_data'])
-        st.session_state['app1_data'] = st.session_state['app1_data'].drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
+        if not st.session_state['app1_drop_dup_index']:
+            st.session_state['app1_data'] = st.session_state['app1_data'].drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
+            st.session_state['app1_drop_dup_index'] = True
         st.session_state.export_data = convert_df(st.session_state['app1_data']) #app1_data = final_output without nat classifiy
 
     with st.form('chat_input_form'):
