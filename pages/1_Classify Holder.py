@@ -794,7 +794,7 @@ if st.session_state.app1_nameseer:
                 output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
                                                                                                 'Classified_Class']),how = 'left')
                 # drop duplicated output_classified
-                output_classified = output_classified.drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
+                #output_classified = output_classified.drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
                 
                 result_c = output_classified['Classified_Class'].value_counts(dropna = False).reset_index()
                 result_c.columns = ['Classified_Class','Count']
@@ -842,7 +842,7 @@ if st.session_state.app1_nameseer:
                 output_classified['Classified_Class'] = output_classified['Classified_Class'].fillna('Unknown') 
                 
                 # drop duplicated output_classified
-                output_classified = output_classified.drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
+                #output_classified = output_classified.drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
         
                 result_c = output_classified['Classified_Class'].value_counts(dropna = False).reset_index()
                 result_c.columns = ['Classified_Class','Count']
@@ -878,7 +878,7 @@ if st.session_state.app1_nameseer:
         output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
                                                                                            'Classified_Class']),how = 'left')
         # drop duplicated output_classified
-        output_classified = output_classified.drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
+        #output_classified = output_classified.drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
         
         result_c = output_classified['Classified_Class'].value_counts(dropna = False).reset_index()
         result_c.columns = ['Classified_Class','Count']
@@ -1109,8 +1109,10 @@ if st.session_state.app1_download_file:
     submitted = False
     if st.session_state['nat_classify_output'] == True:
         st.write('this is output after Apply Nat Classifier')
+        st.session_state['output_data'] = st.session_state['output_data'].drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
         st.session_state.export_data = convert_df(st.session_state['output_data'])
     else:
+        st.session_state['app1_data'] = st.session_state['app1_data'].drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
         st.session_state.export_data = convert_df(st.session_state['app1_data']) #app1_data = final_output without nat classifiy
 
     with st.form('chat_input_form'):
