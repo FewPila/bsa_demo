@@ -294,6 +294,7 @@ def submit_app1_input():
     if st.session_state.app1_prep_mult_nmcol:
         st.session_state.app1_dataframe['concated_name'] = concat_name(st.session_state.app1_dataframe.filter(st.session_state.multiple_name_columns))
     st.session_state.app1_dataframe = st.session_state.app1_dataframe.dropna(subset = st.session_state.selected_option).reset_index(drop = True)
+    st.session_state.app1_dataframe = st.session_state.app1_dataframe.reset_index().rename(columns = {'index':"Index"})
     st.session_state.app1_name_column = load_in(st.session_state.selected_option)
     #st.session_state.app1_dataframe,st.session_state.app1_name_column = init_data_upload(dataframe,st.session_state.option)
     st.session_state.app1_regex = True
@@ -838,6 +839,9 @@ if st.session_state.app1_nameseer:
                                                                                                 'Classified_Class','Classified_By']),how = 'left')
                 output_classified['Classified_Class'] = output_classified['Classified_Class'].fillna('Unknown') 
                 
+                # drop duplicated output_classified
+                output_classified = output_classified.drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
+        
                 result_c = output_classified['Classified_Class'].value_counts(dropna = False).reset_index()
                 result_c.columns = ['Classified_Class','Count']
                 result_c['Count'] = result_c['Count'].astype(int)
@@ -871,7 +875,9 @@ if st.session_state.app1_nameseer:
         
         output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
                                                                                            'Classified_Class']),how = 'left')
-
+        # drop duplicated output_classified
+        output_classified = output_classified.drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
+        
         result_c = output_classified['Classified_Class'].value_counts(dropna = False).reset_index()
         result_c.columns = ['Classified_Class','Count']
         result_c['Count'] = result_c['Count'].astype(int)
@@ -1086,7 +1092,7 @@ def convert_df(df):
     # IMPORTANT: Cache the conversion to prevent computation on every rerun
     #return df.to_csv().encode('utf-8')
     #return df.to_csv(encoding='utf-8-sig')
-    return df.to_csv().encode('utf-8-sig')
+    return df.to_csv(index = False).encode('utf-8-sig')
 
 if st.session_state.app1_nameseer:
     #st.divider()
@@ -1102,7 +1108,7 @@ if st.session_state.app1_download_file:
         st.write('this is output after Apply Nat Classifier')
         st.session_state.export_data = convert_df(st.session_state['output_data'])
     else:
-        st.session_state.export_data = convert_df(st.session_state['app1_data'])
+        st.session_state.export_data = convert_df(st.session_state['app1_data']) #app1_data = final_output without nat classifiy
 
     with st.form('chat_input_form'):
         # Create two columns; adjust the ratio to your liking
