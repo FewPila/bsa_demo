@@ -1109,9 +1109,11 @@ if st.session_state.app1_download_file:
     submitted = False
     if st.session_state['nat_classify_output'] == True:
         st.write('this is output after Apply Nat Classifier')
+        print(st.session_state['output_data'])
         st.session_state['output_data'] = st.session_state['output_data'].drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
         st.session_state.export_data = convert_df(st.session_state['output_data'])
     else:
+        print(st.session_state['app1_data'])
         st.session_state['app1_data'] = st.session_state['app1_data'].drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
         st.session_state.export_data = convert_df(st.session_state['app1_data']) #app1_data = final_output without nat classifiy
 
