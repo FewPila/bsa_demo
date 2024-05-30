@@ -793,6 +793,8 @@ if st.session_state.app1_nameseer:
                                     ]).drop_duplicates(st.session_state.app1_name_column)
                 output_classified = st.session_state.app1_dataframe.merge(classified_result.filter([st.session_state.app1_name_column,
                                                                                                 'Classified_Class']),how = 'left')
+                # drop duplicated output_classified
+                output_classified = output_classified.drop_duplicates(subset = 'Index').reset_index(drop = True).drop('Index',axis = 1)
                 
                 result_c = output_classified['Classified_Class'].value_counts(dropna = False).reset_index()
                 result_c.columns = ['Classified_Class','Count']
@@ -929,6 +931,7 @@ if st.session_state['nat_classify_input'] == False and st.session_state.app1_nam
     #['dev_cleaning'] = True ?
     #['nameseer_person_score] = 
     #['nameseer_company_score] = 
+
 #################################### Nat Classifier ####################################
 if st.session_state['nat_classify_input'] == False and st.session_state.app1_nameseer:
     st.session_state['data'] = st.session_state['app1_data'].copy()
