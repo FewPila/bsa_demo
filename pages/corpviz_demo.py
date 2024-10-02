@@ -79,7 +79,7 @@ def submit_sankey():
 
 @st.cache_resource
 def cache_load_html(html):
-    st.components.v1.html(html,width = 1080, height=720)
+    st.components.v1.html(html,width = 1280, height=720)
 
 st.header('More Detail for each group')
 # options = ['Central Pattana','Central Retail','Charoen Phokphan','CPALL','Centara']
