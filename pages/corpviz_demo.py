@@ -45,7 +45,7 @@ if 'df' not in st.session_state:
     st.session_state['df'] = load_in(pd.read_csv('corpviz_data/group_data/group_monitor_table.csv'))
 
 st.header('Warning Table')
-st.write(st.session_state['df'].style.format("{:.4}").apply(highlighther,subset = ['2024/01','2024/02','2024/03','2024/04','2024/05','2024/06']).apply(highlighther2,subset = ['2023H1','2023H2','YTD']))
+st.write(st.session_state['df'].style.format("{:.4}").apply(highlighther,subset = ['2024-01','2024-02','2024-03','2024-04','2024-05','2024-06']).apply(highlighther2,subset = ['2023H1','2023H2','YTD']))
 
 
 
