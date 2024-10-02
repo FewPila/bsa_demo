@@ -47,7 +47,8 @@ if 'df' not in st.session_state:
 st.header('Warning Table')
 st.write(st.session_state['df'].style.apply(highlighther,subset = ['2024-01','2024-02','2024-03','2024-04','2024-05','2024-06'])\
          .apply(highlighther2,subset = ['2023H1','2023H2','YTD'])\
-         .format("{:.4}",subset = ['2024-01','2024-02','2024-03','2024-04','2024-05','2024-06','2023H1','2023H2','YTD'])
+         .format("{:.4}",subset = ['2024-01','2024-02','2024-03','2024-04','2024-05','2024-06','2023H1','2023H2','YTD'])\
+         .format("{:.8}",subset = ['latest_exposure'])
         )
 
 
@@ -92,6 +93,12 @@ if st.session_state['box_session'] is not None:
         st.header(f"{st.session_state['sankey_comp']} : Monitoring Table")
         # st.write(st.session_state['debtor_data'])
         #st.write(st.session_state['debtor_data'].apply(highlighther,subset = ['2024-01','2024-02','2024-03','2024-04','2024-05','2024-06']).apply(highlighther2,subset = ['2023H1','2023H2','YTD']).style.format("{:.4}",subset = ['2024-01','2024-02','2024-03','2024-04','2024-05','2024-06','2023H1','2023H2','YTD']))
+        st.write(st.session_state['debtor_data'].style.apply(highlighther,subset = ['2024-01','2024-02','2024-03','2024-04','2024-05','2024-06'])\
+         .apply(highlighther2,subset = ['2023H1','2023H2','YTD'])\
+         .format("{:.4}",subset = ['2024-01','2024-02','2024-03','2024-04','2024-05','2024-06','2023H1','2023H2','YTD'])\
+         .format("{:.8}",subset = ['latest_exposure'])
+        )
+
         ## Show in webpage
         st.header(f"{st.session_state['sankey_comp']} : Sankey Chart")
         # st.components.v1.html(st.session_state['html_data'],width = 1080, height=720)
