@@ -49,7 +49,7 @@ st.write(st.session_state['df'].style.apply(highlighther,subset = ['2024-01','20
          .apply(highlighther2,subset = ['2023H1','2023H2','YTD'])\
          .format("{:.4}",subset = ['2024-01','2024-02','2024-03','2024-04','2024-05','2024-06','2023H1','2023H2','YTD'])\
          .format("{:.8}",subset = ['latest_exposure'])
-        )
+        ,use_container_width = True)
 
 
 
@@ -97,7 +97,7 @@ if st.session_state['box_session'] is not None:
          .apply(highlighther2,subset = ['2023H1','2023H2','YTD'])\
          .format("{:.4}",subset = ['2024-01','2024-02','2024-03','2024-04','2024-05','2024-06','2023H1','2023H2','YTD'])\
          .format("{:.8}",subset = ['latest_exposure'])
-        )
+        ,use_container_width = True)
 
         ## Show in webpage
         st.header(f"{st.session_state['sankey_comp']} : Sankey Chart")
