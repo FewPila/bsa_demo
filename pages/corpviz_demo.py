@@ -42,7 +42,7 @@ def highlighther2(x_list):
     return v_list
 
 if 'df' not in st.session_state:
-    st.session_state['df'] = load_in(pd.read_csv('big_group.csv'))
+    st.session_state['df'] = load_in(pd.read_csv('corpviz_data/group_data/group_monitor_table.csv'))
 
 st.header('Warning Table')
 st.write(st.session_state['df'].style.format("{:.4}").apply(highlighther,subset = ['2024/01','2024/02','2024/03','2024/04','2024/05','2024/06']).apply(highlighther2,subset = ['2023H1','2023H2','YTD']))
@@ -57,18 +57,18 @@ if 'sankey_session' not in st.session_state:
     st.session_state['sankey_comp'] = None
     
 if 'option' not in st.session_state:
-    st.session_state['option'] = [re.sub('\\.html','',x) for x in os.listdir('figs2')]
+    st.session_state['option'] = [re.sub('\\.html','',x) for x in os.listdir('corpviz_data/sankey_fig')]
 
 
 # @st.cache_data
 def submit_sankey():
     st.session_state['sankey_session'] = True
     st.session_state['sankey_comp'] = load_in(st.session_state['box_session'])
-    with open(f"figs2/{st.session_state['sankey_comp']}.html",'r') as f: 
+    with open(f"corpviz_data/sankey_fig/{st.session_state['sankey_comp']}.html",'r') as f: 
         html_data = f.read()
     st.session_state['html_data'] = load_in(html_data)
 
-    st.session_state['debtor_data'] = load_in(pd.read_csv(f"debtors/{st.session_state['sankey_comp']}.csv"))
+    st.session_state['debtor_data'] = load_in(pd.read_csv(f"corpviz_data/debtors_data/{st.session_state['sankey_comp']}.csv"))
 
     # st.header(f"Show an external {st.session_state['sankey_comp']}")
     # cache_load_html(st.session_state['html_data'])
